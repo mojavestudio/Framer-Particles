@@ -2,7 +2,7 @@
 
 A powerful, customizable particles component for Framer with extensive animation options and Spline compatibility.
 
-![Particles Demo](https://via.placeholder.com/800x400/1a1a1a/ffffff?text=Mojave+Particles+Demo)
+![Mojave Particles](https://img.shields.io/badge/Framer-Plugin-blue?style=for-the-badge&logo=framer)
 
 ## Features
 
@@ -33,7 +33,7 @@ A powerful, customizable particles component for Framer with extensive animation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/mojave-particles.git
+git clone https://github.com/mojavestudio/Framer-Particles.git
 
 # Install dependencies
 npm install
