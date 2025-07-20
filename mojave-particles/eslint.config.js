@@ -20,6 +20,11 @@ export default tseslint.config(
         rules: {
             ...reactHooks.configs.recommended.rules,
             "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+            // Disable strict rules for Framer plugin compatibility
+            "@typescript-eslint/ban-ts-comment": "off",
+            "@typescript-eslint/no-require-imports": "off",
+            "@typescript-eslint/no-unused-vars": "off",
+            "@typescript-eslint/no-explicit-any": "off",
         },
     }
 )
