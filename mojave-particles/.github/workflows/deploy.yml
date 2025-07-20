@@ -26,16 +26,15 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
+        cache-dependency-path: 'mojave-particles/package-lock.json'
         
     - name: Install dependencies
-      run: |
-        cd mojave-particles
-        npm ci
+      working-directory: ./mojave-particles
+      run: npm ci
       
     - name: Build
-      run: |
-        cd mojave-particles
-        npm run build
+      working-directory: ./mojave-particles
+      run: npm run build
       
     - name: Setup Pages
       uses: actions/configure-pages@v4
