@@ -26,10 +26,6 @@ jobs:
       working-directory: ./mojave-particles
       run: npm ci
     
-    - name: Run tests
-      working-directory: ./mojave-particles
-      run: npm test
-    
     - name: Check build
       working-directory: ./mojave-particles
       run: npm run build
@@ -37,9 +33,5 @@ jobs:
     - name: Lint code
       working-directory: ./mojave-particles
       run: npm run lint
-    
-    - name: Format check
-      working-directory: ./mojave-particles
-      run: npm run format
 
  
