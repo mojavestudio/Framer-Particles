@@ -40,7 +40,7 @@ jobs:
   publish:
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: false # Disabled until npm authentication is set up
     
     steps:
     - uses: actions/checkout@v4
