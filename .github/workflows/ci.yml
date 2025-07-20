@@ -26,9 +26,6 @@ jobs:
     - name: Install dependencies
       run: npm ci
     
-    - name: Install Framer CLI
-      run: npm install -g @framer/cli
-    
     - name: Run tests
       run: npm test
     
@@ -58,9 +55,6 @@ jobs:
     
     - name: Install dependencies
       run: npm ci
-    
-    - name: Install Framer CLI
-      run: npm install -g @framer/cli
     
     - name: Build
       run: npm run build

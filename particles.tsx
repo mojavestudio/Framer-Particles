@@ -1,5 +1,5 @@
 // Mojave Particles component - Fixed version
-// This component leverages react-tsparticles to provide extensive customization.
+// This component leverages @tsparticles/react to provide extensive customization.
 
 // Handle React import conflicts with Spline or other embedded viewers
 let React
@@ -19,9 +19,9 @@ let Particles, loadFull
 if (typeof window !== 'undefined') {
     try {
         // @ts-ignore
-        const tsparticles = require("react-tsparticles")
+        const tsparticles = require("@tsparticles/react")
         // @ts-ignore
-        const tsparticlesEngine = require("tsparticles")
+        const tsparticlesEngine = require("@tsparticles/engine")
         Particles = tsparticles.Particles
         loadFull = tsparticlesEngine.loadFull
     } catch (e) {
