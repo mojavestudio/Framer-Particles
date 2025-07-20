@@ -1,0 +1,70 @@
+{
+  "name": "mojave-particles",
+  "version": "1.0.0",
+  "description": "A powerful, customizable particles component for Framer with extensive animation options and Spline compatibility",
+  "main": "particles.tsx",
+  "framer": {
+    "id": "mojave-particles",
+    "title": "Mojave Particles",
+    "author": "Mojave Particles",
+    "description": "Create beautiful particle effects with extensive customization options. Perfect for backgrounds, interactive elements, and visual effects. Includes Spline compatibility mode.",
+    "keywords": ["particles", "animation", "background", "interactive", "spline", "canvas", "framer", "plugin"],
+    "repository": "https://github.com/yourusername/mojave-particles",
+    "license": "MIT",
+    "homepage": "https://github.com/yourusername/mojave-particles#readme",
+    "bugs": "https://github.com/yourusername/mojave-particles/issues",
+    "maintainers": ["yourusername"]
+  },
+  "dependencies": {
+    "react": "^18.0.0",
+    "react-tsparticles": "^2.12.0",
+    "tsparticles": "^2.12.0",
+    "framer": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0"
+  },
+  "scripts": {
+    "start": "framer start",
+    "build": "framer build",
+    "publish": "framer publish",
+    "test": "echo \"No tests specified\" && exit 0",
+    "lint": "echo \"No linter configured\" && exit 0",
+    "format": "echo \"No formatter configured\" && exit 0",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "framer",
+    "plugin",
+    "particles",
+    "animation",
+    "canvas",
+    "spline",
+    "interactive",
+    "background",
+    "visual-effects",
+    "react",
+    "typescript"
+  ],
+  "author": "Mojave Particles <your-email@example.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/mojave-particles.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/mojave-particles/issues"
+  },
+  "homepage": "https://github.com/yourusername/mojave-particles#readme",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "files": [
+    "particles.tsx",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ]
+} 
