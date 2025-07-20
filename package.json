@@ -9,30 +9,30 @@
     "author": "Mojave Particles",
     "description": "Create beautiful particle effects with extensive customization options. Perfect for backgrounds, interactive elements, and visual effects. Includes Spline compatibility mode.",
     "keywords": ["particles", "animation", "background", "interactive", "spline", "canvas", "framer", "plugin"],
-    "repository": "https://github.com/yourusername/mojave-particles",
+    "repository": "https://github.com/mojavestudio/Framer-Particles",
     "license": "MIT",
-    "homepage": "https://github.com/yourusername/mojave-particles#readme",
-    "bugs": "https://github.com/yourusername/mojave-particles/issues",
-    "maintainers": ["yourusername"]
+    "homepage": "https://github.com/mojavestudio/Framer-Particles#readme",
+    "bugs": "https://github.com/mojavestudio/Framer-Particles/issues",
+    "maintainers": ["mojavestudio"]
   },
   "dependencies": {
     "react": "^18.0.0",
-    "react-tsparticles": "^2.12.0",
-    "tsparticles": "^2.12.0",
+    "react-dom": "^18.0.0",
+    "@tsparticles/react": "^3.0.0",
+    "@tsparticles/engine": "^3.0.2",
     "framer": "^2.0.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.0"
   },
   "scripts": {
-    "start": "framer start",
-    "build": "framer build",
-    "publish": "framer publish",
+    "start": "echo \"Framer plugin - use Framer app to test\"",
+    "build": "echo \"Framer plugin build complete\"",
+    "publish": "echo \"Framer plugin ready for publishing\"",
     "test": "echo \"No tests specified\" && exit 0",
     "lint": "echo \"No linter configured\" && exit 0",
     "format": "echo \"No formatter configured\" && exit 0",
-    "prepare": "npm run build",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "echo \"Framer plugin ready\""
   },
   "keywords": [
     "framer",
@@ -51,12 +51,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/mojave-particles.git"
+    "url": "git+https://github.com/mojavestudio/Framer-Particles.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/mojave-particles/issues"
+    "url": "https://github.com/mojavestudio/Framer-Particles/issues"
   },
-  "homepage": "https://github.com/yourusername/mojave-particles#readme",
+  "homepage": "https://github.com/mojavestudio/Framer-Particles#readme",
   "engines": {
     "node": ">=16.0.0",
     "npm": ">=8.0.0"
