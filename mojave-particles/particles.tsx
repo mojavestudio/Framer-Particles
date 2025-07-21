@@ -1,18 +1,33 @@
 // Mojave Particles component - Fixed version
 // This component leverages @tsparticles/react to provide extensive customization.
 
+// @ts-ignore
+import { addPropertyControls, ControlType, Color, RenderTarget } from "framer"
+
+// Debug logs removed - cache bust v1.1
 // Handle React import conflicts with Spline or other embedded viewers
-let React
+let React: any, useCallback: any, useEffect: any, useRef: any, useState: any
 try {
     // @ts-ignore
-    React = require("react")
+    const reactModule = require("react")
+    React = reactModule
+    useCallback = reactModule.useCallback
+    useEffect = reactModule.useEffect
+    useRef = reactModule.useRef
+    useState = reactModule.useState
 } catch (e) {
+    // Fallback to global React for Spline mode
     // @ts-ignore
     React = window.React
+    // @ts-ignore
+    useCallback = window.React?.useCallback
+    // @ts-ignore
+    useEffect = window.React?.useEffect
+    // @ts-ignore
+    useRef = window.React?.useRef
+    // @ts-ignore
+    useState = window.React?.useState
 }
-
-import { addPropertyControls, ControlType, Color, RenderTarget } from "framer"
-import { useCallback, useEffect, useRef, useState } from "react"
 
 // Conditional import to avoid Three.js conflicts
 let Particles, loadFull
@@ -33,7 +48,7 @@ if (typeof window !== 'undefined') {
     }
 }
 
-export default function MojaveParticles(props) {
+export default function MojaveParticles(props: any) {
     const {
         backdrop,
         color,
@@ -56,39 +71,47 @@ export default function MojaveParticles(props) {
         splineMode,
         testMode,
         previewAnimation,
+        forceInteractive,
+        forceCanvasMode,
     } = props
 
     // State to track if tsParticles is available
     const [tsParticlesAvailable, setTsParticlesAvailable] = useState(false)
-    const [error, setError] = useState<string | null>(null)
+    const [error, setError] = useState(null)
     const [isMounted, setIsMounted] = useState(false)
 
     // Canvas ref for Spline mode
-    const canvasRef = useRef<HTMLCanvasElement>(null)
-    const animationRef = useRef<number | null>(null)
-    const particlesRef = useRef<any[]>([])
-    const previewTimerRef = useRef<number | null>(null)
+    const canvasRef = useRef(null)
+    const animationRef = useRef(null)
+    const particlesRef = useRef([])
+    const startTimeRef = useRef(null)
+    // const previewTimerRef = useRef(null) // Currently unused
+    const mouseRef = useRef({ x: -1, y: -1, isHovering: false })
 
     // Detect environment
     const isCanvas = RenderTarget.current() === RenderTarget.canvas
-    const isPreview = RenderTarget.current() === RenderTarget.preview
-    const isPublished = RenderTarget.current() !== RenderTarget.canvas && RenderTarget.current() !== RenderTarget.preview
+    // const isPreview = RenderTarget.current() === RenderTarget.preview // Currently unused
+    // const isPublished = RenderTarget.current() !== RenderTarget.canvas && RenderTarget.current() !== RenderTarget.preview // Currently unused
 
     // Check tsParticles availability
     useEffect(() => {
         setIsMounted(true)
         
+        // Environment check debug removed to prevent console spam
+        
         if (!splineMode && Particles && loadFull) {
             setTsParticlesAvailable(true)
             setError(null)
+            // console.log("tsParticles is available - hover interactions will work")
         } else if (!splineMode) {
             setTsParticlesAvailable(false)
-            setError("tsParticles not available - switching to Canvas Mode")
+            setError("tsParticles not available - switching to Canvas Mode (hover interactions disabled)")
+            // console.warn("tsParticles not available:", { Particles: !!Particles, loadFull: !!loadFull })
         }
     }, [splineMode])
 
     // Callback to initialize the tsParticles engine
-    const init = useCallback(async (engine) => {
+    const init = useCallback(async (engine: any) => {
         try {
             if (loadFull) {
                 await loadFull(engine)
@@ -102,8 +125,80 @@ export default function MojaveParticles(props) {
         }
     }, [])
 
-    // Handle multiple colors for particles
-    const cols = Array.isArray(colors) && colors.length ? colors : [color]
+    // Convert colors to hex strings like the original - handle design tokens
+    const makeHex = (property: any): string => {
+        try {
+            // If it's already a hex string, return it
+            if (typeof property === 'string' && property.startsWith('#')) {
+                return property
+            }
+            
+            // If it's a CSS custom property (design token), extract the fallback value
+            if (typeof property === 'string' && property.includes('var(')) {
+                // Extract the fallback value from var(--token, fallback)
+                // Handle both simple and complex fallback values
+                const match = property.match(/var\([^,]+,\s*([^)]+)\)/)
+                if (match) {
+                    const extracted = match[1].trim()
+                    property = extracted
+                }
+            }
+            
+            // Use Framer's Color conversion
+            const result = Color.toHexString(Color(property))
+            return result
+        } catch (error) {
+            console.warn("Color conversion failed:", error)
+            // Fallback to white if conversion fails
+            return '#ffffff'
+        }
+    }
+    
+    // Handle multiple colors for particles - match original logic exactly
+    const hasMultipleColors = colors.length > 0
+    const cols = hasMultipleColors ? colors.map((color: any) => makeHex(color)) : makeHex(color)
+    
+    // Convert any Framer color format to RGBA string for canvas mode
+    const convertToCanvasColor = (color: any, alpha: number = 1): string => {
+        if (!color) return `rgba(255, 255, 255, ${alpha})`
+        
+        try {
+            // Use the same approach as the original: convert to hex first
+            const hexColor = makeHex(color)
+            return hexToRgba(hexColor, alpha)
+        } catch (error) {
+            console.warn("Failed to convert color:", color, error)
+            return `rgba(255, 255, 255, ${alpha})`
+        }
+    }
+    
+    // Fallback hex to RGBA converter (for edge cases)
+    const hexToRgba = (hex: string, alpha: number = 1): string => {
+        if (!hex) return `rgba(255, 255, 255, ${alpha})`
+        
+        // Remove # if present
+        hex = hex.replace('#', '')
+        
+        // Handle 3-digit hex codes
+        if (hex.length === 3) {
+            hex = hex.split('').map(char => char + char).join('')
+        }
+        
+        if (hex.length !== 6) return `rgba(255, 255, 255, ${alpha})`
+        
+        const r = parseInt(hex.substr(0, 2), 16)
+        const g = parseInt(hex.substr(2, 2), 16)
+        const b = parseInt(hex.substr(4, 2), 16)
+        
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`
+    }
+    
+    // Get random color from the processed colors array for canvas mode
+    const getRandomCanvasColor = (): string => {
+        return hasMultipleColors 
+            ? cols[Math.floor(Math.random() * cols.length)]
+            : cols as string
+    }
 
 
 
@@ -123,35 +218,81 @@ export default function MojaveParticles(props) {
         const ctx = canvas.getContext('2d')
         if (!ctx) return
         
-        // Set canvas size with fallback
+        // Set canvas size with proper scaling
         const resizeCanvas = () => {
             const container = canvas.parentElement
-            const containerWidth = container?.offsetWidth || 800
-            const containerHeight = container?.offsetHeight || 600
+            if (!container) return
             
-            canvas.width = containerWidth
-            canvas.height = containerHeight
+            const rect = container.getBoundingClientRect()
+            const containerWidth = rect.width || 800
+            const containerHeight = rect.height || 600
+            
+            // Get device pixel ratio for crisp rendering
+            const dpr = window.devicePixelRatio || 1
+            
+            // Set the actual canvas size (internal resolution)
+            canvas.width = containerWidth * dpr
+            canvas.height = containerHeight * dpr
+            
+            // Scale the canvas back down using CSS
+            canvas.style.width = containerWidth + 'px'
+            canvas.style.height = containerHeight + 'px'
+            
+            // Scale the drawing context to match device pixel ratio
+            ctx.scale(dpr, dpr)
+            
+            // Store the logical dimensions for particle calculations
+            canvas.logicalWidth = containerWidth
+            canvas.logicalHeight = containerHeight
         }
         
         // Initial resize with delay to ensure container is ready
         setTimeout(resizeCanvas, 100)
         window.addEventListener('resize', resizeCanvas)
 
+        // Mouse event handlers for hover interactions
+        const handleMouseMove = (event: MouseEvent) => {
+            if (!hover.enable) return
+            
+            const rect = canvas.getBoundingClientRect()
+            mouseRef.current = {
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top,
+                isHovering: true
+            }
+        }
+
+        const handleMouseLeave = () => {
+            mouseRef.current = { x: -1, y: -1, isHovering: false }
+        }
+
+        if (hover.enable) {
+            canvas.addEventListener('mousemove', handleMouseMove as EventListener)
+            canvas.addEventListener('mouseleave', handleMouseLeave)
+        }
+
         // Create particles
         const createParticles = () => {
-            const canvasWidth = canvas.width || 800
-            const canvasHeight = canvas.height || 600
+            const canvasWidth = canvas.logicalWidth || 800
+            const canvasHeight = canvas.logicalHeight || 600
             
             const particles: any[] = []
             for (let i = 0; i < amount; i++) {
                 particles.push({
                     x: Math.random() * canvasWidth,
                     y: Math.random() * canvasHeight,
-                    vx: (Math.random() - 0.5) * (move.speed || 2),
-                    vy: (Math.random() - 0.5) * (move.speed || 2),
+                    vx: move.enable ? (Math.random() - 0.5) * (move.speed || 2) * 0.1 : 0,
+                    vy: move.enable ? (Math.random() - 0.5) * (move.speed || 2) * 0.1 : 0,
                     size: size.type === "Range" 
                         ? Math.random() * (size.max - size.min) + size.min
                         : size.value,
+                    color: getRandomCanvasColor(), // Assign a random hex color to each particle
+                    opacity: opacity.type === "Range" 
+                        ? Math.random() * (opacity.max - opacity.min) + opacity.min
+                        : opacity.value, // Assign fixed opacity to prevent flickering
+                    originalSize: size.type === "Range" 
+                        ? Math.random() * (size.max - size.min) + size.min
+                        : size.value, // Store original size for hover effect
                 })
             }
             
@@ -163,16 +304,61 @@ export default function MojaveParticles(props) {
             const particles = particlesRef.current
             if (particles && particles.length > 0) {
                 ctx.fillStyle = backdrop || "#141414"
-                ctx.fillRect(0, 0, canvas.width, canvas.height)
+                ctx.fillRect(0, 0, canvas.logicalWidth || 800, canvas.logicalHeight || 600)
                 
                 particles.forEach(particle => {
+                    // Draw connection lines first (behind particle)
+                    if (particle.grabConnection) {
+                        ctx.beginPath()
+                        ctx.moveTo(particle.x, particle.y)
+                        ctx.lineTo(particle.grabConnection.x, particle.grabConnection.y)
+                        ctx.strokeStyle = hexToRgba(particle.color, particle.grabConnection.opacity)
+                        ctx.lineWidth = 1
+                        ctx.stroke()
+                    }
+                    
+                    if (particle.connectConnection) {
+                        ctx.beginPath()
+                        ctx.moveTo(particle.x, particle.y)
+                        ctx.lineTo(particle.connectConnection.x, particle.connectConnection.y)
+                        ctx.strokeStyle = hexToRgba(particle.color, particle.connectConnection.opacity)
+                        ctx.lineWidth = 2
+                        ctx.stroke()
+                    }
+                    
+                    // Draw trail points
+                    if (particle.trailPoints && particle.trailPoints.length > 0) {
+                        particle.trailPoints.forEach(point => {
+                                                            if (point.life > 0) {
+                                    ctx.beginPath()
+                                    ctx.arc(point.x, point.y, particle.size * 0.5, 0, Math.PI * 2)
+                                    ctx.fillStyle = hexToRgba(particle.color, point.life * 0.3)
+                                    ctx.fill()
+                                }
+                        })
+                    }
+                    
+                    // Draw particle with hover size
+                    const renderSize = particle.hoverSize || particle.size
                     ctx.beginPath()
-                    ctx.arc(particle.x, particle.y, Math.max(2, particle.size), 0, Math.PI * 2)
-                    ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0.3, opacity.type === "Range" ? opacity.max : opacity.value)})`
+                    ctx.arc(particle.x, particle.y, Math.max(2, renderSize), 0, Math.PI * 2)
+                    
+                    // Use particle's pre-assigned opacity to prevent flickering
+                    const particleOpacity = particle.opacity
+                    
+                    // Convert hex color to RGBA with opacity (particle.color is already hex)
+                    const colorWithOpacity = hexToRgba(particle.color, particleOpacity)
+                    ctx.fillStyle = colorWithOpacity
                     ctx.fill()
-                    ctx.strokeStyle = `rgba(255, 255, 255, ${Math.max(0.5, opacity.type === "Range" ? opacity.max : opacity.value)})`
-                    ctx.lineWidth = 1
-                    ctx.stroke()
+                    
+                    // Only add subtle stroke if opacity is very low, otherwise skip stroke
+                    if (particleOpacity < 0.5) {
+                        const strokeOpacity = Math.min(particleOpacity + 0.1, 0.3)
+                        const strokeColor = hexToRgba(particle.color, strokeOpacity)
+                        ctx.strokeStyle = strokeColor
+                        ctx.lineWidth = 0.5
+                        ctx.stroke()
+                    }
                 })
             }
         }
@@ -181,70 +367,238 @@ export default function MojaveParticles(props) {
         const animate = () => {
             try {
                 if (!canvas || !ctx) return
+
+                const currentTime = Date.now()
                 
-                const width = canvas.width || 800
-                const height = canvas.height || 600
-                
-                if (!width || !height) {
-                    animationRef.current = requestAnimationFrame(animate)
-                    return
+                // Initialize start time if not set
+                if (!startTimeRef.current) {
+                    startTimeRef.current = currentTime
                 }
-                
-                // Clear canvas with background
-                ctx.fillStyle = backdrop || "#141414"
-                ctx.fillRect(0, 0, width, height)
-                
-                // Draw particles
-                const particles = particlesRef.current
-                if (particles && particles.length > 0) {
-                    particles.forEach(particle => {
-                        // Update position
+
+                const elapsedTime = currentTime - startTimeRef.current
+
+                // Handle time limit
+                if (move.timeLimit && move.timeLimit > 0) {
+                    if (move.loopAnimation) {
+                        // Perfect loop - reset when time limit reached
+                        if (elapsedTime >= move.timeLimit * 1000) {
+                            startTimeRef.current = currentTime
+                            // Smoothly reset particles to initial positions for perfect loop
+                            // Instead of recreating particles, just reset their positions
+                            const width = canvas.logicalWidth || canvas.width
+                            const height = canvas.logicalHeight || canvas.height
+                            
+                            particlesRef.current.forEach(particle => {
+                                // Reset to random positions
+                                particle.x = Math.random() * width
+                                particle.y = Math.random() * height
+                                
+                                // Reset velocities if movement is enabled
+                                if (move.enable) {
+                                    const speed = move.speed * 0.1
+                                    particle.vx = (Math.random() - 0.5) * speed
+                                    particle.vy = (Math.random() - 0.5) * speed
+                                    
+                                    if (move.direction === "top") {
+                                        particle.vy = -Math.abs(particle.vy)
+                                    } else if (move.direction === "bottom") {
+                                        particle.vy = Math.abs(particle.vy)
+                                    } else if (move.direction === "left") {
+                                        particle.vx = -Math.abs(particle.vx)
+                                    } else if (move.direction === "right") {
+                                        particle.vx = Math.abs(particle.vx)
+                                    }
+                                }
+                            })
+                        }
+                    } else {
+                        // Stop animation after time limit - just return without continuing
+                        if (elapsedTime >= move.timeLimit * 1000) {
+                            return // Stop the animation loop
+                        }
+                    }
+                }
+
+                const width = canvas.logicalWidth || canvas.width
+                const height = canvas.logicalHeight || canvas.height
+
+                // Clear the entire canvas to prevent trails
+                ctx.clearRect(0, 0, width, height)
+
+                // Draw backdrop if specified
+                if (backdrop) {
+                    const backdropColor = makeHex(backdrop)
+                    ctx.fillStyle = backdropColor
+                    ctx.fillRect(0, 0, width, height)
+                }
+
+                // Update and draw particles
+                particlesRef.current.forEach((particle, index) => {
+                    // Update position if movement is enabled
+                    if (move.enable) {
                         particle.x += particle.vx
                         particle.y += particle.vy
-                        
-                        // Bounce off edges
-                        if (particle.x < 0 || particle.x > width) particle.vx *= -1
-                        if (particle.y < 0 || particle.y > height) particle.vy *= -1
-                        
-                        // Keep particles within bounds
-                        particle.x = Math.max(0, Math.min(width, particle.x))
-                        particle.y = Math.max(0, Math.min(height, particle.y))
-                        
-                        // Draw particle with more visible settings
-                        ctx.beginPath()
-                        ctx.arc(particle.x, particle.y, Math.max(1, particle.size), 0, Math.PI * 2)
-                        ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0.3, opacity.type === "Range" ? opacity.max : opacity.value)})`
-                        ctx.fill()
-                        
-                        // Add a stroke to make particles more visible
-                        ctx.strokeStyle = `rgba(255, 255, 255, ${Math.max(0.5, opacity.type === "Range" ? opacity.max : opacity.value)})`
-                        ctx.lineWidth = 1
+
+                        // Bounce off boundaries
+                        if (particle.x <= 0 || particle.x >= width) {
+                            particle.vx = -particle.vx
+                            particle.x = Math.max(0, Math.min(width, particle.x))
+                        }
+                        if (particle.y <= 0 || particle.y >= height) {
+                            particle.vy = -particle.vy
+                            particle.y = Math.max(0, Math.min(height, particle.y))
+                        }
+                    }
+
+                    // Handle hover interactions
+                    const mouse = mouseRef.current
+                    if (hover.enable && mouse.isHovering && mouse.x >= 0 && mouse.y >= 0) {
+                        const dx = particle.x - mouse.x
+                        const dy = particle.y - mouse.y
+                        const distance = Math.sqrt(dx * dx + dy * dy)
+
+                        if (distance < hover.distance) {
+                            const force = (hover.distance - distance) / hover.distance
+
+                            if (hover.mode === "repulse") {
+                                const angle = Math.atan2(dy, dx)
+                                particle.x += Math.cos(angle) * force * 2
+                                particle.y += Math.sin(angle) * force * 2
+                            } else if (hover.mode === "attract") {
+                                const angle = Math.atan2(dy, dx)
+                                particle.x -= Math.cos(angle) * force * 0.5
+                                particle.y -= Math.sin(angle) * force * 0.5
+                            } else if (hover.mode === "bubble") {
+                                particle.size = particle.originalSize * (1 + force * 0.5)
+                            } else if (hover.mode === "grab") {
+                                // Draw line to mouse
+                                ctx.beginPath()
+                                ctx.moveTo(particle.x, particle.y)
+                                ctx.lineTo(mouse.x, mouse.y)
+                                const lineOpacity = force * 0.3
+                                ctx.strokeStyle = hexToRgba(particle.color, lineOpacity)
+                                ctx.lineWidth = 1
+                                ctx.stroke()
+                            }
+                        }
+                    } else if (hover.mode === "bubble") {
+                        // Reset bubble size when not hovering
+                        particle.size = particle.originalSize
+                    }
+
+                    // Draw particle
+                    ctx.beginPath()
+                    ctx.arc(particle.x, particle.y, particle.size, 0, 2 * Math.PI)
+
+                    // Calculate particle opacity based on settings
+                    let particleOpacity = particle.opacity
+                    if (opacity.type === "Random") {
+                        // Keep the stored random opacity for this particle
+                        particleOpacity = particle.opacity
+                    } else if (opacity.type === "Range") {
+                        // Keep the stored range opacity for this particle
+                        particleOpacity = particle.opacity
+                    } else {
+                        // Use the fixed value
+                        particleOpacity = opacity.value
+                    }
+
+                    // Convert hex color to RGBA with opacity (particle.color is already hex)
+                    const colorWithOpacity = hexToRgba(particle.color, particleOpacity)
+                    ctx.fillStyle = colorWithOpacity
+                    ctx.fill()
+
+                    // Only add subtle stroke if opacity is very low, otherwise skip stroke
+                    if (particleOpacity < 0.5) {
+                        const strokeOpacity = Math.min(particleOpacity + 0.1, 0.3)
+                        const strokeColor = hexToRgba(particle.color, strokeOpacity)
+                        ctx.strokeStyle = strokeColor
+                        ctx.lineWidth = 0.5
                         ctx.stroke()
-                    })
+                    }
+
+                    // Handle trail effect
+                    if (hover.mode === "trail" && hover.enable && mouse.isHovering) {
+                        const dx = particle.x - mouse.x
+                        const dy = particle.y - mouse.y
+                        const distance = Math.sqrt(dx * dx + dy * dy)
+
+                        if (distance < hover.distance) {
+                            // Draw trail
+                            ctx.beginPath()
+                            ctx.moveTo(particle.x, particle.y)
+                            ctx.lineTo(mouse.x, mouse.y)
+                            const trailOpacity = (hover.distance - distance) / hover.distance * 0.2
+                            ctx.strokeStyle = hexToRgba(particle.color, trailOpacity)
+                            ctx.lineWidth = 2
+                            ctx.stroke()
+                        }
+                    }
+                })
+
+                // Handle connections between particles
+                if (hover.mode === "connect" && hover.enable) {
+                    for (let i = 0; i < particlesRef.current.length; i++) {
+                        for (let j = i + 1; j < particlesRef.current.length; j++) {
+                            const p1 = particlesRef.current[i]
+                            const p2 = particlesRef.current[j]
+                            const dx = p1.x - p2.x
+                            const dy = p1.y - p2.y
+                            const distance = Math.sqrt(dx * dx + dy * dy)
+
+                            if (distance < hover.distance) {
+                                ctx.beginPath()
+                                ctx.moveTo(p1.x, p1.y)
+                                ctx.lineTo(p2.x, p2.y)
+                                const connectionOpacity = (hover.distance - distance) / hover.distance * 0.1
+                                ctx.strokeStyle = hexToRgba(p1.color, connectionOpacity)
+                                ctx.lineWidth = 1
+                                ctx.stroke()
+                            }
+                        }
+                    }
                 }
-                
-                animationRef.current = requestAnimationFrame(animate)
-            } catch (err) {
-                console.error("Canvas animation error:", err)
-                setError("Canvas animation error: " + err.message)
+
+                // Continue animation loop if still active
+                if (move.enable) {
+                    animationRef.current = requestAnimationFrame(animate)
+                } else {
+                    // Even if movement is disabled, keep the loop running for static display and hover effects
+                    drawStaticParticles()
+                    animationRef.current = requestAnimationFrame(animate)
+                }
+            } catch (error) {
+                console.error("Animation error:", error)
             }
         }
         
         // Initialize particles and start appropriate mode
         const initializeCanvas = () => {
-            resizeCanvas() // Ensure canvas is sized
-            createParticles()
-            
-            // Determine if we should animate or show static particles
-            const shouldAnimate = previewAnimation || !isCanvas || testMode
-            
-            if (shouldAnimate) {
-                // Start animation loop
-                animate()
-            } else {
-                // Draw static particles once
-                drawStaticParticles()
+            // Cancel any existing animation loop to prevent duplicates
+            if (animationRef.current) {
+                cancelAnimationFrame(animationRef.current)
+                animationRef.current = null
             }
+
+            resizeCanvas() // Ensure canvas is sized properly
+            setTimeout(() => {
+                // Small delay to ensure canvas is ready after resize
+                createParticles()
+                
+                // Reset timing for fresh start
+                startTimeRef.current = null
+                
+                // Determine if we should animate or show static particles
+                const shouldAnimate = previewAnimation || !isCanvas || testMode
+                
+                if (shouldAnimate) {
+                    // Start animation loop
+                    animate()
+                } else {
+                    // Draw static particles once
+                    drawStaticParticles()
+                }
+            }, 50)
         }
         
         // Start with a delay to ensure canvas is ready
@@ -252,14 +606,20 @@ export default function MojaveParticles(props) {
 
         return () => {
             window.removeEventListener('resize', resizeCanvas)
+            if (canvas && hover.enable) {
+                canvas.removeEventListener('mousemove', handleMouseMove as EventListener)
+                canvas.removeEventListener('mouseleave', handleMouseLeave)
+            }
             if (animationRef.current) {
                 cancelAnimationFrame(animationRef.current)
             }
         }
-    }, [isMounted, splineMode, tsParticlesAvailable, amount, size, opacity, move.speed, isCanvas, error, testMode, backdrop, previewAnimation])
+    }, [isMounted, splineMode, tsParticlesAvailable, amount, size, opacity, move.speed, move.enable, isCanvas, error, testMode, backdrop, previewAnimation, color, colors, hover.enable, hover.mode, modes.repulse, modes.grab, modes.bubble, modes.bubbleSize, modes.grabLinks, modes.connect, modes.connectLinks, move.timeLimit, move.loopAnimation])
 
     // Determine which mode to use
-    const useCanvasMode = splineMode || !tsParticlesAvailable || error
+    const useCanvasMode = forceCanvasMode || splineMode || (!tsParticlesAvailable || error) && !forceInteractive
+    
+    // Mode selection debug removed to prevent console spam
 
     return (
         <div
@@ -281,6 +641,7 @@ export default function MojaveParticles(props) {
                         width: "100%",
                         height: "100%",
                         display: "block", // Always show canvas when in canvas mode
+                        pointerEvents: hover.enable ? "auto" : "none", // Enable mouse events for hover interactions
                     }}
                 />
             )}
@@ -546,59 +907,21 @@ MojaveParticles.defaultProps = {
         enable: true,
         direction: "none",
         speed: 2,
+        timeLimit: 0, // 0 = infinite
+        loopAnimation: true,
         random: false,
         straight: false,
         out: "out",
-        outTop: "out",
-        outBottom: "out",
-        outLeft: "out",
-        outRight: "out",
         trail: false,
         trailLength: 10,
         gravity: false,
         gravityAcceleration: 9.81,
-        gravityMaxSpeed: 50,
         spin: false,
         spinSpeed: 2,
         attract: false,
         attractDistance: 200,
         vibrate: false,
         vibrateFrequency: 50,
-        vibrateAmplitude: 1,
-        angleOffset: 0,
-        angleValue: 90,
-        pathEnable: false,
-        pathGenerator: "polygonPathGenerator",
-        pathSides: 6,
-        pathTurns: 30,
-        pathAngle: 30,
-        drift: 0,
-        decay: 0,
-        noise: false,
-        noiseDelay: 0,
-        noiseFactor: 1,
-        warp: false,
-        warpDistance: 100,
-        magnet: false,
-        magnetDistance: 200,
-        magnetStrength: 1,
-        spiral: false,
-        spiralRadius: 50,
-        spiralSpeed: 1,
-        spiralDirection: "clockwise",
-        wave: false,
-        waveAmplitude: 10,
-        waveFrequency: 0.1,
-        wavePhase: 0,
-        orbit: false,
-        orbitRadius: 100,
-        orbitSpeed: 1,
-        orbitCenterX: 50,
-        orbitCenterY: 50,
-        follow: false,
-        followTarget: "mouse",
-        followDistance: 100,
-        followSpeed: 1,
     },
     collisions: {
         enable: false,
@@ -627,6 +950,7 @@ MojaveParticles.defaultProps = {
     splineMode: false,
     testMode: false,
     previewAnimation: false,
+    forceInteractive: false,
 }
 
 // Property controls for Framer
@@ -634,6 +958,8 @@ addPropertyControls(MojaveParticles, {
     splineMode: { type: ControlType.Boolean, title: "Spline Mode", defaultValue: false },
     testMode: { type: ControlType.Boolean, title: "Test Mode (Show in Canvas)", defaultValue: false },
     previewAnimation: { type: ControlType.Boolean, title: "Preview Animation", defaultValue: false },
+    forceInteractive: { type: ControlType.Boolean, title: "Force Interactive Mode (Enable Hover)", defaultValue: false },
+    forceCanvasMode: { type: ControlType.Boolean, title: "Force Canvas Mode (Avoid Spline Conflicts)", defaultValue: false },
     backdrop: { type: ControlType.Color, title: "Background" },
     color: { type: ControlType.Color, title: "Color" },
     colors: {
@@ -864,7 +1190,25 @@ addPropertyControls(MojaveParticles, {
             speed: {
                 type: ControlType.Number,
                 defaultValue: 2,
+                min: 0,
+                max: 50,
+                step: 0.1,
                 hidden: (move) => !move.enable,
+            },
+            timeLimit: {
+                type: ControlType.Number,
+                min: 0,
+                max: 60,
+                step: 1,
+                defaultValue: 0,
+                title: "Time Limit (seconds, 0 = infinite)",
+                hidden: (move) => !move.enable,
+            },
+            loopAnimation: {
+                type: ControlType.Boolean,
+                defaultValue: true,
+                title: "Loop Animation",
+                hidden: (move) => !move.enable || !move.timeLimit,
             },
             random: {
                 type: ControlType.Boolean,
@@ -878,67 +1222,7 @@ addPropertyControls(MojaveParticles, {
             },
             out: {
                 type: ControlType.Enum,
-                title: "Out Mode (Default)",
-                options: [
-                    "none",
-                    "split",
-                    "bounce",
-                    "destroy",
-                    "out",
-                    "bounce-horizontal",
-                    "bounce-vertical",
-                ],
-                defaultValue: "out",
-                hidden: (move) => !move.enable,
-            },
-            outTop: {
-                type: ControlType.Enum,
-                title: "Out Mode (Top)",
-                options: [
-                    "none",
-                    "split",
-                    "bounce",
-                    "destroy",
-                    "out",
-                    "bounce-horizontal",
-                    "bounce-vertical",
-                ],
-                defaultValue: "out",
-                hidden: (move) => !move.enable,
-            },
-            outBottom: {
-                type: ControlType.Enum,
-                title: "Out Mode (Bottom)",
-                options: [
-                    "none",
-                    "split",
-                    "bounce",
-                    "destroy",
-                    "out",
-                    "bounce-horizontal",
-                    "bounce-vertical",
-                ],
-                defaultValue: "out",
-                hidden: (move) => !move.enable,
-            },
-            outLeft: {
-                type: ControlType.Enum,
-                title: "Out Mode (Left)",
-                options: [
-                    "none",
-                    "split",
-                    "bounce",
-                    "destroy",
-                    "out",
-                    "bounce-horizontal",
-                    "bounce-vertical",
-                ],
-                defaultValue: "out",
-                hidden: (move) => !move.enable,
-            },
-            outRight: {
-                type: ControlType.Enum,
-                title: "Out Mode (Right)",
+                title: "Out Mode",
                 options: [
                     "none",
                     "split",
@@ -954,53 +1238,65 @@ addPropertyControls(MojaveParticles, {
             trail: {
                 type: ControlType.Boolean,
                 defaultValue: false,
+                title: "Trail",
                 hidden: (move) => !move.enable,
             },
             trailLength: {
                 type: ControlType.Number,
                 defaultValue: 10,
-                hidden: (move) => !move.trail,
+                min: 1,
+                max: 50,
+                hidden: (move) => !move.trail || !move.enable,
             },
             gravity: {
                 type: ControlType.Boolean,
                 defaultValue: false,
+                title: "Gravity",
                 hidden: (move) => !move.enable,
             },
             gravityAcceleration: {
                 type: ControlType.Number,
                 defaultValue: 9.81,
-                hidden: (move) => !move.gravity,
-            },
-            gravityMaxSpeed: {
-                type: ControlType.Number,
-                defaultValue: 50,
-                hidden: (move) => !move.gravity,
+                min: 0,
+                max: 50,
+                step: 0.1,
+                title: "Gravity Force",
+                hidden: (move) => !move.gravity || !move.enable,
             },
             spin: {
                 type: ControlType.Boolean,
                 defaultValue: false,
+                title: "Spin",
                 hidden: (move) => !move.enable,
             },
             spinSpeed: {
                 type: ControlType.Number,
                 defaultValue: 2,
-                hidden: (move) => !move.spin,
+                min: 0,
+                max: 10,
+                step: 0.1,
+                title: "Spin Speed",
+                hidden: (move) => !move.spin || !move.enable,
             },
             attract: {
                 type: ControlType.Boolean,
                 defaultValue: false,
+                title: "Attract",
                 hidden: (move) => !move.enable,
             },
             attractDistance: {
                 type: ControlType.Number,
                 defaultValue: 200,
-                hidden: (move) => !move.attract,
+                min: 50,
+                max: 500,
+                title: "Attract Distance",
+                hidden: (move) => !move.attract || !move.enable,
             },
             vibrate: {
                 type: ControlType.Boolean,
                 defaultValue: false,
-                hidden: (move) => !move.enable,
                 title: "Vibrate",
+                hidden: (move) => !move.enable,
             },
             vibrateFrequency: {
                 type: ControlType.Number,
@@ -1008,257 +1304,8 @@ addPropertyControls(MojaveParticles, {
                 min: 1,
                 max: 100,
                 step: 1,
-                hidden: (move) => !move.vibrate,
-            },
-            vibrateAmplitude: {
-                type: ControlType.Number,
-                defaultValue: 1,
-                min: 0.1,
-                max: 10,
-                step: 0.1,
-                hidden: (move) => !move.vibrate,
-            },
-            angleOffset: {
-                type: ControlType.Number,
-                defaultValue: 0,
-                min: 0,
-                max: 360,
-                title: "Angle Offset",
-                hidden: (move) => !move.enable,
-            },
-            angleValue: {
-                type: ControlType.Number,
-                defaultValue: 90,
-                min: 0,
-                max: 360,
-                title: "Angle Value",
-                hidden: (move) => !move.enable,
-            },
-            pathEnable: {
-                type: ControlType.Boolean,
-                defaultValue: false,
-                title: "Path Following",
-                hidden: (move) => !move.enable,
-            },
-            pathGenerator: {
-                type: ControlType.Enum,
-                options: ["polygonPathGenerator", "perlinNoiseGenerator"],
-                defaultValue: "polygonPathGenerator",
-                hidden: (move) => !move.pathEnable,
-            },
-            pathSides: {
-                type: ControlType.Number,
-                defaultValue: 6,
-                min: 3,
-                max: 12,
-                hidden: (move) => !move.pathEnable,
-            },
-            pathTurns: {
-                type: ControlType.Number,
-                defaultValue: 30,
-                min: 10,
-                max: 100,
-                hidden: (move) => !move.pathEnable,
-            },
-            pathAngle: {
-                type: ControlType.Number,
-                defaultValue: 30,
-                min: 10,
-                max: 90,
-                hidden: (move) => !move.pathEnable,
-            },
-            drift: {
-                type: ControlType.Number,
-                defaultValue: 0,
-                min: -5,
-                max: 5,
-                step: 0.1,
-                title: "Drift Force",
-                hidden: (move) => !move.enable,
-            },
-            decay: {
-                type: ControlType.Number,
-                defaultValue: 0,
-                min: 0,
-                max: 0.1,
-                step: 0.001,
-                title: "Speed Decay",
-                hidden: (move) => !move.enable,
-            },
-            noise: {
-                type: ControlType.Boolean,
-                defaultValue: false,
-                title: "Noise Movement",
-                hidden: (move) => !move.enable,
-            },
-            noiseDelay: {
-                type: ControlType.Number,
-                defaultValue: 0,
-                min: 0,
-                max: 5,
-                step: 0.1,
-                hidden: (move) => !move.noise,
-            },
-            noiseFactor: {
-                type: ControlType.Number,
-                defaultValue: 1,
-                min: 0.1,
-                max: 5,
-                step: 0.1,
-                hidden: (move) => !move.noise,
-            },
-            warp: {
-                type: ControlType.Boolean,
-                defaultValue: false,
-                title: "Warp Effect",
-                hidden: (move) => !move.enable,
-            },
-            warpDistance: {
-                type: ControlType.Number,
-                defaultValue: 100,
-                min: 10,
-                max: 500,
-                hidden: (move) => !move.warp,
-            },
-            magnet: {
-                type: ControlType.Boolean,
-                defaultValue: false,
-                title: "Magnetic Field",
-                hidden: (move) => !move.enable,
-            },
-            magnetDistance: {
-                type: ControlType.Number,
-                defaultValue: 200,
-                min: 50,
-                max: 1000,
-                hidden: (move) => !move.magnet,
-            },
-            magnetStrength: {
-                type: ControlType.Number,
-                defaultValue: 1,
-                min: 0.1,
-                max: 5,
-                step: 0.1,
-                hidden: (move) => !move.magnet,
-            },
-            spiral: {
-                type: ControlType.Boolean,
-                defaultValue: false,
-                title: "Spiral Movement",
-                hidden: (move) => !move.enable,
-            },
-            spiralRadius: {
-                type: ControlType.Number,
-                defaultValue: 50,
-                min: 10,
-                max: 200,
-                hidden: (move) => !move.spiral,
-            },
-            spiralSpeed: {
-                type: ControlType.Number,
-                defaultValue: 1,
-                min: 0.1,
-                max: 10,
-                step: 0.1,
-                hidden: (move) => !move.spiral,
-            },
-            spiralDirection: {
-                type: ControlType.Enum,
-                options: ["clockwise", "counterclockwise"],
-                defaultValue: "clockwise",
-                hidden: (move) => !move.spiral,
-            },
-            wave: {
-                type: ControlType.Boolean,
-                defaultValue: false,
-                title: "Wave Motion",
-                hidden: (move) => !move.enable,
-            },
-            waveAmplitude: {
-                type: ControlType.Number,
-                defaultValue: 10,
-                min: 1,
-                max: 100,
-                hidden: (move) => !move.wave,
-            },
-            waveFrequency: {
-                type: ControlType.Number,
-                defaultValue: 0.1,
-                min: 0.01,
-                max: 1,
-                step: 0.01,
-                hidden: (move) => !move.wave,
-            },
-            wavePhase: {
-                type: ControlType.Number,
-                defaultValue: 0,
-                min: 0,
-                max: 360,
-                hidden: (move) => !move.wave,
-            },
-            orbit: {
-                type: ControlType.Boolean,
-                defaultValue: false,
-                title: "Orbit Movement",
-                hidden: (move) => !move.enable,
-            },
-            orbitRadius: {
-                type: ControlType.Number,
-                defaultValue: 100,
-                min: 10,
-                max: 500,
-                hidden: (move) => !move.orbit,
-            },
-            orbitSpeed: {
-                type: ControlType.Number,
-                defaultValue: 1,
-                min: 0.1,
-                max: 10,
-                step: 0.1,
-                hidden: (move) => !move.orbit,
-            },
-            orbitCenterX: {
-                type: ControlType.Number,
-                defaultValue: 50,
-                min: 0,
-                max: 100,
-                title: "Orbit Center X%",
-                hidden: (move) => !move.orbit,
-            },
-            orbitCenterY: {
-                type: ControlType.Number,
-                defaultValue: 50,
-                min: 0,
-                max: 100,
-                title: "Orbit Center Y%",
-                hidden: (move) => !move.orbit,
-            },
-            follow: {
-                type: ControlType.Boolean,
-                defaultValue: false,
-                title: "Follow Target",
-                hidden: (move) => !move.enable,
-            },
-            followTarget: {
-                type: ControlType.Enum,
-                options: ["mouse", "center", "random"],
-                defaultValue: "mouse",
-                hidden: (move) => !move.follow,
-            },
-            followDistance: {
-                type: ControlType.Number,
-                defaultValue: 100,
-                min: 10,
-                max: 500,
-                hidden: (move) => !move.follow,
-            },
-            followSpeed: {
-                type: ControlType.Number,
-                defaultValue: 1,
-                min: 0.1,
-                max: 10,
-                step: 0.1,
-                hidden: (move) => !move.follow,
+                title: "Vibrate Frequency",
+                hidden: (move) => !move.vibrate || !move.enable,
             },
         },
     },
@@ -1395,3 +1442,4 @@ addPropertyControls(MojaveParticles, {
     radius: { type: ControlType.Number, defaultValue: 0 },
     id: { type: ControlType.String, defaultValue: "tsparticles" },
 })
+
