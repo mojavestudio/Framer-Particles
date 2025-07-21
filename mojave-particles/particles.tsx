@@ -48,34 +48,25 @@ if (typeof window !== 'undefined') {
     }
 }
 
-export default function MojaveParticles(props: any) {
-    const {
-        backdrop,
-        color,
-        colors,
-        fps,
-        amount,
-        density,
-        size,
-        opacity,
-        links,
-        modes,
-        move,
-        shape,
-        click,
-        hover,
-        rotate,
-        radius,
-        id,
-        collisions,
-        splineMode,
-        testMode,
-        previewAnimation,
-        forceInteractive,
-        forceCanvasMode,
-    } = props
-
-    // State to track if tsParticles is available
+export default function MojaveParticles({
+    splineMode,
+    amount,
+    size,
+    opacity,
+    move,
+    color,
+    colors,
+    backdrop,
+    radius,
+    hover,
+    modes,
+    fps,
+    density = { enable: true, area: 800, factor: 1000 },
+    shape = { type: "circle" },
+    links = { enable: false, distance: 150, color: "#ffffff", opacity: 0.4, width: 1 },
+    collisions = { enable: false },
+    rotate = { value: 0, random: false, direction: "clockwise", animation: { enable: false, speed: 0, sync: false } },
+}: any) {
     const [tsParticlesAvailable, setTsParticlesAvailable] = useState(false)
     const [error, setError] = useState(null)
     const [isMounted, setIsMounted] = useState(false)
@@ -588,8 +579,8 @@ export default function MojaveParticles(props: any) {
                 // Reset timing for fresh start
                 startTimeRef.current = null
                 
-                // Determine if we should animate or show static particles
-                const shouldAnimate = previewAnimation || !isCanvas || testMode
+                // Determine if we should animate - always animate in spline mode, or when not in canvas
+                const shouldAnimate = splineMode || !isCanvas
                 
                 if (shouldAnimate) {
                     // Start animation loop
@@ -614,10 +605,10 @@ export default function MojaveParticles(props: any) {
                 cancelAnimationFrame(animationRef.current)
             }
         }
-    }, [isMounted, splineMode, tsParticlesAvailable, amount, size, opacity, move.speed, move.enable, isCanvas, error, testMode, backdrop, previewAnimation, color, colors, hover.enable, hover.mode, modes.repulse, modes.grab, modes.bubble, modes.bubbleSize, modes.grabLinks, modes.connect, modes.connectLinks, move.timeLimit, move.loopAnimation])
+    }, [isMounted, splineMode, tsParticlesAvailable, amount, size, opacity, move.speed, move.enable, isCanvas, error, backdrop, color, colors, hover.enable, hover.mode, modes.repulse, modes.grab, modes.bubble, modes.bubbleSize, modes.grabLinks, modes.connect, modes.connectLinks, move.timeLimit, move.loopAnimation])
 
-    // Determine which mode to use
-    const useCanvasMode = forceCanvasMode || splineMode || (!tsParticlesAvailable || error) && !forceInteractive
+    // Simplified mode selection: use canvas mode if in spline mode, or if tsParticles is not available
+    const useCanvasMode = splineMode || (!tsParticlesAvailable || error)
     
     // Mode selection debug removed to prevent console spam
 
@@ -649,7 +640,7 @@ export default function MojaveParticles(props: any) {
             {/* tsParticles Mode - Normal */}
             {!useCanvasMode && Particles && isMounted && (
             <Particles
-                id={id}
+                id="mojave-particles"
                 init={init}
                     style={{ 
                         position: "absolute", 
@@ -659,9 +650,9 @@ export default function MojaveParticles(props: any) {
                         left: 0,
                     }}
                 options={{
-                        autoPlay: previewAnimation || !isCanvas, // Play when preview animation is enabled or not in canvas
+                    autoPlay: true, // Always play in tsParticles mode
                     fullScreen: { enable: false },
-                    fpsLimit: isCanvas && !previewAnimation ? 1 : fps,
+                    fpsLimit: fps,
                     detectRetina: true,
                         pauseOnBlur: true,
                         pauseOnOutsideViewport: true,
@@ -677,8 +668,8 @@ export default function MojaveParticles(props: any) {
                               detectsOn: "canvas",
                               events: {
                                   onClick: {
-                                      enable: click.enable,
-                                      mode: click.mode,
+                                      enable: false, // Simplified - no click interactions
+                                      mode: [],
                                   },
                                   onHover: {
                                       enable: hover.enable,
@@ -840,8 +831,8 @@ export default function MojaveParticles(props: any) {
             />
             )}
             
-            {/* Canvas Mode Preview Text */}
-            {isCanvas && !testMode && !previewAnimation && useCanvasMode && (
+            {/* Canvas Mode Preview Text - Only show in static preview mode */}
+            {isCanvas && useCanvasMode && !splineMode && (
                 <div style={{
                     position: "absolute",
                     top: "50%",
@@ -857,9 +848,9 @@ export default function MojaveParticles(props: any) {
                     <br />
                     {amount} particles
                     <br />
-                    Mode: Canvas (Static)
+                    Mode: Canvas (Static Preview)
                     <br />
-                    Toggle "Preview Animation" to see movement
+                    Will animate when published
                     {error && <br />}
                     {error && <span style={{color: "red", fontSize: "12px"}}>{error}</span>}
                 </div>
@@ -948,18 +939,11 @@ MojaveParticles.defaultProps = {
     radius: 0,
     id: "tsparticles",
     splineMode: false,
-    testMode: false,
-    previewAnimation: false,
-    forceInteractive: false,
 }
 
 // Property controls for Framer
 addPropertyControls(MojaveParticles, {
     splineMode: { type: ControlType.Boolean, title: "Spline Mode", defaultValue: false },
-    testMode: { type: ControlType.Boolean, title: "Test Mode (Show in Canvas)", defaultValue: false },
-    previewAnimation: { type: ControlType.Boolean, title: "Preview Animation", defaultValue: false },
-    forceInteractive: { type: ControlType.Boolean, title: "Force Interactive Mode (Enable Hover)", defaultValue: false },
-    forceCanvasMode: { type: ControlType.Boolean, title: "Force Canvas Mode (Avoid Spline Conflicts)", defaultValue: false },
     backdrop: { type: ControlType.Color, title: "Background" },
     color: { type: ControlType.Color, title: "Color" },
     colors: {
