@@ -1,152 +1,201 @@
-# Mojave Particles - Framer Plugin
+# 🌟 Mojave Particles
 
-A beautiful, customizable particle system plugin for Framer that creates stunning interactive particle effects with extensive customization options.
-
-![Mojave Particles](https://mojavestudio.github.io/Framer-Particles/)
+A powerful, customizable particle system component for Framer with advanced animations and effects.
 
 ## ✨ Features
 
-- **50+ Customization Options** - Fine-tune every aspect of your particle system
-- **Multiple Particle Shapes** - Circle, square, triangle, star, heart, and more
-- **Interactive Modes** - Click, hover, grab, repulse, attract, and connect effects
-- **Physics-Based Movement** - Realistic particle physics with gravity, spin, and trails
-- **Responsive Design** - Automatically adapts to any container size
-- **Performance Optimized** - Smooth animations with configurable FPS
-- **Canvas Mode** - Compatible with Spline and other embedded viewers
-- **Real-time Preview** - See changes instantly in Framer's canvas
+### 🎨 **Dual Rendering Modes**
+- **Spline Mode**: Optimized canvas rendering for Spline compatibility with full hover interactions
+- **Standard Mode**: High-performance tsParticles rendering for regular Framer usage
 
-## 🚀 Quick Start
+### 🎭 **Particle Customization**
+- **Colors**: Single color or multiple color arrays with automatic random selection
+- **Size**: Fixed values or dynamic ranges for varied particle sizes
+- **Opacity**: Fixed, range-based, or random opacity values
+- **Amount**: Control particle density (1-500 particles)
 
-### Installation
+### ✨ **Animation Effects**
+- **Movement**: Configurable speed, direction, and physics
+- **Twinkle/Pulse**: Beautiful pulsing opacity effects with customizable speed and range
+- **Time Limits**: Set animation duration with perfect looping or stop options
+- **Boundary Physics**: Particles bounce naturally off edges
 
-1. **Enable Developer Tools** in Framer
-   - Go to Framer's main menu
-   - Navigate to Plugin section
-   - Enable "Developer Tools"
+### 🎯 **Interactive Hover Effects**
+- **Repulse**: Particles move away from cursor
+- **Attract**: Particles are drawn toward cursor  
+- **Bubble**: Particles grow when hovered
+- **Grab**: Draw connecting lines to nearby particles
+- **Connect**: Show connections between all nearby particles
+- **Trail**: Particles leave trails following the cursor
 
-2. **Open Development Plugin**
-   - Click the Plugin menu in the toolbar
-   - Click "Open Development Plugin"
-   - Use URL: `https://mojavestudio.github.io/Framer-Particles/`
+### 🎨 **Visual Customization**
+- **Background**: Custom backdrop colors
+- **Particle Links**: Optional connecting lines between particles
+- **Border Radius**: Rounded corners for container
+- **FPS Control**: 30, 60, or 120 FPS options
 
-3. **Add to Your Project**
-   - Drag the plugin onto your canvas
-   - Customize using the property panel
+## 🚀 Installation
 
-## 🎨 Customization Options
+1. Download the `mojave-particles` folder
+2. Add it to your Framer project
+3. Import and use the component
 
-### Visual Properties
-- **Background** - Set custom background colors
-- **Particle Colors** - Single color or multiple color arrays
-- **Particle Shapes** - Circle, square, triangle, star, heart, etc.
-- **Size & Opacity** - Fixed values or random ranges
-- **Border Radius** - Round the container corners
+```tsx
+import MojaveParticles from "./mojave-particles/particles"
 
-### Particle Behavior
-- **Amount** - Control number of particles (0-300)
-- **Movement** - Speed, direction, and physics options
-- **Links** - Connect particles with customizable lines
-- **Collisions** - Bounce, destroy, or absorb on collision
-- **Gravity** - Add realistic gravity effects
-- **Spin & Rotation** - Rotate particles with animation
+// Use in your Framer component
+<MojaveParticles 
+    amount={100}
+    splineMode={false}
+    twinkle={{ enable: true, speed: 1.5 }}
+/>
+```
 
-### Interactive Effects
-- **Click Modes** - Push, remove, attract, repulse, bubble
-- **Hover Modes** - Grab, connect, light, trail effects
-- **Parallax** - 3D-like depth effects
-- **Force & Smoothness** - Control interaction sensitivity
+## 🎛️ Property Controls
 
-### Advanced Features
-- **Density Control** - Adjust particle density based on area
-- **Trail Effects** - Particle movement trails
-- **Wave Motion** - Sine wave particle movement
-- **Spiral Movement** - Circular particle paths
-- **Orbit Effects** - Particles orbiting around centers
-- **Magnetic Fields** - Attract particles to specific points
+### **Core Settings**
+- **Spline Mode**: Enable for Spline compatibility (uses canvas rendering)
+- **Amount**: Number of particles (1-500)
+- **FPS**: Frame rate (30/60/120)
+- **Background**: Backdrop color
+
+### **Appearance**
+- **Color**: Primary particle color
+- **Colors**: Array of colors for multi-colored particles
+- **Size**: Fixed value or min/max range
+- **Opacity**: Fixed value, range, or random
+
+### **Twinkle Effect** ✨
+- **Enable**: Turn twinkle/pulse effect on/off
+- **Speed**: Animation speed (0.1-5)
+- **Min Opacity**: Minimum opacity during pulse
+- **Max Opacity**: Maximum opacity during pulse
+
+### **Movement**
+- **Enable**: Turn particle movement on/off
+- **Speed**: Movement speed (0-50)
+- **Direction**: Movement direction (none/top/bottom/left/right)
+- **Time Limit**: Animation duration in seconds (0 = infinite)
+- **Loop Animation**: Whether to loop or stop after time limit
+
+### **Hover Interactions**
+- **Enable**: Turn hover effects on/off
+- **Mode**: Repulse, Attract, Bubble, Grab, Connect, or Trail
+- **Distance**: Interaction radius
+- **Various mode-specific settings**
+
+### **Links**
+- **Enable**: Show connecting lines between particles
+- **Color**: Link color
+- **Opacity**: Link transparency
+- **Distance**: Maximum connection distance
+- **Width**: Line thickness
+
+## 🎨 Usage Examples
+
+### Basic Particle Field
+```tsx
+<MojaveParticles 
+    amount={50}
+    color="#ffffff"
+    move={{ enable: true, speed: 2 }}
+/>
+```
+
+### Twinkling Stars Effect
+```tsx
+<MojaveParticles 
+    amount={100}
+    colors={["#ffffff", "#ffff99", "#99ccff"]}
+    twinkle={{ 
+        enable: true, 
+        speed: 0.8, 
+        minOpacity: 0.1, 
+        maxOpacity: 1 
+    }}
+    move={{ enable: false }}
+/>
+```
+
+### Interactive Particle Network
+```tsx
+<MojaveParticles 
+    amount={80}
+    links={{ enable: true, distance: 120 }}
+    hover={{ 
+        enable: true, 
+        mode: "grab", 
+        distance: 150 
+    }}
+/>
+```
+
+### Spline-Compatible Setup
+```tsx
+<MojaveParticles 
+    splineMode={true}
+    amount={75}
+    hover={{ 
+        enable: true, 
+        mode: "repulse", 
+        distance: 100 
+    }}
+/>
+```
 
 ## 🔧 Technical Details
 
-### Compatibility
-- **Framer** - Full compatibility with Framer's plugin system
-- **Spline** - Canvas mode for embedded viewers
-- **React** - Built with React and TypeScript
-- **tsParticles** - Powered by the tsParticles engine
+### **Rendering Modes**
+- **Canvas Mode**: Direct canvas rendering for maximum compatibility
+- **tsParticles Mode**: WebGL-accelerated rendering for performance
 
-### Performance
-- **FPS Control** - 30, 60, or 120 FPS options
-- **Optimized Rendering** - Efficient canvas and WebGL rendering
-- **Memory Management** - Automatic cleanup and resource management
+### **Performance**
+- Optimized animation loops with `requestAnimationFrame`
+- Efficient particle physics calculations
+- Smart cleanup and memory management
+- FPS limiting for battery conservation
 
-### File Structure
-```
-mojave-particles/
-├── particles.tsx          # Main plugin component
-├── package.json           # Dependencies and scripts
-├── vite.config.ts         # Build configuration
-├── eslint.config.js       # Code quality rules
-├── src/                   # Source files
-├── public/                # Static assets
-└── dist/                  # Built plugin (auto-generated)
-```
+### **Color Support**
+- Hex colors (`#ffffff`)
+- RGB/RGBA values
+- Framer Color objects
+- Framer Design Tokens (`var(--token-...)`)
 
-## 🎯 Use Cases
+## 🎯 Best Practices
 
-- **Hero Sections** - Create engaging landing page backgrounds
-- **Interactive Cards** - Add particle effects to UI components
-- **Loading States** - Animated loading indicators
-- **Background Effects** - Subtle ambient animations
-- **Interactive Forms** - Enhance user engagement
-- **Portfolio Showcases** - Creative project presentations
+1. **For Spline Projects**: Enable Spline Mode for full compatibility
+2. **Performance**: Use fewer particles (50-100) for mobile devices
+3. **Battery Life**: Lower FPS (30) for background animations
+4. **Accessibility**: Provide option to disable animations for users with motion sensitivity
 
-## 🛠️ Development
+## 🐛 Troubleshooting
 
-### Local Development
-```bash
-# Install dependencies
-npm install
+**Particles not showing?**
+- Check that Amount > 0
+- Verify background color contrast
+- Ensure opacity > 0
 
-# Start development server
-npm run dev
+**Performance issues?**
+- Reduce particle amount
+- Lower FPS setting
+- Disable complex hover effects
 
-# Build for production
-npm run build
+**Hover not working?**
+- Enable "Hover" in controls
+- Try enabling Spline Mode
+- Check interaction distance settings
 
-# Lint code
-npm run lint
-```
+## 📝 Changelog
 
-### Building for Framer
-```bash
-# Pack plugin for Framer
-npm run pack
-```
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-## 📄 Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for a complete list of changes and updates.
-
-## 🔗 Links
-
-- **Live Demo**: https://mojavestudio.github.io/Framer-Particles/
-- **GitHub Repository**: https://github.com/mojavestudio/Framer-Particles
-- **Framer Plugin**: Available in Framer's plugin marketplace
-
-## 💡 Tips
-
-1. **Start Simple** - Begin with basic settings and gradually add complexity
-2. **Performance** - Use fewer particles (50-100) for better performance
-3. **Interactions** - Enable hover effects for better user engagement
-4. **Colors** - Use contrasting colors for better visibility
-5. **Testing** - Test on different screen sizes for responsive behavior
+### Latest Version
+- ✅ Added Twinkle/Pulse animation effects
+- ✅ Simplified mode selection (just Spline Mode toggle)
+- ✅ Fixed animation stopping after 5 seconds
+- ✅ Improved color handling for Framer Design Tokens
+- ✅ Enhanced hover interactions for all modes
+- ✅ Optimized loop reset performance
+- ✅ Added time limit and looping controls
 
 ---
 
-**Created with ❤️ by Mojave Studio** 
+Built with ❤️ for the Framer community 

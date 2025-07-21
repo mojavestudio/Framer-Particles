@@ -66,6 +66,7 @@ export default function MojaveParticles({
     links = { enable: false, distance: 150, color: "#ffffff", opacity: 0.4, width: 1 },
     collisions = { enable: false },
     rotate = { value: 0, random: false, direction: "clockwise", animation: { enable: false, speed: 0, sync: false } },
+    twinkle = { enable: false, speed: 1, minOpacity: 0.1, maxOpacity: 1 },
 }: any) {
     const [tsParticlesAvailable, setTsParticlesAvailable] = useState(false)
     const [error, setError] = useState(null)
@@ -284,6 +285,9 @@ export default function MojaveParticles({
                     originalSize: size.type === "Range" 
                         ? Math.random() * (size.max - size.min) + size.min
                         : size.value, // Store original size for hover effect
+                    // Twinkle properties
+                    twinklePhase: Math.random() * Math.PI * 2, // Random starting phase for variation
+                    twinkleSpeed: (0.5 + Math.random() * 0.5) * (twinkle.speed || 1), // Slight variation in twinkle speed
                 })
             }
             
@@ -441,6 +445,11 @@ export default function MojaveParticles({
                         }
                     }
 
+                    // Update twinkle phase for animation
+                    if (twinkle.enable) {
+                        particle.twinklePhase += particle.twinkleSpeed * 0.05
+                    }
+
                     // Handle hover interactions
                     const mouse = mouseRef.current
                     if (hover.enable && mouse.isHovering && mouse.x >= 0 && mouse.y >= 0) {
@@ -492,6 +501,14 @@ export default function MojaveParticles({
                     } else {
                         // Use the fixed value
                         particleOpacity = opacity.value
+                    }
+
+                    // Apply twinkle effect
+                    if (twinkle.enable) {
+                        const twinkleFactor = Math.sin(particle.twinklePhase) * 0.5 + 0.5 // 0 to 1
+                        const twinkleRange = twinkle.maxOpacity - twinkle.minOpacity
+                        const twinkleOpacity = twinkle.minOpacity + (twinkleFactor * twinkleRange)
+                        particleOpacity = Math.min(particleOpacity, twinkleOpacity)
                     }
 
                     // Convert hex color to RGBA with opacity (particle.color is already hex)
@@ -605,7 +622,7 @@ export default function MojaveParticles({
                 cancelAnimationFrame(animationRef.current)
             }
         }
-    }, [isMounted, splineMode, tsParticlesAvailable, amount, size, opacity, move.speed, move.enable, isCanvas, error, backdrop, color, colors, hover.enable, hover.mode, modes.repulse, modes.grab, modes.bubble, modes.bubbleSize, modes.grabLinks, modes.connect, modes.connectLinks, move.timeLimit, move.loopAnimation])
+    }, [isMounted, splineMode, tsParticlesAvailable, amount, size, opacity, move.speed, move.enable, isCanvas, error, backdrop, color, colors, hover.enable, hover.mode, modes.repulse, modes.grab, modes.bubble, modes.bubbleSize, modes.grabLinks, modes.connect, modes.connectLinks, move.timeLimit, move.loopAnimation, twinkle.enable, twinkle.speed, twinkle.minOpacity, twinkle.maxOpacity])
 
     // Simplified mode selection: use canvas mode if in spline mode, or if tsParticles is not available
     const useCanvasMode = splineMode || (!tsParticlesAvailable || error)
@@ -741,6 +758,12 @@ export default function MojaveParticles({
                                 opacity.type === "Range"
                                     ? { min: opacity.min, max: opacity.max }
                                     : opacity.value,
+                            animation: twinkle.enable ? {
+                                enable: true,
+                                speed: twinkle.speed,
+                                opacity_min: twinkle.minOpacity,
+                                sync: false,
+                            } : undefined,
                         },
 
                         size: {
@@ -871,6 +894,7 @@ MojaveParticles.defaultProps = {
     density: { enable: true, area: 800, factor: 1000 },
     size: { type: "Range", value: 3, min: 1, max: 5 },
     opacity: { type: "Range", value: 0.5, min: 0.1, max: 1 },
+    twinkle: { enable: false, speed: 1, minOpacity: 0.1, maxOpacity: 1 },
     links: {
         enable: true,
         color: "#ffffff",
@@ -1030,6 +1054,40 @@ addPropertyControls(MojaveParticles, {
                 type: ControlType.Number,
                 defaultValue: 1,
                 hidden: (opacity) => opacity.type !== "Range",
+            },
+        },
+    },
+    twinkle: {
+        type: ControlType.Object,
+        title: "Twinkle",
+        controls: {
+            enable: { type: ControlType.Boolean, title: "Enable Twinkle", defaultValue: false },
+            speed: {
+                type: ControlType.Number,
+                title: "Speed",
+                defaultValue: 1,
+                min: 0.1,
+                max: 5,
+                step: 0.1,
+                hidden: (twinkle) => !twinkle.enable,
+            },
+            minOpacity: {
+                type: ControlType.Number,
+                title: "Min Opacity",
+                defaultValue: 0.1,
+                min: 0,
+                max: 1,
+                step: 0.1,
+                hidden: (twinkle) => !twinkle.enable,
+            },
+            maxOpacity: {
+                type: ControlType.Number,
+                title: "Max Opacity",
+                defaultValue: 1,
+                min: 0,
+                max: 1,
+                step: 0.1,
+                hidden: (twinkle) => !twinkle.enable,
             },
         },
     },
