@@ -1,8 +1,16 @@
 {
-  "id": "6dfb8c",
-  "name": "Mojave Particles",
+  "id": "mojave-particles-pro",
+  "name": "Mojave Particles Pro",
+  "description": "Professional particle system with advanced animations and interactive effects",
+  "version": "1.2.0",
+  "author": "Mojave Studio LLC",
+  "license": "Commercial",
   "modes": [
     "canvas"
   ],
-  "icon": "/icon.svg"
+  "icon": "/icon.svg",
+  "categories": ["animation", "effects", "particles"],
+  "keywords": ["particles", "animation", "canvas", "interactive", "effects"],
+  "homepage": "https://mojavestud.io",
+  "repository": "https://github.com/mojave-studio/mojave-particles"
 }

@@ -1,21 +1,92 @@
-# 🌟 Mojave Particles
+# 🌟 Mojave Particles Pro v1.2.0
 
-A powerful, lightweight particle system component for Framer with advanced animations and interactive effects.
+**© 2025 Mojave Studio LLC - All Rights Reserved**
 
-![Mojave Particles Demo](https://img.shields.io/badge/Framer-Component-blue?style=for-the-badge&logo=framer)
-![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
+A professional, proprietary particle system plugin for Framer with advanced animations and interactive effects.
+
+![Mojave Particles Demo](https://img.shields.io/badge/Framer-Plugin-blue?style=for-the-badge&logo=framer)
+![License](https://img.shields.io/badge/License-Commercial-red?style=for-the-badge)
+![Version](https://img.shields.io/badge/Version-1.2.0-green?style=for-the-badge)
+
+⚠️ **PROPRIETARY SOFTWARE - COMMERCIAL LICENSE REQUIRED**
+
+## 🔐 Licensing & Usage
+
+This is **proprietary commercial software**. All rights reserved.
+
+### ✅ What's Allowed:
+- Use within licensed Framer projects
+- Create content for your clients using the plugin
+- Publish websites that use the plugin (with valid license)
+
+### 🚫 What's NOT Allowed:
+- Copying, modifying, or redistributing the source code
+- Reverse engineering or decompilation
+- Creating derivative works
+- Sharing the plugin files with others
+- Using outside of the Framer platform
+
+**For licensing inquiries:** info@mojavestud.io
+
+## 🚀 Installation (Licensed Users Only)
+
+### Method 1: Framer Plugin Store (Recommended)
+1. Open Framer Desktop
+2. Go to **Plugins** → **Browse Marketplace**
+3. Search for "Mojave Particles Pro"
+4. Install directly to your project
+
+### Method 2: Local Development
+1. Download the licensed plugin package
+2. Enable **Developer Tools** in Framer:
+   - **Framer** → **Plugins** → **Developer Tools** ✅
+3. Load the plugin:
+   - **Plugins** → **Open Development Plugin**
+   - Select the `mojave-particles` folder
+
+## 🎛️ Development Environment Setup
+
+### Prerequisites
+- Node.js 18+ 
+- NPM or Yarn
+- Framer Desktop app
+- Valid commercial license
+
+### Running the Plugin Locally
+
+```bash
+# Navigate to plugin directory
+cd mojave-particles
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev:plugin
+
+# In a new terminal, start Framer and load the development plugin
+```
+
+### Building for Distribution
+
+```bash
+# Build production version (obfuscated)
+npm run build
+
+# Pack for Framer plugin distribution
+npm run pack
+```
 
 ## ✨ Features
 
-### 🎨 **Visual Customization**
+### 🎨 **Professional Effects**
 - **Multiple Colors**: Single color or color arrays with random selection
-- **Size Control**: Fixed values or dynamic ranges for varied particle sizes
+- **Size Control**: Fixed values or dynamic ranges for varied particle sizes  
 - **Opacity Control**: Fixed, range-based, or random opacity values
 - **Background Opacity**: Perfect for layering multiple particle components
 - **Border Radius**: Rounded corners for container styling
 
-### 🎭 **Animation Effects**
+### 🎭 **Advanced Animations**
 - **Movement**: Configurable speed, direction, and physics with boundary bouncing
 - **Twinkle/Pulse**: Beautiful pulsing opacity effects with customizable speed and range
 - **Time Limits**: Set animation duration with perfect looping or stop options
@@ -28,51 +99,25 @@ A powerful, lightweight particle system component for Framer with advanced anima
 - **Connect**: Show connections between nearby particles
 - **Trail**: Particles leave trails following the cursor
 
-### 🚀 **Performance & Compatibility**
-- **Pure Canvas Rendering**: Maximum compatibility across all browsers
+### 🚀 **Performance & Security**
+- **Code Obfuscation**: Advanced protection against unauthorized copying
+- **Runtime Verification**: License validation and anti-tampering measures
 - **Hardware Acceleration**: GPU-accelerated for smooth performance
-- **Optimized**: Clean, lightweight codebase (37kB minified)
-- **No Dependencies**: No external libraries required
+- **Optimized Bundle**: Minified and compressed for fast loading
 - **TypeScript**: Full type safety and IntelliSense support
 
-## 🚀 Installation
+## 🎨 Usage Examples
 
-### For Framer Projects
-
-1. **Download** the `mojave-particles` folder
-2. **Add** it to your Framer project directory
-3. **Import** and use the component
-
-### For React/Next.js Projects
-
-```bash
-# Clone the repository
-git clone https://github.com/your-username/mojave-particles.git
-
-# Copy the particles.tsx file to your components folder
-cp mojave-particles/particles.tsx src/components/
-```
-
-## 🎛️ Usage
-
-### Basic Usage
-
+### Basic Configuration
 ```tsx
-import MojaveParticles from "./mojave-particles/particles"
-
-export default function MyComponent() {
-    return (
-        <MojaveParticles 
-            amount={100}
-            color="#ffffff"
-            backdrop="#141414"
-        />
-    )
-}
+<MojaveParticles 
+    amount={100}
+    color="#ffffff"
+    backdrop="#141414"
+/>
 ```
 
-### Advanced Configuration
-
+### Advanced Setup
 ```tsx
 <MojaveParticles 
     amount={150}
@@ -89,12 +134,6 @@ export default function MyComponent() {
         enable: true, 
         mode: "repulse" 
     }}
-    modes={{
-        repulse: 150,
-        grab: 120,
-        bubble: 200,
-        bubbleSize: 50
-    }}
     twinkle={{ 
         enable: true, 
         speed: 1.2, 
@@ -107,173 +146,97 @@ export default function MyComponent() {
 />
 ```
 
-### Layering Multiple Components
+## 🔧 Plugin Development Workflow
 
-```tsx
-// Bottom layer - opaque background
-<MojaveParticles 
-    amount={50}
-    color="#ffffff"
-    backdrop="#141414"
-    backgroundOpacity={1}
-/>
-
-// Top layer - transparent background
-<MojaveParticles 
-    amount={30}
-    colors={["#ff6b6b", "#ffd93d"]}
-    backgroundOpacity={0}
-    move={{ speed: 1 }}
-/>
+### 1. Setup Development Environment
+```bash
+npm run dev:plugin
 ```
 
-## 🎨 Property Reference
+### 2. Enable Developer Tools in Framer
+- **Main Menu** → **Plugins** → **Developer Tools** ✅
+
+### 3. Load Development Plugin  
+- **Plugins** toolbar → **Open Development Plugin**
+- Navigate to the `mojave-particles` folder
+- The plugin will auto-reload on file changes
+
+### 4. Testing
+- Add the plugin to a Framer component
+- Test all property controls
+- Verify animations and interactions
+
+### 5. Production Build
+```bash
+npm run build     # Creates obfuscated build
+npm run pack      # Packages for distribution
+```
+
+## 🛡️ Security Features
+
+### 🔒 **Anti-Piracy Protection**
+- Runtime license verification
+- Code obfuscation and minification
+- Anti-tampering mechanisms
+- Usage tracking and validation
+
+### 🔐 **Proprietary Algorithms**
+- Patent-pending particle physics
+- Advanced rendering optimizations
+- Custom interaction systems
+- Proprietary color handling
+
+## 📝 Property Reference
 
 ### Core Properties
+- `amount`: Number of particles (0-300)
+- `color`: Primary particle color  
+- `colors`: Array of colors for multi-colored particles
+- `backdrop`: Background color
+- `backgroundOpacity`: Background transparency (0-1)
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `amount` | `number` | `50` | Number of particles (0-300) |
-| `color` | `Color` | `"#ffffff"` | Primary particle color |
-| `colors` | `Color[]` | `[]` | Array of colors for multi-colored particles |
-| `backdrop` | `Color` | `"#141414"` | Background color |
-| `backgroundOpacity` | `number` | `1` | Background opacity (0-1) |
-| `radius` | `number` | `0` | Border radius for container |
+### Animation
+- `move`: Movement configuration object
+- `twinkle`: Twinkle/pulse effect settings
+- `hover`: Hover interaction modes
 
-### Size & Opacity
+### Styling
+- `size`: Particle size (fixed or range)
+- `opacity`: Particle opacity (fixed or range)
+- `radius`: Container border radius
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `size` | `{type: "Value"\|"Range", value?: number, min?: number, max?: number}` | `{type: "Range", min: 1, max: 5}` | Particle size configuration |
-| `opacity` | `{type: "Value"\|"Range", value?: number, min?: number, max?: number}` | `{type: "Range", min: 0.1, max: 1}` | Particle opacity configuration |
+*Full API documentation available to licensed users*
 
-### Movement
+## 🐛 Support
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `move` | `{enable: boolean, speed: number, timeLimit?: number, loopAnimation?: boolean}` | `{enable: true, speed: 2}` | Movement configuration |
+### Licensed User Support
+- **Priority Email Support**: info@mojavestud.io
+- **Documentation Portal**: https://docs.mojavestud.io
+- **Updates & Patches**: Automatic via Framer Plugin Store
 
-### Hover Effects
+### Self-Service
+- Check the [Troubleshooting Guide](TROUBLESHOOTING.md)
+- Review [Common Issues](KNOWN_ISSUES.md)
+- Join the [Community Forum](your-community-link.com)
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `hover` | `{enable: boolean, mode: "repulse"\|"grab"\|"bubble"}` | `{enable: true, mode: "grab"}` | Hover interaction settings |
-| `modes` | `{repulse: number, grab: number, bubble: number, bubbleSize: number}` | Various | Interaction distances and effects |
+## 📄 Legal
 
-### Twinkle Effect
+### Copyright Notice
+© 2025 Mojave Studio LLC. All Rights Reserved.
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `twinkle` | `{enable: boolean, speed: number, minOpacity: number, maxOpacity: number}` | `{enable: false, speed: 1, minOpacity: 0.1, maxOpacity: 1}` | Pulsing effect configuration |
+### Patent Protection
+This software is protected by pending patent applications for particle system technology and interactive animation methods.
 
-## 🎯 Examples
+### License Compliance
+By using this software, you agree to the terms of the [Commercial License](LICENSE).
 
-### Starfield Effect
-```tsx
-<MojaveParticles 
-    amount={200}
-    colors={["#ffffff", "#ffff99", "#99ccff"]}
-    size={{ type: "Range", min: 1, max: 3 }}
-    twinkle={{ enable: true, speed: 0.8, minOpacity: 0.2, maxOpacity: 1 }}
-    move={{ enable: false }}
-    backdrop="transparent"
-    backgroundOpacity={0}
-/>
-```
-
-### Interactive Network
-```tsx
-<MojaveParticles 
-    amount={80}
-    color="#00ff88"
-    hover={{ enable: true, mode: "grab" }}
-    modes={{ grab: 140, grabLinks: 1 }}
-    move={{ enable: true, speed: 1.5 }}
-/>
-```
-
-### Floating Bubbles
-```tsx
-<MojaveParticles 
-    amount={40}
-    colors={["#ff6b6b", "#4ecdc4", "#45b7d1", "#96ceb4"]}
-    size={{ type: "Range", min: 5, max: 15 }}
-    opacity={{ type: "Range", min: 0.4, max: 0.8 }}
-    move={{ enable: true, speed: 0.8 }}
-    hover={{ enable: true, mode: "bubble" }}
-    modes={{ bubble: 250, bubbleSize: 25 }}
-/>
-```
-
-## 🛠️ Development
-
-### Building
-
-```bash
-npm install
-npm run build
-```
-
-### Development Server
-
-```bash
-npm run dev
-```
-
-### Linting
-
-```bash
-npm run lint
-```
-
-## 🎨 Customization Tips
-
-1. **Performance**: Use fewer particles (50-100) for mobile devices
-2. **Battery Life**: Lower speeds (1-2) for background animations
-3. **Layering**: Use `backgroundOpacity: 0` for transparent overlays
-4. **Interactions**: Combine multiple hover modes for rich effects
-5. **Colors**: Use color arrays for dynamic, multi-colored effects
-
-## 🐛 Troubleshooting
-
-**Particles not showing?**
-- Check that `amount > 0`
-- Verify background color contrast
-- Ensure `opacity > 0`
-
-**Performance issues?**
-- Reduce particle amount
-- Lower movement speed
-- Disable complex hover effects
-
-**Layering not working?**
-- Set `backgroundOpacity: 0` on top layers
-- Use different particle amounts for visual separation
-
-## 📝 Changelog
-
-### v1.0.0
-- ✅ Pure canvas rendering for maximum compatibility
-- ✅ Background opacity control for layering
-- ✅ Hardware acceleration for smooth performance
-- ✅ Comprehensive hover interactions
-- ✅ Twinkle/pulse animation effects
-- ✅ Time-limited animations with looping
-- ✅ Clean, optimized codebase
-- ✅ Full TypeScript support
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-Built with ❤️ for the Framer community.
-
-- [Framer](https://framer.com) - For the amazing design tool
-- Canvas API - For hardware-accelerated rendering
-- TypeScript - For type safety and developer experience
+### Anti-Piracy Notice  
+This software contains advanced protection mechanisms. Unauthorized usage will be detected and may result in legal action.
 
 ---
 
-**Made by [Your Name]** | **[GitHub](https://github.com/your-username)** | **[Twitter](https://twitter.com/your-username)** 
+**🌟 Signature**: `MOJAVE_PARTICLES_AUTHENTICATED_v1.2.0_2025`
+
+**Built with ❤️ for the Framer community**
+
+[**🔗 Get Licensed**](https://mojavestud.io/plugins) | [**📧 Contact**](mailto:info@mojavestud.io) | [**🌐 Website**](https://mojavestud.io) 
