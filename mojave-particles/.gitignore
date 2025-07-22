@@ -18,6 +18,13 @@ dev-plugin
 
 # Framer specific
 .framer/
+
+# AWS Configuration and secrets
+aws.env
+.env
+.env.local
+.env.production
+.env.staging
 .framer-cache/
 .framer-build/
 .framer-preview/

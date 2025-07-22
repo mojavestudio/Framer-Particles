@@ -10,9 +10,10 @@ This guide covers deploying the Mojave Particles plugin for both local developme
 - HTTPS support (handled by `vite-plugin-mkcert`)
 
 ### **For AWS Deployment**
-- AWS account with appropriate permissions
-- GitHub repository for automatic deployments
-- Domain name (optional but recommended)
+- AWS account with appropriate permissions (S3, CloudFront, IAM)
+- AWS CLI configured OR environment variables set
+- GitHub repository for automatic deployments (optional)
+- Domain name and SSL certificate (optional but recommended)
 
 ## 🏠 Local Development Setup
 
@@ -22,7 +23,7 @@ This guide covers deploying the Mojave Particles plugin for both local developme
 git clone https://github.com/your-username/mojave-particles.git
 cd mojave-particles/mojave-particles
 
-# Install dependencies
+# Install dependencies (includes AWS SDK)
 npm install --legacy-peer-deps
 
 # Start development server
@@ -46,6 +47,184 @@ npm run dev
 
 # Test functionality
 # Load plugin in Framer and test all features
+
+# Build for production
+npm run build:prod
+
+# Deploy to AWS (requires setup)
+npm run deploy
+```
+
+## ☁️ AWS Production Deployment
+
+### **🚀 Option 1: One-Click Infrastructure Setup**
+
+Use CloudFormation to automatically create all AWS resources:
+
+```bash
+# Deploy infrastructure
+aws cloudformation deploy \
+  --template-file aws-infrastructure.yml \
+  --stack-name mojave-particles-stack \
+  --parameter-overrides \
+    BucketName=your-unique-bucket-name \
+    DomainName=particles.yourdomain.com \
+    CertificateArn=arn:aws:acm:us-east-1:123456789012:certificate/abc123 \
+  --capabilities CAPABILITY_IAM
+
+# Get outputs
+aws cloudformation describe-stacks \
+  --stack-name mojave-particles-stack \
+  --query 'Stacks[0].Outputs'
+```
+
+### **⚙️ Option 2: Manual Setup**
+
+#### **Step 1: Configure AWS Credentials**
+
+Choose one method:
+
+**Option A: AWS CLI**
+```bash
+aws configure
+# Enter your AWS Access Key ID, Secret, Region
+```
+
+**Option B: Environment Variables**
+```bash
+export AWS_ACCESS_KEY_ID=your_access_key
+export AWS_SECRET_ACCESS_KEY=your_secret_key
+export AWS_REGION=us-east-1
+```
+
+**Option C: IAM Roles** (recommended for EC2/Lambda)
+```bash
+# Attach appropriate IAM role to your instance
+# No credentials needed
+```
+
+#### **Step 2: Configure Deployment Settings**
+
+```bash
+# Copy example configuration
+cp aws.env.example aws.env
+
+# Edit aws.env with your settings
+nano aws.env
+```
+
+Required settings in `aws.env`:
+```bash
+AWS_S3_BUCKET=your-unique-bucket-name
+AWS_REGION=us-east-1
+AWS_CLOUDFRONT_DISTRIBUTION_ID=E1234567890123  # After CloudFront setup
+CUSTOM_DOMAIN=particles.yourdomain.com         # Optional
+```
+
+#### **Step 3: Deploy**
+
+```bash
+# Build and deploy
+npm run deploy
+
+# Or deploy existing build
+npm run deploy:dev
+```
+
+### **🌐 Custom Domain Setup**
+
+#### **Step 1: Request SSL Certificate**
+```bash
+# Request certificate in us-east-1 (required for CloudFront)
+aws acm request-certificate \
+  --domain-name particles.yourdomain.com \
+  --validation-method DNS \
+  --region us-east-1
+```
+
+#### **Step 2: Validate Certificate**
+```bash
+# Get validation records
+aws acm describe-certificate \
+  --certificate-arn arn:aws:acm:us-east-1:123456789012:certificate/abc123 \
+  --region us-east-1
+
+# Add DNS validation records to your domain
+# Wait for certificate validation
+```
+
+#### **Step 3: Update CloudFront**
+```bash
+# Update CloudFormation stack with certificate
+aws cloudformation update-stack \
+  --stack-name mojave-particles-stack \
+  --use-previous-template \
+  --parameters \
+    ParameterKey=CertificateArn,ParameterValue=arn:aws:acm:us-east-1:123456789012:certificate/abc123 \
+    ParameterKey=DomainName,ParameterValue=particles.yourdomain.com \
+  --capabilities CAPABILITY_IAM
+```
+
+#### **Step 4: Update DNS**
+```bash
+# Add CNAME record pointing to CloudFront distribution
+# particles.yourdomain.com -> d1234567890123.cloudfront.net
+```
+
+### **🔄 GitHub Actions Automation**
+
+#### **Setup Repository Secrets**
+
+In your GitHub repository settings, add these secrets:
+
+| Secret Name | Description | Example |
+|-------------|-------------|---------|
+| `AWS_ACCESS_KEY_ID` | AWS Access Key | `AKIAIOSFODNN7EXAMPLE` |
+| `AWS_SECRET_ACCESS_KEY` | AWS Secret Key | `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY` |
+| `AWS_REGION` | AWS Region | `us-east-1` |
+| `AWS_S3_BUCKET` | S3 Bucket Name | `mojave-particles-plugin` |
+| `AWS_CLOUDFRONT_DISTRIBUTION_ID` | CloudFront ID | `E1234567890123` |
+| `CUSTOM_DOMAIN` | Custom Domain | `particles.yourdomain.com` |
+
+#### **Automated Deployment**
+
+```bash
+# Commits to main branch automatically deploy
+git push origin main
+
+# Manual deployment
+gh workflow run "Deploy to AWS"
+```
+
+### **🔧 Required AWS Permissions**
+
+Create an IAM user/role with these permissions:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:*"
+      ],
+      "Resource": [
+        "arn:aws:s3:::your-bucket-name",
+        "arn:aws:s3:::your-bucket-name/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "cloudfront:CreateInvalidation",
+        "cloudfront:GetInvalidation",
+        "cloudfront:ListInvalidations"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
 ```
 
 ## ☁️ AWS Production Deployment
