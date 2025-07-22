@@ -4,6 +4,12 @@ A professional-grade particle system plugin for Framer with advanced animations,
 
 ## ✨ Features
 
+### 🚀 **Dual-Mode Plugin Architecture**
+- **Plugin Window**: Quick insertion, live preview, preset selection, and basic editing
+- **Framer Sidebar**: Complete customization access when component is selected
+- **Edit Mode**: Select and modify existing particle components directly from the plugin
+- **Sizing Control**: Plugin window dictates dimensions, Framer handles responsive scaling
+
 ### 🎨 **Complete Particle Customization**
 - **Colors**: Single color or dynamic multi-color arrays with visual palette editor
 - **Size**: Fixed values or dynamic ranges for varied particle sizes

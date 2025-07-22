@@ -8,11 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Dual-Mode Plugin Architecture**: Both plugin window (insertion/quick editing) and Framer sidebar (full customization) now work together
+- **Improved Sizing System**: Plugin window controls dictate initial sizing, with proper Framer scaling and responsiveness
+- **Enhanced Professional Presets**: Restored all original presets (network, bubbles, matrix, galaxy, neon) with proper sizing configurations
+- **Live Preview in Plugin**: Real-time animated particle preview in the plugin window
+- **Edit Mode**: Can now select and modify existing particle components directly from the plugin
+- **Better Template Literal Handling**: Fixed syntax issues in generated component code for reliable deployment
 - Performance optimizations for large particle counts
 - Enhanced mobile touch interactions
 - Improved accessibility features
 
 ### Changed
+- **Component Generation**: Fixed sizing logic to properly use configured dimensions while respecting Framer's container scaling
+- **UI Layout**: Reorganized plugin window for better workflow (presets → sizing → detailed controls)
+- **Template System**: Improved generated component code structure for better maintainability
 - Updated dependency versions
 - Refactored particle physics engine
 
