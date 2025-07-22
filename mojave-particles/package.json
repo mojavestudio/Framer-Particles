@@ -7,21 +7,25 @@
     "dev": "vite",
     "build": "vite build",
     "build:remote": "vite build --config vite.config.ts",
+    "build:prod": "vite build --mode production",
     "preview": "vite preview",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+    "lint": "eslint .",
+    "deploy": "npm run build:prod && node aws-deploy.js",
+    "deploy:dev": "npm run build && node aws-deploy.js"
   },
   "dependencies": {
-    "@aws-sdk/client-cloudfront": "^3.850.0",
-    "@aws-sdk/client-s3": "^3.850.0",
     "@phosphor-icons/react": "^2.1.10",
     "@vitejs/plugin-react-swc": "^3.11.0",
     "framer-plugin": "^3.4.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "typescript-eslint": "^8.38.0",
     "vite-plugin-framer": "^1.0.7",
     "vite-plugin-mkcert": "^1.17.8"
   },
   "devDependencies": {
+    "@aws-sdk/client-cloudfront": "^3.665.0",
+    "@aws-sdk/client-s3": "^3.665.0",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@typescript-eslint/eslint-plugin": "^7.2.0",
