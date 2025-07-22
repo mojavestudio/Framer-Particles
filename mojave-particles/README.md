@@ -4,32 +4,39 @@ A professional-grade particle system plugin for Framer with advanced animations,
 
 ## 🚀 Quick Start
 
-### Development
+### Prerequisites
+- Node.js 18+ and npm 8+
+- Framer account with Developer Tools enabled
+
+### Installation & Setup
 ```bash
+# Clone the repository
+git clone https://github.com/your-username/mojave-particles.git
+cd mojave-particles/mojave-particles
+
 # Install dependencies
-npm install
+npm install --legacy-peer-deps
 
 # Start development server
 npm run dev
-
-# Build for production
-npm run build
-
-# Pack for Framer
-npm run pack
 ```
 
-### Features
-- **50+ Controls** for complete particle customization
-- **8 Professional Presets** for instant effects
-- **Live Preview** with real-time updates
-- **Advanced Physics** (gravity, spin, vibration, attraction)
-- **Interactive Effects** (hover, click, connections)
-- **Multi-Color Support** with visual palette editor
-- **Dark Mode** support
+### Load in Framer
+1. **Open Framer**
+2. **Go to Plugins** → **Developer Tools** (enable if not already)
+3. **Click "Open Development Plugin"**
+4. **Enter URL**: `https://localhost:5173`
+5. **Click "Load"**
 
-## 🎨 Presets Included
+## ✨ Features
 
+### **50+ Customizable Properties**
+- **Basic**: Amount, size, opacity, color, backdrop
+- **Physics**: Movement, gravity, spin, vibration, attraction
+- **Effects**: Twinkle, hover interactions, particle connections
+- **Advanced**: Multi-color support, device pixel ratio rendering
+
+### **8 Professional Presets**
 - **Basic** - Clean, minimal particle field
 - **Snow** - Gentle falling snowflakes with twinkle
 - **Rainbow** - Colorful, vibrant particle system
@@ -39,87 +46,93 @@ npm run pack
 - **Galaxy** - Cosmic star field with attraction
 - **Neon** - Bright, energetic neon particles
 
+### **Advanced Rendering**
+- **Ultra-clean rendering** with device pixel ratio support
+- **GPU acceleration** for smooth 60fps animations
+- **No artifacts** or pixelation issues
+- **Responsive design** that adapts to any container
+
+## 🎨 Usage
+
+### **Plugin Interface**
+The plugin provides a comprehensive UI panel with:
+- **Live Preview** - Real-time particle system preview
+- **Property Controls** - All 50+ customization options
+- **Preset Library** - 8 professional presets for instant effects
+- **Create/Edit Modes** - Optimized workflow for different use cases
+
+### **Adding Particles to Canvas**
+1. **Load the plugin** in Framer (see Quick Start)
+2. **Customize particles** using the property controls
+3. **Click "Add Particles"** to create on canvas
+4. **Adjust properties** in Framer's property panel
+
 ## 🔧 Development
 
-### Project Structure
+### **Project Structure**
 ```
 mojave-particles/
 ├── src/
-│   ├── App.tsx          # Main plugin interface
-│   ├── App.css          # Styles
-│   └── main.tsx         # Entry point
-├── public/              # Static assets
-├── mojave_assets/       # Plugin assets
-└── package.json         # Dependencies and scripts
+│   ├── plugin.tsx          # Main plugin interface (2174 lines)
+│   ├── main.tsx            # Entry point
+│   ├── App.css             # Styles
+│   └── vite-env.d.ts       # TypeScript declarations
+├── public/                 # Static assets
+├── framer.json            # Plugin configuration
+├── vite.config.ts         # Build configuration
+└── package.json           # Dependencies and scripts
 ```
 
-### Key Components
-- **LivePreview** - Real-time canvas preview
-- **ParticleConfig** - Complete configuration interface
-- **Presets** - Professional preset library
-- **Controls** - Comprehensive UI controls
+### **Key Files**
+- **`src/plugin.tsx`** - Complete plugin interface with all features
+- **`framer.json`** - Plugin configuration (ID: `a1b2c3`)
+- **`vite.config.ts`** - HTTPS development server setup
+- **`FRAMER_PLUGIN_REQUIREMENTS.md`** - Critical requirements documentation
 
-### Building
+### **Available Scripts**
 ```bash
-# Development build
-npm run dev
-
-# Production build
-npm run build
-
-# Type checking
-npm run type-check
-
-# Linting
-npm run lint
-
-# Clean build artifacts
-npm run clean
+npm run dev          # Start development server (HTTPS)
+npm run build        # Build for production
+npm run preview      # Preview production build
+npm run lint         # Run ESLint
 ```
 
-## 📦 Distribution
+## 🚨 Troubleshooting
 
-### Packing for Framer
+### **Common Issues**
+- **"Failed to load"**: Check `FRAMER_PLUGIN_REQUIREMENTS.md`
+- **Plugin ID errors**: Must be 6-character hexadecimal
+- **HTTPS required**: Server must use HTTPS, not HTTP
+- **Directory issues**: Must run from `mojave-particles` directory
+
+### **Quick Fixes**
 ```bash
-npm run pack
+# Clear cache and restart
+rm -rf .vite && npm run dev
+
+# Reinstall dependencies
+rm -rf node_modules package-lock.json
+npm install --legacy-peer-deps
+
+# Check server status
+lsof -i :5173
 ```
 
-This creates a `.framerx` file ready for distribution.
+## 📚 Documentation
 
-### Installation
-1. Run `npm run pack` to create the plugin package
-2. Import the `.framerx` file into Framer
-3. Add to your canvas and customize
+### **Essential Guides**
+- **[FRAMER_PLUGIN_REQUIREMENTS.md](FRAMER_PLUGIN_REQUIREMENTS.md)** - Critical requirements (DON'T FORGET!)
+- **[SERVER_SCRIPTS.md](SERVER_SCRIPTS.md)** - Server management scripts
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - AWS deployment guide
 
-## 🎯 Usage
+### **Development Workflow**
+1. **Start development**: `npm run dev`
+2. **Load in Framer**: Use Developer Tools
+3. **Make changes**: Edit `src/plugin.tsx`
+4. **Test**: Changes auto-reload in Framer
+5. **Deploy**: Follow `DEPLOYMENT.md` guide
 
-### Basic Implementation
-```tsx
-// The plugin generates complete particle systems
-// Users can customize via the intuitive interface
-// No code required - just drag and drop!
-```
-
-### Advanced Customization
-All settings are available through the plugin interface:
-- Particle amount, size, opacity
-- Movement physics and boundaries
-- Interactive effects and connections
-- Color palettes and visual effects
-
-## 🔍 Troubleshooting
-
-### Common Issues
-- **Build errors**: Run `npm run clean` then `npm install`
-- **Type errors**: Run `npm run type-check`
-- **Lint errors**: Run `npm run lint`
-
-### Performance
-- Use 50-100 particles for mobile devices
-- Disable complex effects for better performance
-- Test on target devices
-
-## 📄 License
+## 🔐 License
 
 © 2025 Mojave Studio LLC - All Rights Reserved
 
@@ -127,10 +140,10 @@ This is proprietary software. Unauthorized copying, modification, distribution, 
 
 ## 🌟 Support
 
-- **Documentation**: See main README.md
+- **Documentation**: See guides above
 - **Issues**: GitHub Issues
 - **Contact**: info@mojavestud.io
 
 ---
 
-Built with ❤️ for the Framer community by Mojave Studio
+**Built with ❤️ for the Framer community by Mojave Studio**
