@@ -11,6 +11,8 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
+    "@aws-sdk/client-cloudfront": "^3.850.0",
+    "@aws-sdk/client-s3": "^3.850.0",
     "@phosphor-icons/react": "^2.1.10",
     "@vitejs/plugin-react-swc": "^3.11.0",
     "framer-plugin": "^3.4.0",
