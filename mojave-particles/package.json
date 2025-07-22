@@ -1,29 +1,17 @@
 {
   "name": "mojave-particles",
-  "version": "1.2.0",
-  "description": "A powerful, lightweight particle system component for Framer with advanced animations and interactive effects",
   "private": true,
+  "version": "0.0.0",
   "type": "module",
-  "keywords": [
-    "framer",
-    "particles",
-    "animation",
-    "canvas",
-    "react",
-    "typescript",
-    "interactive",
-    "effects"
-  ],
   "scripts": {
     "dev": "vite",
-    "build": "NODE_ENV=production vite build",
-    "build:dev": "NODE_ENV=development vite build",
+    "build": "vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "pack": "npm run build && npx framer-plugin-tools@latest pack",
-    "dev:plugin": "echo '🚀 Starting Framer Plugin Development Server...' && npm run dev"
+    "pack": "npx framer-plugin-tools@latest pack"
   },
   "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
     "framer-plugin": "^3",
     "react": "^18",
     "react-dom": "^18",
@@ -31,19 +19,17 @@
   },
   "devDependencies": {
     "@eslint/js": "^9",
-    "@types/react-dom": "^18",
     "@types/react": "^18",
-    "@vitejs/plugin-react-swc": "^3",
+    "@types/react-dom": "^18",
     "@vitejs/plugin-react": "^4.3.1",
+    "@vitejs/plugin-react-swc": "^3",
+    "eslint": "^9.9.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.9",
-    "typescript-eslint": "^8.0.1",
-    "vite-plugin-framer": "^1",
-    "eslint": "^9.9.0",
     "globals": "^15.9.0",
     "typescript": "^5.3",
+    "typescript-eslint": "^8.0.1",
     "vite": "^6",
-    "terser": "^5.28.1",
-    "webpack-obfuscator": "^3.5.1"
+    "vite-plugin-framer": "^1"
   }
 }
