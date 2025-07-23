@@ -15,7 +15,6 @@ dist/
 build/
 *.tgz
 *.tar.gz
-# plugin.zip - Keep this for Framer Marketplace submission
 
 # Environment variables
 .env
@@ -23,7 +22,6 @@ build/
 .env.development.local
 .env.test.local
 .env.production.local
-aws.env
 
 # IDE and editor files
 .vscode/
