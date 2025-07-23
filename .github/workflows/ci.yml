@@ -24,7 +24,7 @@ jobs:
     
     - name: Install dependencies
       working-directory: ./mojave-particles
-      run: npm ci
+      run: npm install
     
     - name: Check build
       working-directory: ./mojave-particles
