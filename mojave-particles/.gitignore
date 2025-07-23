@@ -12,7 +12,7 @@ dist/
 build/
 *.tgz
 *.tar.gz
-# plugin.zip - Keep this for Framer Marketplace submission
+plugin.zip
 my-plugin
 dev-plugin
 
