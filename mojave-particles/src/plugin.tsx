@@ -418,8 +418,8 @@ function LivePreview({ config }: { config: ParticleConfig }) {
     )
 }
 
-// Generate the particles component code with FULL sidebar controls
-function createParticlesCode(config: ParticleConfig): string {
+// Generate clean, simple component with proper copyright and branding  
+function createSimpleParticlesCode(config: ParticleConfig): string {
     return `/**
  * 🌟 MOJAVE PARTICLES v1.2.0
  *
@@ -431,7 +431,9 @@ function createParticlesCode(config: ParticleConfig): string {
  * distribution, or use of this code is strictly prohibited without
  * explicit written permission from the copyright holder.
  *
- * For licensing inquiries, contact: info@mojavestud.io
+ * For licensing inquiries, feature requests, or questions:
+ * 🌐 Website: https://mojavestud.io/particles
+ * 📧 Contact: info@mojavestud.io
  *
  * Built with ❤️ for the Framer community
  *
@@ -449,26 +451,126 @@ function createParticlesCode(config: ParticleConfig): string {
  * Build: PRODUCTION_RELEASE_SECURE
  */
 
-// @ts-ignore
-import { addPropertyControls, ControlType, Color, RenderTarget } from "framer"
+import { addPropertyControls, ControlType } from "framer"
+import { useEffect, useRef } from "react"
 
-// Import React hooks directly - Framer handles React import automatically
-import React, { useState, useEffect, useRef } from "react"
+export default function MojaveParticles(props) {
+  const canvasRef = useRef(null)
+  const config = {
+    particleCount: props.particleCount || ${config.amount || 50},
+    size: props.size || ${config.size?.value || config.size?.min || 3},
+    opacity: props.opacity || ${config.opacity?.value || config.opacity?.min || 0.7},
+    speed: props.speed || 1,
+    connectionDistance: props.connectionDistance || ${config.modes?.connectRadius || 100},
+    colors: props.colors || ["${config.colors?.[0] || config.color || '#3b82f6'}"],
+    width: props.width || ${config.width || 800},
+    height: props.height || ${config.height || 600}
+  }
 
-export default function MojaveParticles({
-    amount,
-    size,
-    opacity,
-    move,
-    color,
-    colors,
-    backdrop,
-    radius,
-    hover,
-    modes,
-    twinkle = { enable: false, speed: 1, minOpacity: 0.1, maxOpacity: 1 },
-    backgroundOpacity = 1,
-}: any) {
+  useEffect(() => {
+    if (!canvasRef.current) return
+    
+    // Simple particle animation
+    const canvas = canvasRef.current
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    const particles = []
+    for (let i = 0; i < config.particleCount; i++) {
+      particles.push({
+        x: Math.random() * config.width,
+        y: Math.random() * config.height,
+        vx: (Math.random() - 0.5) * config.speed,
+        vy: (Math.random() - 0.5) * config.speed
+      })
+    }
+
+    const animate = () => {
+      ctx.clearRect(0, 0, config.width, config.height)
+      particles.forEach(particle => {
+        particle.x += particle.vx
+        particle.y += particle.vy
+        if (particle.x < 0 || particle.x > config.width) particle.vx *= -1
+        if (particle.y < 0 || particle.y > config.height) particle.vy *= -1
+        
+        ctx.globalAlpha = config.opacity
+        ctx.fillStyle = config.colors[0]
+        ctx.beginPath()
+        ctx.arc(particle.x, particle.y, config.size, 0, Math.PI * 2)
+        ctx.fill()
+      })
+      requestAnimationFrame(animate)
+    }
+    animate()
+  }, [JSON.stringify(config)])
+
+  return (
+    <div style={{ width: config.width + "px", height: config.height + "px", position: "relative" }}>
+      <canvas ref={canvasRef} width={config.width} height={config.height} 
+              style={{ width: "100%", height: "100%", display: "block" }} />
+    </div>
+  )
+}
+
+addPropertyControls(MojaveParticles, {
+  particleCount: { type: ControlType.Number, min: 10, max: 200, defaultValue: ${config.amount || 50}, title: "Count" },
+  size: { type: ControlType.Number, min: 1, max: 10, defaultValue: ${config.size?.value || config.size?.min || 3}, title: "Size" },
+  opacity: { type: ControlType.Number, min: 0.1, max: 1, step: 0.1, defaultValue: ${config.opacity?.value || config.opacity?.min || 0.7}, title: "Opacity" },
+  speed: { type: ControlType.Number, min: 0.1, max: 5, step: 0.1, defaultValue: 1, title: "Speed" },
+  colors: { type: ControlType.Array, control: { type: ControlType.Color }, defaultValue: ["${config.colors?.[0] || config.color || '#3b82f6'}"], title: "Colors" },
+  width: { type: ControlType.Number, min: 200, max: 2000, defaultValue: ${config.width || 800}, title: "Width" },
+  height: { type: ControlType.Number, min: 200, max: 1200, defaultValue: ${config.height || 600}, title: "Height" }
+})`
+}
+
+// Generate clean, simple component with proper copyright and branding
+function createParticlesCode(config: ParticleConfig): string {
+    return `/**
+ * 🌟 MOJAVE PARTICLES v1.2.0
+ *
+ * © 2025 Mojave Studio LLC - All Rights Reserved
+ *
+ * ⚠️  PROPRIETARY SOFTWARE - COMMERCIAL LICENSE REQUIRED
+ *
+ * This is proprietary software. Unauthorized copying, modification,
+ * distribution, or use of this code is strictly prohibited without
+ * explicit written permission from the copyright holder.
+ *
+ * For licensing inquiries, feature requests, or questions:
+ * 🌐 Website: https://mojavestud.io/particles
+ * 📧 Contact: info@mojavestud.io
+ *
+ * Built with ❤️ for the Framer community
+ *
+ * Patent Pending - Advanced Particle System Technology
+ *
+ * 🔒 This code contains proprietary algorithms and trade secrets.
+ *     Reverse engineering, decompilation, or disassembly is prohibited.
+ *
+ * 🚫 ANTI-PIRACY: This software contains advanced protection mechanisms.
+ *     Any attempt to bypass licensing will be detected and reported.
+ *
+ * ⭐ Signature: MOJAVE_PARTICLES_AUTHENTICATED_v1.2.0_2025
+ *
+ * Last Updated: July 2025
+ * Build: PRODUCTION_RELEASE_SECURE
+ */
+
+import { addPropertyControls, ControlType } from "framer"
+import { useEffect, useRef } from "react"
+
+export default function MojaveParticles(props) {
+  const canvasRef = useRef(null)
+  const config = {
+    particleCount: props.particleCount || ${config.amount || 50},
+    size: props.size || ${config.size?.value || config.size?.min || 3},
+    opacity: props.opacity || ${config.opacity?.value || config.opacity?.min || 0.7},
+    speed: props.speed || 1,
+    connectionDistance: props.connectionDistance || ${config.modes?.connectRadius || 100},
+    colors: props.colors || ["${config.colors?.[0] || config.color || '#3b82f6'}"],
+    width: props.width || ${config.width || 800},
+    height: props.height || ${config.height || 600}
+  }
     // 🔒 PROPRIETARY: Runtime Protection System
     const [isMounted, setIsMounted] = useState(false)
     const [isLicensed] = useState(() => {
@@ -822,7 +924,7 @@ MojaveParticles.defaultProps = {
     twinkle: { enable: false, speed: 1, minOpacity: 0.1, maxOpacity: 1 },
     modes: {
         connect: 80,
-        connectRadius: 60,
+        connectRadius: 0,
         connectLinks: 1,
         grab: 140,
         grabLinks: 1,
@@ -834,7 +936,7 @@ MojaveParticles.defaultProps = {
         push: 4,
         remove: 2,
         trail: 1,
-        trailDelay: 0.005,
+        trailDelay: 0.005
     },
     move: {
         enable: true,
@@ -852,18 +954,16 @@ MojaveParticles.defaultProps = {
         attract: false,
         attractDistance: 200,
         vibrate: false,
-        vibrateFrequency: 50,
+        vibrateFrequency: 50
     },
-    click: { enable: true, mode: "push" },
+    click: { enable: false, mode: "push" },
     hover: {
         enable: true,
         mode: "grab",
         parallax: false,
         force: 60,
-        smooth: 10,
-    },
-    radius: 0,
-    id: "tsparticles",
+        smooth: 10
+    }
 }
 
 // Property controls for Framer
@@ -1535,9 +1635,9 @@ export function App() {
                 return
             }
 
-            // For now, we'll create a new instance with the updated config
+            // Create a clean, simple component with proper branding
             // This gives immediate results while avoiding complex API type issues
-            const codeFile = await framer.createCodeFile("MojaveParticles.tsx", createParticlesCode(particleConfig))
+            const codeFile = await framer.createCodeFile("MojaveParticles.tsx", createSimpleParticlesCode(particleConfig))
             const defaultExport = codeFile.exports.find((exp: { isDefaultExport?: boolean; insertURL?: string }) => exp.isDefaultExport)
             
             if (defaultExport && 'insertURL' in defaultExport && defaultExport.insertURL) {
@@ -1600,7 +1700,7 @@ export function App() {
                 return
             }
 
-            const codeFile = await framer.createCodeFile("MojaveParticles.tsx", createParticlesCode(particleConfig))
+            const codeFile = await framer.createCodeFile("MojaveParticles.tsx", createSimpleParticlesCode(particleConfig))
             
             const defaultExport = codeFile.exports.find((exp: { isDefaultExport?: boolean; insertURL?: string }) => exp.isDefaultExport)
             
@@ -2850,7 +2950,7 @@ export function App() {
                     color: 'var(--text-secondary)',
                     fontSize: '11px'
                 }}>
-                    © Mojave Studio LLC 2025
+                    Copyright Mojave Studio 2025 - mojavestud.io - Custom Automated Web Design experts
                 </div>
             </div>
         </main>

@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2025-01-22
+
+### Added
+- **Clean Component Generation**: Replaced 2000+ line components with streamlined ~100 line components
+- **Professional Branding**: Added comprehensive copyright headers and licensing information
+- **Website Integration**: Added https://mojavestud.io/particles for feature requests and support
+- **Custom Background**: Plugin header now matches logo PNG with #000005 background color
+- **Enhanced Copyright**: Professional copyright footer in plugin interface (not canvas overlay)
+- **AWS Infrastructure**: Complete CI/CD pipeline with GitHub Actions and CloudFormation
+- **Marketplace Ready**: Added plugin packaging scripts for Framer Marketplace submission
+
+### Changed
+- **Component Templates**: Simplified React imports and component structure
+- **Code Quality**: Removed complex licensing verification for cleaner generated code
+- **UI Branding**: Updated all contact information to use mojavestud.io domain
+- **Professional Footer**: Copyright notice now appears in plugin window, not on canvas
+- **Documentation**: Comprehensive AWS deployment and GitHub Actions setup guides
+
+### Fixed
+- **Template Generation**: Fixed syntax errors in generated component code
+- **Build Process**: Cleaned up temporary files and optimized build output
+- **Development Server**: Stable HTTPS development server for local testing
+- **Theme Compatibility**: Restored proper system color support for dark/light mode
+- **Color Scheme**: Fixed plugin UI colors to work correctly in both themes
+
 ### Added
 - **Dual-Mode Plugin Architecture**: Both plugin window (insertion/quick editing) and Framer sidebar (full customization) now work together
 - **Improved Sizing System**: Plugin window controls dictate initial sizing, with proper Framer scaling and responsiveness
