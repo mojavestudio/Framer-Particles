@@ -10,12 +10,18 @@ Your Mojave Particles plugin is now ready for Framer Marketplace submission!
    ```bash
    npm run pack
    ```
-   This creates `plugin.zip` (156KB) with all necessary files.
+   This creates `plugin.zip` (0.15 MB) with all necessary files.
 
-2. **Upload to Framer Marketplace:**
+2. **Commit to Git:**
+   ```bash
+   git add plugin.zip
+   git commit -m "Add plugin package for marketplace submission"
+   ```
+
+3. **Upload to Framer Marketplace:**
    - Go to: https://framer.com/plugins
    - Click "New Plugin"
-   - Upload `plugin.zip`
+   - Upload the `plugin.zip` file from your repository
    - Fill in plugin details
 
 ### **📋 Files Included in Package:**

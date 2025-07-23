@@ -20,11 +20,11 @@ import "./App.css"
 
 // Show UI only in canvas mode (for insertion)
 if (framer.mode === "canvas") {
-    framer.showUI({
-        position: "top right",
-        width: 640,
-        height: 900,
-    })
+framer.showUI({
+    position: "top right",
+    width: 640,
+    height: 900,
+})
 }
 
 // Simplified configuration for insertion
@@ -244,11 +244,9 @@ function LivePreview({ config }: { config: ParticleConfig }) {
             mouseRef.current.isHovering = false
         }
 
-        // Add mouse listeners if hover is enabled
-        if (config.hover.enable) {
+        // Add mouse listeners for live preview interactions
             canvas.addEventListener("mousemove", handleMouseMove)
             canvas.addEventListener("mouseleave", handleMouseLeave)
-        }
 
         function animate() {
             if (!canvas || !ctx) return
@@ -395,10 +393,8 @@ function LivePreview({ config }: { config: ParticleConfig }) {
             if (animationRef.current) {
                 cancelAnimationFrame(animationRef.current)
             }
-            if (config.hover.enable) {
                 canvas.removeEventListener("mousemove", handleMouseMove)
                 canvas.removeEventListener("mouseleave", handleMouseLeave)
-            }
             window.removeEventListener('resize', handleResize)
         }
     }, [config])
@@ -419,948 +415,149 @@ function LivePreview({ config }: { config: ParticleConfig }) {
 }
 
 // Generate clean, simple component with proper copyright and branding  
-function createSimpleParticlesCode(config: ParticleConfig): string {
+function createSimpleParticlesCode(_config: ParticleConfig): string {
     return `/**
  * 🌟 MOJAVE PARTICLES v1.2.0
- *
  * © 2025 Mojave Studio LLC - All Rights Reserved
- *
- * ⚠️  PROPRIETARY SOFTWARE - COMMERCIAL LICENSE REQUIRED
- *
- * This is proprietary software. Unauthorized copying, modification,
- * distribution, or use of this code is strictly prohibited without
- * explicit written permission from the copyright holder.
- *
- * For licensing inquiries, feature requests, or questions:
- * 🌐 Website: https://mojavestud.io/particles
- * 📧 Contact: info@mojavestud.io
- *
+ * 
+ * Professional particle system for Framer
  * Built with ❤️ for the Framer community
- *
- * Patent Pending - Advanced Particle System Technology
- *
- * 🔒 This code contains proprietary algorithms and trade secrets.
- *     Reverse engineering, decompilation, or disassembly is prohibited.
- *
- * 🚫 ANTI-PIRACY: This software contains advanced protection mechanisms.
- *     Any attempt to bypass licensing will be detected and reported.
- *
- * ⭐ Signature: MOJAVE_PARTICLES_AUTHENTICATED_v1.2.0_2025
- *
- * Last Updated: July 2025
- * Build: PRODUCTION_RELEASE_SECURE
+ * 
+ * For support: https://mojavestud.io/particles
  */
 
 import { addPropertyControls, ControlType } from "framer"
 import { useEffect, useRef } from "react"
 
-export default function MojaveParticles(props) {
-  const canvasRef = useRef(null)
-  const config = {
-    particleCount: props.particleCount || ${config.amount || 50},
-    size: props.size || ${config.size?.value || config.size?.min || 3},
-    opacity: props.opacity || ${config.opacity?.value || config.opacity?.min || 0.7},
-    speed: props.speed || 1,
-    connectionDistance: props.connectionDistance || ${config.modes?.connectRadius || 100},
-    colors: props.colors || ["${config.colors?.[0] || config.color || '#3b82f6'}"],
-    width: props.width || ${config.width || 800},
-    height: props.height || ${config.height || 600}
-  }
-
-  useEffect(() => {
-    if (!canvasRef.current) return
-    
-    // Simple particle animation
-    const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    const particles = []
-    for (let i = 0; i < config.particleCount; i++) {
-      particles.push({
-        x: Math.random() * config.width,
-        y: Math.random() * config.height,
-        vx: (Math.random() - 0.5) * config.speed,
-        vy: (Math.random() - 0.5) * config.speed
-      })
+function MojaveParticles(props) {
+    const canvasRef = useRef(null)
+    const config = {
+        particleCount: props.particleCount || 50,
+        size: props.size || 3,
+        opacity: props.opacity || 0.7,
+        speed: props.speed || 1,
+        connectionDistance: props.connectionDistance || 100,
+        colors: props.colors || ["#3b82f6"],
+        width: props.width || 800,
+        height: props.height || 600,
     }
 
-    const animate = () => {
-      ctx.clearRect(0, 0, config.width, config.height)
-      particles.forEach(particle => {
-        particle.x += particle.vx
-        particle.y += particle.vy
-        if (particle.x < 0 || particle.x > config.width) particle.vx *= -1
-        if (particle.y < 0 || particle.y > config.height) particle.vy *= -1
-        
-        ctx.globalAlpha = config.opacity
-        ctx.fillStyle = config.colors[0]
-        ctx.beginPath()
-        ctx.arc(particle.x, particle.y, config.size, 0, Math.PI * 2)
-        ctx.fill()
-      })
-      requestAnimationFrame(animate)
-    }
-    animate()
-  }, [JSON.stringify(config)])
-
-  return (
-    <div style={{ width: config.width + "px", height: config.height + "px", position: "relative" }}>
-      <canvas ref={canvasRef} width={config.width} height={config.height} 
-              style={{ width: "100%", height: "100%", display: "block" }} />
-    </div>
-  )
-}
-
-addPropertyControls(MojaveParticles, {
-  particleCount: { type: ControlType.Number, min: 10, max: 200, defaultValue: ${config.amount || 50}, title: "Count" },
-  size: { type: ControlType.Number, min: 1, max: 10, defaultValue: ${config.size?.value || config.size?.min || 3}, title: "Size" },
-  opacity: { type: ControlType.Number, min: 0.1, max: 1, step: 0.1, defaultValue: ${config.opacity?.value || config.opacity?.min || 0.7}, title: "Opacity" },
-  speed: { type: ControlType.Number, min: 0.1, max: 5, step: 0.1, defaultValue: 1, title: "Speed" },
-  colors: { type: ControlType.Array, control: { type: ControlType.Color }, defaultValue: ["${config.colors?.[0] || config.color || '#3b82f6'}"], title: "Colors" },
-  width: { type: ControlType.Number, min: 200, max: 2000, defaultValue: ${config.width || 800}, title: "Width" },
-  height: { type: ControlType.Number, min: 200, max: 1200, defaultValue: ${config.height || 600}, title: "Height" }
-})`
-}
-
-// Generate clean, simple component with proper copyright and branding
-function createParticlesCode(config: ParticleConfig): string {
-    return `/**
- * 🌟 MOJAVE PARTICLES v1.2.0
- *
- * © 2025 Mojave Studio LLC - All Rights Reserved
- *
- * ⚠️  PROPRIETARY SOFTWARE - COMMERCIAL LICENSE REQUIRED
- *
- * This is proprietary software. Unauthorized copying, modification,
- * distribution, or use of this code is strictly prohibited without
- * explicit written permission from the copyright holder.
- *
- * For licensing inquiries, feature requests, or questions:
- * 🌐 Website: https://mojavestud.io/particles
- * 📧 Contact: info@mojavestud.io
- *
- * Built with ❤️ for the Framer community
- *
- * Patent Pending - Advanced Particle System Technology
- *
- * 🔒 This code contains proprietary algorithms and trade secrets.
- *     Reverse engineering, decompilation, or disassembly is prohibited.
- *
- * 🚫 ANTI-PIRACY: This software contains advanced protection mechanisms.
- *     Any attempt to bypass licensing will be detected and reported.
- *
- * ⭐ Signature: MOJAVE_PARTICLES_AUTHENTICATED_v1.2.0_2025
- *
- * Last Updated: July 2025
- * Build: PRODUCTION_RELEASE_SECURE
- */
-
-import { addPropertyControls, ControlType } from "framer"
-import { useEffect, useRef } from "react"
-
-export default function MojaveParticles(props) {
-  const canvasRef = useRef(null)
-  const config = {
-    particleCount: props.particleCount || ${config.amount || 50},
-    size: props.size || ${config.size?.value || config.size?.min || 3},
-    opacity: props.opacity || ${config.opacity?.value || config.opacity?.min || 0.7},
-    speed: props.speed || 1,
-    connectionDistance: props.connectionDistance || ${config.modes?.connectRadius || 100},
-    colors: props.colors || ["${config.colors?.[0] || config.color || '#3b82f6'}"],
-    width: props.width || ${config.width || 800},
-    height: props.height || ${config.height || 600}
-  }
-    // 🔒 PROPRIETARY: Runtime Protection System
-    const [isMounted, setIsMounted] = useState(false)
-    const [isLicensed] = useState(() => {
-        // License verification system
-        const signature = "MOJAVE_PARTICLES_AUTHENTICATED_v1.2.0_2025"
-        const timestamp = Date.now()
-        // Advanced licensing check would go here
-        return true // For demo purposes
-    })
-
-    // Canvas ref for rendering
-    const canvasRef = useRef<HTMLCanvasElement>(null)
-    const animationRef = useRef<number | null>(null)
-    const particlesRef = useRef<any[]>([])
-
-    const mouseRef = useRef<{ x: number; y: number; isHovering: boolean }>({
-        x: -1,
-        y: -1,
-        isHovering: false,
-    })
-
-    // Initialize component with protection
     useEffect(() => {
-        // 🔒 Anti-tamper verification
-        if (!isLicensed) {
-            console.warn("⚠️ Mojave Particles: Unauthorized usage detected")
-            return
-        }
-
-        setIsMounted(true)
-    }, [isLicensed])
-
-    // Main canvas effect
-    useEffect(() => {
-        if (!isMounted) return
+        if (!canvasRef.current) return
 
         const canvas = canvasRef.current
-        if (!canvas) return
-
-        const ctx = canvas.getContext("2d", {
-            alpha: true,
-            desynchronized: false,
-            colorSpace: "srgb",
-            willReadFrequently: false,
-        })
+        const ctx = canvas.getContext("2d")
         if (!ctx) return
 
-        // Convert colors to hex strings
-        function makeHex(colorInput: any): string {
-            if (!colorInput) return "#ffffff"
-
-            try {
-                // Handle Framer Color objects
-                if (colorInput && typeof colorInput === "object") {
-                    return Color.toHexString(colorInput)
-                }
-
-                // Handle hex strings
-                if (typeof colorInput === "string" && colorInput.startsWith("#")) {
-                    return colorInput
-                }
-
-                // Fallback
-                return Color.toHexString(Color(colorInput))
-            } catch (error) {
-                return "#ffffff"
-            }
-        }
-
-        function hexToRgba(hex: string, alpha: number = 1): string {
-            const result = /^#?([a-f\\d]{2})([a-f\\d]{2})([a-f\\d]{2})$/i.exec(hex)
-            if (!result) return \`rgba(255, 255, 255, \${alpha})\`
-
-            const r = parseInt(result[1], 16)
-            const g = parseInt(result[2], 16)
-            const b = parseInt(result[3], 16)
-
-            return \`rgba(\${r}, \${g}, \${b}, \${alpha})\`
-        }
-
-        // Convert colors array
-        const cols = colors && colors.length > 0 ? colors.map((c: any) => makeHex(c)) : [makeHex(color)]
-
-        // Create particles
-        function createParticles() {
-            const container = canvas.parentElement
-            const canvasWidth = container ? container.clientWidth : 800
-            const canvasHeight = container ? container.clientHeight : 600
-
-            const particles: any[] = []
-            for (let i = 0; i < amount; i++) {
-                const particleColor = cols[Math.floor(Math.random() * cols.length)]
-
-                particles.push({
-                    x: Math.random() * canvasWidth,
-                    y: Math.random() * canvasHeight,
-                    vx: (Math.random() - 0.5) * move.speed * 0.1,
-                    vy: (Math.random() - 0.5) * move.speed * 0.1,
-                    color: particleColor,
-                    size: size.type === "Range" ? Math.random() * (size.max - size.min) + size.min : size.value,
-                    opacity: opacity.type === "Range" ? Math.random() * (opacity.max - opacity.min) + opacity.min : opacity.value,
-                    twinklePhase: Math.random() * Math.PI * 2,
-                    twinkleSpeed: twinkle.speed,
-                })
-            }
-            particlesRef.current = particles
-        }
-
-        // Set canvas size with proper scaling
-        const resizeCanvas = () => {
-            const container = canvas.parentElement
-            if (!container) return
-
-            // Use the configured width/height from the plugin, but respect Framer's container sizing
-            const rect = container.getBoundingClientRect()
-            const containerWidth = rect.width || container.offsetWidth || container.clientWidth
-            const containerHeight = rect.height || container.offsetHeight || container.clientHeight
-
-            // Use configured dimensions as minimum, but allow Framer to scale up
-            const targetWidth = Math.max(containerWidth, ${config.width || 800})
-            const targetHeight = Math.max(containerHeight, ${config.height || 600})
-
-            if (targetWidth <= 0 || targetHeight <= 0) {
-                requestAnimationFrame(() => setTimeout(resizeCanvas, 10))
-                return
-            }
-
-            // Get device pixel ratio for crisp rendering
-            const dpr = window.devicePixelRatio || 1
-
-            // Set the actual canvas size (internal resolution)
-            canvas.width = targetWidth * dpr
-            canvas.height = targetHeight * dpr
-
-            // Scale the canvas back down using CSS
-            canvas.style.width = targetWidth + "px"
-            canvas.style.height = targetHeight + "px"
-
-            // Scale the drawing context to match device pixel ratio
-            ctx.scale(dpr, dpr)
-
-            // Set additional context properties
-            ctx.imageSmoothingEnabled = false
-            ctx.globalCompositeOperation = "source-over"
-
-            // Store the logical dimensions for particle calculations
-            // @ts-ignore
-            canvas.logicalWidth = targetWidth
-            // @ts-ignore
-            canvas.logicalHeight = targetHeight
-
-            if (particlesRef.current.length === 0) {
-                createParticles()
-            }
-        }
-
-        // Initialize canvas
-        resizeCanvas()
-        requestAnimationFrame(resizeCanvas)
-
-        window.addEventListener("resize", resizeCanvas)
-
-        // Mouse event handlers for hover interactions
-        const handleMouseMove = (e: MouseEvent) => {
-            const rect = canvas.getBoundingClientRect()
-            mouseRef.current = {
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top,
-                isHovering: true,
-            }
-        }
-
-        const handleMouseLeave = () => {
-            mouseRef.current.isHovering = false
-        }
-
-        if (hover.enable) {
-            canvas.addEventListener("mousemove", handleMouseMove)
-            canvas.addEventListener("mouseleave", handleMouseLeave)
-        }
-
-        // Animation loop
-        const animate = () => {
-            const particles = particlesRef.current
-            if (!particles || particles.length === 0) {
-                return
-            }
-
-            // @ts-ignore
-            const width = canvas.logicalWidth || canvas.width
-            // @ts-ignore
-            const height = canvas.logicalHeight || canvas.height
-
-            // Clear canvas
-            ctx.save()
-            ctx.setTransform(1, 0, 0, 1, 0, 0)
-            ctx.globalCompositeOperation = "copy"
-            ctx.fillStyle = "rgba(0, 0, 0, 0)"
-            ctx.fillRect(0, 0, canvas.width, canvas.height)
-            ctx.globalCompositeOperation = "source-over"
-            ctx.clearRect(0, 0, canvas.width, canvas.height)
-            ctx.restore()
-
-            // Draw backdrop
-            if (backdrop && backgroundOpacity > 0) {
-                const backdropColor = makeHex(backdrop)
-                ctx.save()
-                ctx.globalCompositeOperation = "source-over"
-                ctx.fillStyle = backdropColor
-                ctx.fillRect(0, 0, width, height)
-                ctx.restore()
-            }
-
-            // Update and draw particles
-            particles.forEach((particle, index) => {
-                // Update position if movement is enabled
-                if (move.enable) {
-                    particle.x += particle.vx
-                    particle.y += particle.vy
-
-                    // Bounce off edges
-                    if (particle.x <= 0 || particle.x >= width) {
-                        particle.vx *= -1
-                        particle.x = Math.max(0, Math.min(width, particle.x))
-                    }
-                    if (particle.y <= 0 || particle.y >= height) {
-                        particle.vy *= -1
-                        particle.y = Math.max(0, Math.min(height, particle.y))
-                    }
-                }
-
-                // Handle hover interactions
-                if (hover.enable && mouseRef.current.isHovering) {
-                    const dx = mouseRef.current.x - particle.x
-                    const dy = mouseRef.current.y - particle.y
-                    const distance = Math.sqrt(dx * dx + dy * dy)
-
-                    if (hover.mode === "repulse" && distance < modes.repulse) {
-                        const force = (modes.repulse - distance) / modes.repulse
-                        particle.x -= (dx / distance) * force * 2
-                        particle.y -= (dy / distance) * force * 2
-                    } else if (hover.mode === "grab" && distance < modes.grab) {
-                        const force = (modes.grab - distance) / modes.grab
-                        particle.x += (dx / distance) * force * 0.5
-                        particle.y += (dy / distance) * force * 0.5
-                    }
-                }
-
-                // Calculate opacity with twinkle effect
-                let currentOpacity = particle.opacity
-                if (twinkle.enable) {
-                    particle.twinklePhase += twinkle.speed * 0.1
-                    const twinkleMultiplier = (Math.sin(particle.twinklePhase) + 1) / 2
-                    currentOpacity = twinkle.minOpacity + (twinkle.maxOpacity - twinkle.minOpacity) * twinkleMultiplier
-                }
-
-                // Draw particle
-                const colorWithOpacity = hexToRgba(particle.color, currentOpacity)
-
-                ctx.save()
-                ctx.globalCompositeOperation = "source-over"
-                ctx.beginPath()
-                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
-                ctx.fillStyle = colorWithOpacity
-                ctx.fill()
-                ctx.restore()
+        const particles = []
+        for (let i = 0; i < config.particleCount; i++) {
+            particles.push({
+                x: Math.random() * config.width,
+                y: Math.random() * config.height,
+                vx: (Math.random() - 0.5) * config.speed,
+                vy: (Math.random() - 0.5) * config.speed,
             })
-
-            // Continue animation
-            animationRef.current = requestAnimationFrame(animate)
         }
 
-        // Reset any existing animation
-        if (animationRef.current) {
-            cancelAnimationFrame(animationRef.current)
-            animationRef.current = null
-        }
+        const animate = () => {
+            ctx.clearRect(0, 0, config.width, config.height)
+            particles.forEach((particle) => {
+                particle.x += particle.vx
+                particle.y += particle.vy
+                if (particle.x < 0 || particle.x > config.width)
+                    particle.vx *= -1
+                if (particle.y < 0 || particle.y > config.height)
+                    particle.vy *= -1
 
-        // Start animation loop
+                ctx.globalAlpha = config.opacity
+                ctx.fillStyle = config.colors[0]
+                ctx.beginPath()
+                ctx.arc(particle.x, particle.y, config.size, 0, Math.PI * 2)
+                ctx.fill()
+            })
+            requestAnimationFrame(animate)
+        }
         animate()
-
-        // Cleanup
-        return () => {
-            if (animationRef.current) {
-                cancelAnimationFrame(animationRef.current)
-            }
-            window.removeEventListener("resize", resizeCanvas)
-            if (hover.enable) {
-                canvas.removeEventListener("mousemove", handleMouseMove)
-                canvas.removeEventListener("mouseleave", handleMouseLeave)
-            }
-        }
-    }, [isMounted, amount, backdrop, color, colors])
+    }, [JSON.stringify(config)])
 
     return (
         <div
             style={{
-                width: "${config.width || 800}px",
-                height: "${config.height || 600}px",
-                minWidth: "200px",
-                minHeight: "200px",
-                background: backgroundOpacity === 0 ? "transparent" : backdrop,
-                borderRadius: radius,
+                width: config.width + "px",
+                height: config.height + "px",
                 position: "relative",
-                overflow: "hidden",
-                border: "0",
-                outline: "0",
-                margin: 0,
-                padding: 0,
-                boxSizing: "border-box",
-                boxShadow: "none",
-                transform: "translateZ(0)",
-                WebkitTransform: "translateZ(0)",
-                willChange: "auto",
             }}
         >
             <canvas
                 ref={canvasRef}
-                style={{
-                    width: "100%",
-                    height: "100%",
-                    display: "block",
-                    pointerEvents: hover.enable ? "auto" : "none",
-                    backgroundColor: "transparent",
-                    border: "0",
-                    outline: "0",
-                    margin: 0,
-                    padding: 0,
-                    boxSizing: "border-box",
-                    boxShadow: "none",
-                    transform: "translateZ(0)",
-                    WebkitTransform: "translateZ(0)",
-                    position: "relative",
-                    willChange: "contents",
-                    imageRendering: "pixelated",
-                }}
+                width={config.width}
+                height={config.height}
+                style={{ width: "100%", height: "100%", display: "block" }}
             />
         </div>
     )
 }
 
-// Default properties
-MojaveParticles.defaultProps = {
-    backdrop: "#141414",
-    backgroundOpacity: 1,
-    color: "#ffffff",
-    colors: [],
-    amount: 50,
-    size: { type: "Range", value: 3, min: 1, max: 5 },
-    opacity: { type: "Range", value: 0.5, min: 0.1, max: 1 },
-    twinkle: { enable: false, speed: 1, minOpacity: 0.1, maxOpacity: 1 },
-    modes: {
-        connect: 80,
-        connectRadius: 0,
-        connectLinks: 1,
-        grab: 140,
-        grabLinks: 1,
-        bubble: 400,
-        bubbleSize: 40,
-        bubbleDuration: 2,
-        repulse: 200,
-        repulseDistance: 0.4,
-        push: 4,
-        remove: 2,
-        trail: 1,
-        trailDelay: 0.005
-    },
-    move: {
-        enable: true,
-        direction: "none",
-        speed: 2,
-        random: false,
-        straight: false,
-        out: "out",
-        trail: false,
-        trailLength: 10,
-        gravity: false,
-        gravityAcceleration: 9.81,
-        spin: false,
-        spinSpeed: 2,
-        attract: false,
-        attractDistance: 200,
-        vibrate: false,
-        vibrateFrequency: 50
-    },
-    click: { enable: false, mode: "push" },
-    hover: {
-        enable: true,
-        mode: "grab",
-        parallax: false,
-        force: 60,
-        smooth: 10
-    }
-}
+export default MojaveParticles
 
-// Property controls for Framer
 addPropertyControls(MojaveParticles, {
-    backdrop: { type: ControlType.Color, title: "Background" },
-    backgroundOpacity: {
+    particleCount: {
         type: ControlType.Number,
-        title: "Background Opacity",
-        defaultValue: 1,
-        min: 0,
-        max: 1,
-        step: 0.1,
+        min: 10,
+        max: 200,
+        defaultValue: 50,
+        title: "Count",
     },
-    color: { type: ControlType.Color, title: "Color" },
+    size: {
+        type: ControlType.Number,
+        min: 1,
+        max: 10,
+        defaultValue: 3,
+        title: "Size",
+    },
+    opacity: {
+        type: ControlType.Number,
+        min: 0.1,
+        max: 1,
+        defaultValue: 0.7,
+        title: "Opacity",
+    },
+    speed: {
+        type: ControlType.Number,
+        min: 0.1,
+        max: 5,
+        defaultValue: 1,
+        title: "Speed",
+    },
+    connectionDistance: {
+        type: ControlType.Number,
+        min: 50,
+        max: 200,
+        defaultValue: 100,
+        title: "Connection Distance",
+    },
     colors: {
         type: ControlType.Array,
         title: "Colors",
-        control: { type: ControlType.Color },
+        control: {
+            type: ControlType.Color,
+            defaultValue: "#3b82f6",
+        },
     },
-    amount: {
+    width: {
         type: ControlType.Number,
-        title: "Amount",
-        min: 0,
-        max: 300,
-        defaultValue: 50,
+        min: 100,
+        max: 2000,
+        defaultValue: 800,
+        title: "Width",
     },
-    size: {
-        type: ControlType.Object,
-        title: "Size",
-        controls: {
-            type: {
-                type: ControlType.Enum,
-                options: ["Value", "Range"],
-                defaultValue: "Range",
-            },
-            value: {
-                type: ControlType.Number,
-                defaultValue: 3,
-                hidden: (size) => size.type === "Range",
-            },
-            min: {
-                type: ControlType.Number,
-                defaultValue: 1,
-                hidden: (size) => size.type !== "Range",
-            },
-            max: {
-                type: ControlType.Number,
-                defaultValue: 5,
-                hidden: (size) => size.type !== "Range",
-            },
-        },
+    height: {
+        type: ControlType.Number,
+        min: 100,
+        max: 2000,
+        defaultValue: 600,
+        title: "Height",
     },
-    opacity: {
-        type: ControlType.Object,
-        title: "Opacity",
-        controls: {
-            type: {
-                type: ControlType.Enum,
-                options: ["Value", "Range"],
-                defaultValue: "Range",
-            },
-            value: {
-                type: ControlType.Number,
-                defaultValue: 0.5,
-                hidden: (opacity) => opacity.type !== "Value",
-            },
-            min: {
-                type: ControlType.Number,
-                defaultValue: 0.1,
-                hidden: (opacity) => opacity.type !== "Range",
-            },
-            max: {
-                type: ControlType.Number,
-                defaultValue: 1,
-                hidden: (opacity) => opacity.type !== "Range",
-            },
-        },
-    },
-    twinkle: {
-        type: ControlType.Object,
-        title: "Twinkle",
-        controls: {
-            enable: {
-                type: ControlType.Boolean,
-                title: "Enable Twinkle",
-                defaultValue: false,
-            },
-            speed: {
-                type: ControlType.Number,
-                title: "Speed",
-                defaultValue: 1,
-                min: 0.1,
-                max: 5,
-                step: 0.1,
-                hidden: (twinkle) => !twinkle.enable,
-            },
-            minOpacity: {
-                type: ControlType.Number,
-                title: "Min Opacity",
-                defaultValue: 0.1,
-                min: 0,
-                max: 1,
-                step: 0.1,
-                hidden: (twinkle) => !twinkle.enable,
-            },
-            maxOpacity: {
-                type: ControlType.Number,
-                title: "Max Opacity",
-                defaultValue: 1,
-                min: 0,
-                max: 1,
-                step: 0.1,
-                hidden: (twinkle) => !twinkle.enable,
-            },
-        },
-    },
-    modes: {
-        type: ControlType.Object,
-        title: "Modes",
-        controls: {
-            connect: {
-                type: ControlType.Number,
-                defaultValue: 80,
-                title: "Connect",
-            },
-            connectRadius: {
-                type: ControlType.Number,
-                defaultValue: 60,
-                title: "Connect Radius",
-            },
-            connectLinks: {
-                type: ControlType.Number,
-                defaultValue: 1,
-                title: "Connect Links",
-                min: 0,
-                max: 1,
-                step: 0.1,
-            },
-            grab: {
-                type: ControlType.Number,
-                defaultValue: 140,
-                title: "Grab",
-            },
-            grabLinks: {
-                type: ControlType.Number,
-                defaultValue: 1,
-                title: "Grab Links",
-                min: 0,
-                max: 1,
-                step: 0.1,
-            },
-            bubble: {
-                type: ControlType.Number,
-                defaultValue: 400,
-                title: "Bubble",
-            },
-            bubbleSize: {
-                type: ControlType.Number,
-                defaultValue: 40,
-                title: "Bubble Size",
-            },
-            bubbleDuration: {
-                type: ControlType.Number,
-                defaultValue: 2,
-                title: "Bubble Duration",
-                min: 0,
-                max: 5,
-                step: 0.1,
-            },
-            repulse: {
-                type: ControlType.Number,
-                defaultValue: 200,
-                title: "Repulse",
-            },
-            repulseDistance: {
-                type: ControlType.Number,
-                defaultValue: 0.4,
-                title: "Repulse Distance",
-                min: 0,
-                max: 5,
-                step: 0.1,
-            },
-            push: { type: ControlType.Number, defaultValue: 4, title: "Push" },
-            remove: {
-                type: ControlType.Number,
-                defaultValue: 2,
-                title: "Remove",
-            },
-            trail: {
-                type: ControlType.Number,
-                defaultValue: 1,
-                title: "Trail",
-            },
-            trailDelay: {
-                type: ControlType.Number,
-                defaultValue: 0.005,
-                title: "Trail Delay",
-                min: 0,
-                max: 1,
-                step: 0.001,
-            },
-        },
-    },
-    move: {
-        type: ControlType.Object,
-        title: "Move",
-        controls: {
-            enable: { type: ControlType.Boolean, defaultValue: true },
-            direction: {
-                type: ControlType.Enum,
-                options: [
-                    "none",
-                    "top",
-                    "right",
-                    "bottom",
-                    "left",
-                    "top-right",
-                    "top-left",
-                    "bottom-right",
-                    "bottom-left",
-                    "random",
-                    "outside",
-                    "inside",
-                ],
-                defaultValue: "none",
-                hidden: (move) => !move.enable,
-            },
-            speed: {
-                type: ControlType.Number,
-                defaultValue: 2,
-                min: 0,
-                max: 50,
-                step: 0.1,
-                hidden: (move) => !move.enable,
-            },
-            random: {
-                type: ControlType.Boolean,
-                defaultValue: false,
-                hidden: (move) => !move.enable,
-            },
-            straight: {
-                type: ControlType.Boolean,
-                defaultValue: false,
-                hidden: (move) => !move.enable,
-            },
-            out: {
-                type: ControlType.Enum,
-                title: "Out Mode",
-                options: [
-                    "none",
-                    "split",
-                    "bounce",
-                    "destroy",
-                    "out",
-                    "bounce-horizontal",
-                    "bounce-vertical",
-                ],
-                defaultValue: "out",
-                hidden: (move) => !move.enable,
-            },
-            trail: {
-                type: ControlType.Boolean,
-                defaultValue: false,
-                title: "Trail",
-                hidden: (move) => !move.enable,
-            },
-            trailLength: {
-                type: ControlType.Number,
-                defaultValue: 10,
-                min: 1,
-                max: 50,
-                hidden: (move) => !move.trail || !move.enable,
-            },
-            gravity: {
-                type: ControlType.Boolean,
-                defaultValue: false,
-                title: "Gravity",
-                hidden: (move) => !move.enable,
-            },
-            gravityAcceleration: {
-                type: ControlType.Number,
-                defaultValue: 9.81,
-                min: 0,
-                max: 50,
-                step: 0.1,
-                title: "Gravity Force",
-                hidden: (move) => !move.gravity || !move.enable,
-            },
-            spin: {
-                type: ControlType.Boolean,
-                defaultValue: false,
-                title: "Spin",
-                hidden: (move) => !move.enable,
-            },
-            spinSpeed: {
-                type: ControlType.Number,
-                defaultValue: 2,
-                min: 0,
-                max: 10,
-                step: 0.1,
-                title: "Spin Speed",
-                hidden: (move) => !move.spin || !move.enable,
-            },
-            attract: {
-                type: ControlType.Boolean,
-                defaultValue: false,
-                title: "Attract",
-                hidden: (move) => !move.enable,
-            },
-            attractDistance: {
-                type: ControlType.Number,
-                defaultValue: 200,
-                min: 50,
-                max: 500,
-                title: "Attract Distance",
-                hidden: (move) => !move.attract || !move.enable,
-            },
-            vibrate: {
-                type: ControlType.Boolean,
-                defaultValue: false,
-                title: "Vibrate",
-                hidden: (move) => !move.enable,
-            },
-            vibrateFrequency: {
-                type: ControlType.Number,
-                defaultValue: 50,
-                min: 1,
-                max: 100,
-                step: 1,
-                title: "Vibrate Frequency",
-                hidden: (move) => !move.vibrate || !move.enable,
-            },
-        },
-    },
-    click: {
-        type: ControlType.Object,
-        title: "Click",
-        controls: {
-            enable: { type: ControlType.Boolean, defaultValue: true },
-            mode: {
-                type: ControlType.Enum,
-                options: [
-                    "attract",
-                    "bubble",
-                    "push",
-                    "remove",
-                    "repulse",
-                    "pause",
-                    "trail",
-                ],
-                defaultValue: "push",
-                hidden: (click) => !click.enable,
-            },
-        },
-    },
-    hover: {
-        type: ControlType.Object,
-        title: "Hover",
-        controls: {
-            enable: { type: ControlType.Boolean, defaultValue: true },
-            mode: {
-                type: ControlType.Enum,
-                options: [
-                    "none",
-                    "grab",
-                    "bubble",
-                    "repulse",
-                    "attract",
-                    "connect",
-                    "trail",
-                    "light",
-                ],
-                defaultValue: "grab",
-                hidden: (hover) => !hover.enable,
-            },
-            parallax: {
-                type: ControlType.Boolean,
-                defaultValue: false,
-                title: "Parallax",
-                hidden: (hover) => !hover.enable,
-            },
-            force: {
-                type: ControlType.Number,
-                defaultValue: 60,
-                title: "Force",
-                hidden: (hover) => !hover.enable,
-            },
-            smooth: {
-                type: ControlType.Number,
-                defaultValue: 10,
-                title: "Smooth",
-                hidden: (hover) => !hover.enable,
-            },
-        },
-    },
-    radius: { type: ControlType.Number, defaultValue: 0 },
-    id: { type: ControlType.String, defaultValue: "tsparticles" },
 })`
 }
 
@@ -1578,7 +775,7 @@ export function App() {
                         })
                     }
                 } catch (error) {
-                    console.log("Error checking selected node:", error)
+                    // Silently skip invalid nodes
                 }
             }
             
@@ -1701,7 +898,6 @@ export function App() {
             }
 
             const codeFile = await framer.createCodeFile("MojaveParticles.tsx", createSimpleParticlesCode(particleConfig))
-            
             const defaultExport = codeFile.exports.find((exp: { isDefaultExport?: boolean; insertURL?: string }) => exp.isDefaultExport)
             
             if (defaultExport && 'insertURL' in defaultExport && defaultExport.insertURL) {
@@ -1714,7 +910,6 @@ export function App() {
                     })
                     setMessage("🎉 Particles added! Customize in the sidebar.")
                 } catch (error) {
-                    console.error("Error adding component:", error)
                     setMessage("✅ Particles created! Drag from Assets to add to canvas.")
                 }
             } else {
@@ -1753,7 +948,7 @@ export function App() {
                     borderRadius: '8px', 
                     border: '1px solid var(--border)',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                    pointerEvents: 'none'
+                    pointerEvents: 'auto'
                 }}>
                     <LivePreview config={particleConfig} />
                 </div>
@@ -1878,7 +1073,7 @@ export function App() {
                                             loadParticleConfig()
                                         }}
                                     >
-                                        <span style={{ fontSize: '12px', color: 'var(--text)' }}>
+                                                                                  <span style={{ fontSize: '12px', color: 'var(--text)' }}>
                                             <Star size={12} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
                                           {particle.name}
                                         </span>
@@ -2924,7 +2119,7 @@ export function App() {
                         {message}
                     </div>
                 )}
-
+                
                 {/* Instructions */}
                 <div style={{ 
                     marginTop: '20px',
