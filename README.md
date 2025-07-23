@@ -8,14 +8,43 @@ A professional-grade particle system plugin for Framer with advanced animations,
 particles/
 ├── mojave-particles/          # Main Framer plugin
 │   ├── src/                   # Plugin source code
-│   ├── dist/                  # Built plugin files
-│   ├── README.md              # Detailed plugin documentation
-│   ├── package.json           # Plugin dependencies and scripts
-│   └── framer.json           # Framer plugin configuration
-├── .github/                   # GitHub Actions workflows
-├── setup-github-actions.sh   # GitHub Actions setup script
+│   │   ├── App.tsx           # Main plugin interface and logic
+│   │   ├── App.css           # Component styles
+│   │   └── main.tsx          # Application entry point
+│   ├── public/               # Assets
+│   │   ├── icon.png          # Plugin icon (light mode)
+│   │   └── icon-dark.png     # Plugin icon (dark mode)
+│   ├── scripts/              # Build scripts
+│   ├── README.md             # Detailed plugin documentation
+│   ├── package.json          # Plugin dependencies and scripts
+│   ├── framer.json           # Framer plugin configuration
+│   ├── tsconfig.json         # TypeScript configuration
+│   ├── vite.config.ts        # Vite build configuration
+│   ├── eslint.config.js      # ESLint configuration
+│   └── index.html            # Entry HTML file
+├── .github/                   # GitHub workflows
 └── README.md                 # This file
 ```
+
+### Key Components
+
+#### `App.tsx`
+- **Main plugin interface** with all controls and UI
+- **LivePreview component** for real-time particle preview
+- **ParticleConfig interface** defining all configuration options
+- **Preset library** with 8 professional presets
+- **Dark mode detection** and theme management
+- **Framer integration** with create/edit modes
+
+#### `App.css`
+- **Global styles** and CSS variables
+- **Dark/light mode** theme definitions
+- **Component styling** for controls and UI elements
+
+#### `main.tsx`
+- **React application** entry point
+- **Framer plugin** initialization
+- **Development server** configuration
 
 ## 🚀 Quick Start
 
@@ -43,47 +72,69 @@ npm run dev
 
 - **Clean Component Generation**: ~100 line components instead of 2000+ line dumps
 - **Professional Branding**: Comprehensive copyright and mojavestud.io integration
-- **AWS Infrastructure**: Complete CI/CD pipeline with GitHub Actions
 - **8 Professional Presets**: Network, Bubbles, Matrix, Galaxy, Neon, and more
 - **Advanced Physics**: Gravity, spin, vibration, attraction effects
 - **Interactive Effects**: Hover, click, and connection systems
 - **Live Preview**: Real-time preview in plugin window
 - **Dark Mode Support**: Automatic theme detection
 
+## 🔧 Build Process
+
+### Development
+```bash
+npm run dev          # Start development server
+npm run type-check   # TypeScript type checking
+npm run lint         # ESLint code linting
+```
+
+### Production
+```bash
+npm run build        # Build for production
+npm run pack         # Pack for Framer distribution
+npm run clean        # Clean build artifacts
+```
+
+## 📊 Data Flow
+
+```
+User Input → App.tsx → ParticleConfig → LivePreview → Canvas Rendering
+     ↓
+Framer Plugin API → Component Generation → Framer Canvas
+```
+
+## 🎯 Key Features by File
+
+### Core Functionality (`App.tsx`)
+- **50+ Controls** for particle customization
+- **8 Professional Presets** for instant effects
+- **Live Preview** with real-time updates
+- **Create/Edit Modes** for workflow optimization
+- **Dark Mode** support with automatic detection
+
+### Rendering (`LivePreview` component)
+- **Canvas-based** particle rendering
+- **Physics simulation** (gravity, spin, vibration)
+- **Interactive effects** (hover, click, connections)
+- **Performance optimization** with requestAnimationFrame
+
+### Configuration (`ParticleConfig` interface)
+- **Complete type definitions** for all settings
+- **Validation** and default values
+- **Extensibility** for future features
+
 ## 📚 Documentation
 
 - **[Main Plugin Documentation](mojave-particles/README.md)** - Complete feature guide and API reference
-- **[AWS Deployment Guide](mojave-particles/AWS_DEPLOYMENT.md)** - CloudFormation and CI/CD setup
-- **[GitHub Actions Setup](GITHUB_ACTIONS_SETUP.md)** - Automated deployment configuration
-- **[Framer Publishing Guide](mojave-particles/FRAMER_PUBLISHING.md)** - Marketplace submission process
 - **[Development Guide](mojave-particles/DEVELOPMENT_GUIDE.md)** - Local development setup
+- **[Framer Publishing Guide](mojave-particles/FRAMER_PUBLISHING.md)** - Marketplace submission process
 
-## 🔄 Deployment Options
+## 🔄 Development Workflow
 
-### 1. Local Development
+### Local Development
 ```bash
 cd mojave-particles
 npm run dev
 # Available at https://localhost:5173/
-```
-
-### 2. AWS Production Deployment
-```bash
-# Setup infrastructure
-./setup-aws.sh --deploy-infra
-
-# Deploy plugin
-cd mojave-particles
-npm run deploy
-```
-
-### 3. GitHub Actions (Automated)
-```bash
-# Setup CI/CD pipeline
-./setup-github-actions.sh
-
-# Automatic deployment on push to main
-git push origin main
 ```
 
 ## 🎨 Preview
@@ -100,13 +151,40 @@ git push origin main
 - mojavestud.io branding and contact information
 - Clean canvas rendering without overlays
 
+## 🔍 Development Workflow
+
+1. **Setup**: `npm install` to install dependencies
+2. **Development**: `npm run dev` to start development server
+3. **Testing**: Test in Framer with live preview
+4. **Building**: `npm run build` for production build
+5. **Packing**: `npm run pack` for Framer distribution
+
+## 📝 Code Organization
+
+### Component Structure
+- **Functional components** with React hooks
+- **TypeScript interfaces** for type safety
+- **CSS-in-JS** for component styling
+- **Modular architecture** for maintainability
+
+### State Management
+- **React useState** for local component state
+- **Configuration objects** for particle settings
+- **Preset management** for quick configurations
+- **Theme detection** for dark/light mode
+
+### Performance Considerations
+- **Canvas optimization** for smooth rendering
+- **Memory management** for particle cleanup
+- **Conditional rendering** for inactive features
+- **Efficient updates** with React optimization
+
 ## 📝 Latest Updates (v1.2.1)
 
 - ✅ **Clean Component Generation**: Eliminated 2000+ line code dumps
 - ✅ **Professional Branding**: Added comprehensive copyright and contact info
 - ✅ **Website Integration**: https://mojavestud.io/particles for support
 - ✅ **Custom UI Styling**: Plugin background matches logo PNG
-- ✅ **AWS Infrastructure**: Complete CI/CD with CloudFormation
 - ✅ **Marketplace Ready**: Professional packaging scripts
 
 ## 🌟 Support
