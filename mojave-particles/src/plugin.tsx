@@ -1568,10 +1568,6 @@ export function App() {
                     <EnhancedLivePreview config={particleConfig} />
                 </div>
 
-                
-                        
-
-
                 {/* Awesome Presets */}
                 <div style={{ marginBottom: '20px', background: 'var(--card-bg)', padding: '15px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                     <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text)', marginBottom: '12px', display: 'block' }}>
@@ -2707,8 +2703,7 @@ export function App() {
                     color: 'var(--text-secondary)'
                 }}>
                     <strong>💡 How to use:</strong><br/>
-                    <strong>Create Mode:</strong> Choose presets, customize settings, then add to canvas<br/>
-                    <strong>Edit Mode:</strong> Select existing particles, modify settings, apply changes<br/>
+                    Choose presets, customize settings, then add to canvas<br/>
                     <strong>Sidebar:</strong> Select any particle component for full customization controls
                 </div>
 
