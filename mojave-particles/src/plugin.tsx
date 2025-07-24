@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { framer } from "framer-plugin"
 import { 
     Palette, 
@@ -9,17 +9,8 @@ import {
     GridNine, 
     Planet, 
     Lightning, 
-    Star, 
-    Plus, 
-    PencilSimple, 
-    ArrowClockwise,
-    Play,
-    Pencil,
-    Circle,
-    Square,
-    Sparkle,
-    Sun,
-    Moon
+    Star,
+    Play
 } from "@phosphor-icons/react"
 import { EnhancedLivePreview } from "./EnhancedParticleRenderer"
 
