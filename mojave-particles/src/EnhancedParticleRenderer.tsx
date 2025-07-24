@@ -18,11 +18,17 @@ interface ParticleConfig {
         sides: number
         mixedTypes: ("circle" | "square" | "triangle" | "star" | "hexagon" | "diamond")[]
     }
+    fill: {
+        enable: boolean
+        color: string
+        opacity: number
+    }
     border: {
         enable: boolean
         color: string
         width: number
         radius: number
+        opacity: number
     }
     glow: {
         enable: boolean
@@ -476,7 +482,38 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                 // Render text, emoji, or icon on top if needed
                 if (config.shape.type === "text" || config.shape.type === "icon") {
                     ctx.save()
-                    const displayText = config.shape.type === "text" ? config.shape.text : config.shape.iconName
+                    
+                    // Simple Phosphor icon mapping - convert icon names to Unicode symbols
+                    const getIconDisplay = (iconName: string): string => {
+                        const iconMap: Record<string, string> = {
+                            'Star': '★',
+                            'Heart': '♥',
+                            'Lightning': '⚡',
+                            'Circle': '●',
+                            'Square': '■',
+                            'Triangle': '▲',
+                            'Diamond': '♦',
+                            'Plus': '+',
+                            'Minus': '−',
+                            'X': '×',
+                            'Check': '✓',
+                            'Arrow': '→',
+                            'ArrowUp': '↑',
+                            'ArrowDown': '↓',
+                            'ArrowLeft': '←',
+                            'ArrowRight': '→',
+                            'Sun': '☀',
+                            'Moon': '☽',
+                            'Cloud': '☁',
+                            'Fire': '🔥',
+                            'Water': '💧',
+                            'Leaf': '🍃',
+                            'Sparkle': '✨'
+                        }
+                        return iconMap[iconName] || iconName.charAt(0).toUpperCase()
+                    }
+                    
+                    const displayText = config.shape.type === "text" ? config.shape.text : getIconDisplay(config.shape.iconName)
                     ctx.font = `${particle.size * 1.2}px Arial`
                     ctx.textAlign = "center"
                     ctx.textBaseline = "middle"
@@ -487,14 +524,40 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                     const textHeight = particle.size * 1.2
                     const padding = 4
                     
-                    // Determine if content is likely emoji (no letters/numbers and not spaces/punctuation only)
-                    const isEmojiContent = displayText && !/[a-zA-Z0-9]/.test(displayText) && /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(displayText)
+                    // Improved emoji detection - check for actual emoji characters and exclude phosphor icons
+                    const isEmojiContent = config.shape.type === "text" && displayText && 
+                        !/[a-zA-Z0-9\s]/.test(displayText) && 
+                        /[\u{1F000}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F100}-\u{1F1FF}]|[\u{1F200}-\u{1F2FF}]|[\u{1F300}-\u{1F5FF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F700}-\u{1F77F}]|[\u{1F780}-\u{1F7FF}]|[\u{1F800}-\u{1F8FF}]|[\u{1F900}-\u{1F9FF}]/u.test(displayText)
                     
-                    // Draw background box and border based on content type and border setting
-                    if (config.border.enable && config.border.width > 0) {
-                        // Draw background box for text content (not pure emoji)
-                        if (!isEmojiContent) {
-                            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
+                    // Draw fill background if enabled and not an emoji
+                    if (config.fill.enable && !isEmojiContent) {
+                        const r = parseInt(config.fill.color.slice(1, 3), 16)
+                        const g = parseInt(config.fill.color.slice(3, 5), 16)
+                        const b = parseInt(config.fill.color.slice(5, 7), 16)
+                        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${config.fill.opacity})`
+                        
+                        if (config.border.radius > 0) {
+                            // Rounded rectangle fill
+                            const rectX = particle.x - textWidth / 2 - padding
+                            const rectY = particle.y - textHeight / 2 - padding
+                            const rectWidth = textWidth + padding * 2
+                            const rectHeight = textHeight + padding * 2
+                            const radius = Math.min(config.border.radius, rectWidth / 2, rectHeight / 2)
+                            
+                            ctx.beginPath()
+                            ctx.moveTo(rectX + radius, rectY)
+                            ctx.lineTo(rectX + rectWidth - radius, rectY)
+                            ctx.quadraticCurveTo(rectX + rectWidth, rectY, rectX + rectWidth, rectY + radius)
+                            ctx.lineTo(rectX + rectWidth, rectY + rectHeight - radius)
+                            ctx.quadraticCurveTo(rectX + rectWidth, rectY + rectHeight, rectX + rectWidth - radius, rectY + rectHeight)
+                            ctx.lineTo(rectX + radius, rectY + rectHeight)
+                            ctx.quadraticCurveTo(rectX, rectY + rectHeight, rectX, rectY + rectHeight - radius)
+                            ctx.lineTo(rectX, rectY + radius)
+                            ctx.quadraticCurveTo(rectX, rectY, rectX + radius, rectY)
+                            ctx.closePath()
+                            ctx.fill()
+                        } else {
+                            // Regular rectangle fill
                             ctx.fillRect(
                                 particle.x - textWidth / 2 - padding,
                                 particle.y - textHeight / 2 - padding,
@@ -502,9 +565,14 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                                 textHeight + padding * 2
                             )
                         }
+                    }
                         
-                        // Draw border
-                        ctx.strokeStyle = config.border.color
+                    // Draw border if enabled
+                    if (config.border.enable && config.border.width > 0 && !isEmojiContent) {
+                        const r = parseInt(config.border.color.slice(1, 3), 16)
+                        const g = parseInt(config.border.color.slice(3, 5), 16)
+                        const b = parseInt(config.border.color.slice(5, 7), 16)
+                        ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${config.border.opacity})`
                         ctx.lineWidth = config.border.width
                         if (config.border.radius > 0) {
                             // Rounded rectangle border
