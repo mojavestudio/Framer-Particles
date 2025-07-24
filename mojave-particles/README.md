@@ -25,7 +25,7 @@ npm run dev
 1. **Open Framer**
 2. **Go to Plugins** → **Developer Tools** (enable if not already)
 3. **Click "Open Development Plugin"**
-4. **Enter URL**: `https://localhost:5173`
+4. **Enter URL**: `https://localhost:5173` (port 5173 required)
 5. **Click "Load"**
 
 ## ✨ Features
@@ -99,7 +99,7 @@ mojave-particles/
 
 ### **Available Scripts**
 ```bash
-npm run dev          # Start development server (HTTPS)
+npm run dev          # Start development server (HTTPS, port 5173 required)
 npm run build        # Build for production
 npm run preview      # Preview production build
 npm run lint         # Run ESLint
@@ -111,6 +111,7 @@ npm run lint         # Run ESLint
 - **"Failed to load"**: Check `FRAMER_PLUGIN_REQUIREMENTS.md`
 - **Plugin ID errors**: Must be 6-character hexadecimal
 - **HTTPS required**: Server must use HTTPS, not HTTP
+- **Port 5173 required**: Server must run on port 5173 (not 5174, 5175, etc.)
 - **Directory issues**: Must run from `mojave-particles` directory
 
 ### **Quick Fixes**

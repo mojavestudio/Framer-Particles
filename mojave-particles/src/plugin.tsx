@@ -38,10 +38,20 @@ interface ParticleConfig {
     radius: number
     width: number
     height: number
+    shape: {
+        type: "circle" | "square" | "triangle" | "star" | "hexagon" | "diamond" | "text" | "icon" | "mixed"
+        text: string
+        iconName: string
+        sides: number
+        mixedTypes: ("circle" | "square" | "triangle" | "star" | "hexagon" | "diamond")[]
+    }
+    textBackground: boolean
+    textPadding: number
     border: {
         enable: boolean
         color: string
         width: number
+        radius: number
     }
     glow: {
         enable: boolean
@@ -386,11 +396,62 @@ function LivePreview({ config }: { config: ParticleConfig }) {
                     ctx.restore()
                 }
                 
-                // Main particle with radial gradient
+                // Main particle with shape-based rendering
                 ctx.beginPath()
-                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
                 
-                // Create radial gradient for depth
+                // Draw different shapes based on config
+                switch (config.shape.type) {
+                    case "circle":
+                        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
+                        break
+                    case "square":
+                        ctx.rect(particle.x - particle.size, particle.y - particle.size, particle.size * 2, particle.size * 2)
+                        break
+                    case "triangle":
+                        ctx.moveTo(particle.x, particle.y - particle.size)
+                        ctx.lineTo(particle.x - particle.size, particle.y + particle.size)
+                        ctx.lineTo(particle.x + particle.size, particle.y + particle.size)
+                        ctx.closePath()
+                        break
+                    case "diamond":
+                        ctx.moveTo(particle.x, particle.y - particle.size)
+                        ctx.lineTo(particle.x + particle.size, particle.y)
+                        ctx.lineTo(particle.x, particle.y + particle.size)
+                        ctx.lineTo(particle.x - particle.size, particle.y)
+                        ctx.closePath()
+                        break
+                    case "hexagon":
+                        const sides = 6
+                        const angleStep = (Math.PI * 2) / sides
+                        ctx.moveTo(particle.x + particle.size * Math.cos(0), particle.y + particle.size * Math.sin(0))
+                        for (let i = 1; i <= sides; i++) {
+                            const angle = i * angleStep
+                            ctx.lineTo(particle.x + particle.size * Math.cos(angle), particle.y + particle.size * Math.sin(angle))
+                        }
+                        break
+                    case "star":
+                        const spikes = 5
+                        const outerRadius = particle.size
+                        const innerRadius = particle.size * 0.5
+                        ctx.moveTo(particle.x + outerRadius * Math.cos(0), particle.y + outerRadius * Math.sin(0))
+                        for (let i = 0; i < spikes * 2; i++) {
+                            const radius = i % 2 === 0 ? outerRadius : innerRadius
+                            const angle = (i * Math.PI) / spikes
+                            ctx.lineTo(particle.x + radius * Math.cos(angle), particle.y + radius * Math.sin(angle))
+                        }
+                        ctx.closePath()
+                        break
+                    case "text":
+                        // For text, we don't draw any background shape
+                        break
+                    case "emoji":
+                        // For emoji, we don't draw any background shape
+                        break
+                    default:
+                        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
+                }
+                
+                // Create gradient for depth
                 const gradient = ctx.createRadialGradient(
                     particle.x - particle.size * 0.3, 
                     particle.y - particle.size * 0.3, 
@@ -407,22 +468,74 @@ function LivePreview({ config }: { config: ParticleConfig }) {
                 ctx.fillStyle = gradient
                 ctx.fill()
                 
+                // Render text or emoji on top if needed
+                if (config.shape.type === "text") {
+                    ctx.save()
+                    const displayText = config.shape.text
+                    ctx.font = `${particle.size * 1.2}px Arial`
+                    ctx.textAlign = "center"
+                    ctx.textBaseline = "middle"
+                    
+                    // Measure text for background/border
+                    const textMetrics = ctx.measureText(displayText)
+                    const textWidth = textMetrics.width
+                    const textHeight = particle.size * 1.2
+                    const padding = 4
+                    
+                    // Determine if content is likely emoji (no letters/numbers and not spaces/punctuation only)
+                    const isEmojiContent = displayText && !/[a-zA-Z0-9]/.test(displayText) && /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(displayText)
+                    
+                    // Draw background box and border based on content type and border setting
+                    if (config.border.enable && config.border.width > 0) {
+                        // Draw background box for text content (not pure emoji)
+                        if (!isEmojiContent) {
+                            ctx.fillStyle = `rgba(0, 0, 0, 0.7)`
+                            ctx.fillRect(
+                                particle.x - textWidth/2 - padding,
+                                particle.y - textHeight/2 - padding,
+                                textWidth + padding * 2,
+                                textHeight + padding * 2
+                            )
+                        }
+                        
+                        // Add border for both text and emoji
+                        ctx.strokeStyle = config.border.color && config.border.color !== "#ffffff" ? config.border.color : `rgba(${r}, ${g}, ${b}, ${currentOpacity})`
+                        ctx.lineWidth = config.border.width
+                        ctx.strokeRect(
+                            particle.x - textWidth/2 - padding,
+                            particle.y - textHeight/2 - padding,
+                            textWidth + padding * 2,
+                            textHeight + padding * 2
+                        )
+                    }
+                    
+                    // Draw the text/emoji
+                    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${currentOpacity})`
+                    ctx.fillText(displayText, particle.x, particle.y)
+                    ctx.restore()
+                }
+                
                 // Add border if enabled - use particle color by default
                 if (config.border.enable && config.border.width > 0) {
-                    ctx.globalAlpha = currentOpacity
+                    // Save context for border drawing
+                    ctx.save()
+                    
                     // Use border color if specified, otherwise use particle color
                     if (config.border.color && config.border.color !== "#ffffff") {
                         if (typeof config.border.color === "object" && (config.border.color as any).r !== undefined) {
                             const borderColor = config.border.color as any
-                            ctx.strokeStyle = "rgba(" + Math.round(borderColor.r * 255) + ", " + Math.round(borderColor.g * 255) + ", " + Math.round(borderColor.b * 255) + ", 1)"
-                } else {
+                            ctx.strokeStyle = "rgba(" + Math.round(borderColor.r * 255) + ", " + Math.round(borderColor.g * 255) + ", " + Math.round(borderColor.b * 255) + ", " + currentOpacity + ")"
+                        } else {
                             ctx.strokeStyle = config.border.color as string
                         }
                     } else {
-                        ctx.strokeStyle = "rgba(" + r + ", " + g + ", " + b + ", 1)"
+                        ctx.strokeStyle = "rgba(" + r + ", " + g + ", " + b + ", " + currentOpacity + ")"
                     }
                     ctx.lineWidth = config.border.width
                     ctx.stroke()
+                    
+                    // Restore context after border
+                    ctx.restore()
                 }
                 
                 ctx.restore()
@@ -557,6 +670,7 @@ export default function MojaveParticles(props) {
         twinkle = ${JSON.stringify(config.twinkle)},
         glow = ${JSON.stringify(config.glow)},
         border = ${JSON.stringify(config.border)},
+        shape = ${JSON.stringify(config.shape)},
         radius = ${config.radius},
         width = ${config.width},
         height = ${config.height}
@@ -666,27 +780,127 @@ export default function MojaveParticles(props) {
                     ctx.fill()
                 }
                 
-                // Main particle
+                // Main particle with shape-based rendering
                 ctx.globalCompositeOperation = "source-over"
                 ctx.shadowBlur = 0
                 ctx.globalAlpha = currentOpacity
-                ctx.beginPath()
-                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
                 
                 // Simple color parsing
+                let r, g, b
                 if (particle.color.includes('#')) {
-                    const r = parseInt(particle.color.slice(1, 3), 16)
-                    const g = parseInt(particle.color.slice(3, 5), 16)
-                    const b = parseInt(particle.color.slice(5, 7), 16)
+                    r = parseInt(particle.color.slice(1, 3), 16)
+                    g = parseInt(particle.color.slice(3, 5), 16)
+                    b = parseInt(particle.color.slice(5, 7), 16)
                     ctx.fillStyle = "rgba(" + r + ", " + g + ", " + b + ", " + currentOpacity + ")"
                 } else {
                     ctx.fillStyle = particle.color
                 }
                 
-                ctx.fill()
+                // Draw different shapes based on config
+                ctx.beginPath()
+                switch (shape.type) {
+                    case "circle":
+                        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
+                        break
+                    case "square":
+                        ctx.rect(particle.x - particle.size, particle.y - particle.size, particle.size * 2, particle.size * 2)
+                        break
+                    case "triangle":
+                        ctx.moveTo(particle.x, particle.y - particle.size)
+                        ctx.lineTo(particle.x - particle.size, particle.y + particle.size)
+                        ctx.lineTo(particle.x + particle.size, particle.y + particle.size)
+                        ctx.closePath()
+                        break
+                    case "diamond":
+                        ctx.moveTo(particle.x, particle.y - particle.size)
+                        ctx.lineTo(particle.x + particle.size, particle.y)
+                        ctx.lineTo(particle.x, particle.y + particle.size)
+                        ctx.lineTo(particle.x - particle.size, particle.y)
+                        ctx.closePath()
+                        break
+                    case "hexagon":
+                        const angle = Math.PI / 3
+                        ctx.moveTo(particle.x + particle.size, particle.y)
+                        for (let i = 1; i <= 6; i++) {
+                            ctx.lineTo(particle.x + particle.size * Math.cos(angle * i), particle.y + particle.size * Math.sin(angle * i))
+                        }
+                        ctx.closePath()
+                        break
+                    case "star":
+                        const spikes = 5
+                        const outerRadius = particle.size
+                        const innerRadius = particle.size * 0.4
+                        let rot = Math.PI / 2 * 3
+                        const step = Math.PI / spikes
+                        ctx.moveTo(particle.x, particle.y - outerRadius)
+                        for (let i = 0; i < spikes; i++) {
+                            ctx.lineTo(particle.x + Math.cos(rot) * outerRadius, particle.y + Math.sin(rot) * outerRadius)
+                            rot += step
+                            ctx.lineTo(particle.x + Math.cos(rot) * innerRadius, particle.y + Math.sin(rot) * innerRadius)
+                            rot += step
+                        }
+                        ctx.lineTo(particle.x, particle.y - outerRadius)
+                        ctx.closePath()
+                        break
+                    default:
+                        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
+                        break
+                }
                 
-                // Add border if enabled
-                if (border.enable && border.width > 0) {
+                // For text, we don't draw any background shape
+                if (shape.type !== "text") {
+                    ctx.fill()
+                }
+                
+                // Render text or emoji on top if needed
+                if (shape.type === "text") {
+                    ctx.save()
+                    const displayText = shape.text
+                    ctx.font = (particle.size * 1.2) + "px Arial"
+                    ctx.textAlign = "center"
+                    ctx.textBaseline = "middle"
+                    
+                    // Measure text for background/border
+                    const textMetrics = ctx.measureText(displayText)
+                    const textWidth = textMetrics.width
+                    const textHeight = particle.size * 1.2
+                    const padding = 4
+                    
+                    // Determine if content is likely emoji (no letters/numbers)
+                    const isEmojiContent = displayText && !/[a-zA-Z0-9]/.test(displayText)
+                    
+                    // Draw background box and border based on content type and border setting
+                    if (border.enable && border.width > 0) {
+                        // Draw background box for text content (not pure emoji)
+                        if (!isEmojiContent) {
+                            ctx.fillStyle = "rgba(0, 0, 0, 0.7)"
+                            ctx.fillRect(
+                                particle.x - textWidth/2 - padding,
+                                particle.y - textHeight/2 - padding,
+                                textWidth + padding * 2,
+                                textHeight + padding * 2
+                            )
+                        }
+                        
+                        // Add border for both text and emoji
+                        ctx.strokeStyle = border.color || (r !== undefined ? "rgba(" + r + ", " + g + ", " + b + ", " + currentOpacity + ")" : particle.color)
+                        ctx.lineWidth = border.width
+                        ctx.strokeRect(
+                            particle.x - textWidth/2 - padding,
+                            particle.y - textHeight/2 - padding,
+                            textWidth + padding * 2,
+                            textHeight + padding * 2
+                        )
+                    }
+                    
+                    // Draw the text/emoji
+                    ctx.fillStyle = r !== undefined ? "rgba(" + r + ", " + g + ", " + b + ", " + currentOpacity + ")" : particle.color
+                    ctx.fillText(displayText, particle.x, particle.y)
+                    ctx.restore()
+                }
+                
+                // Add border if enabled (for non-text shapes)
+                if (shape.type !== "text" && border.enable && border.width > 0) {
                     ctx.globalAlpha = currentOpacity
                     ctx.strokeStyle = border.color || particle.color
                     ctx.lineWidth = border.width
@@ -809,6 +1023,24 @@ addPropertyControls(MojaveParticles, {
                 type: ControlType.Number,
                 defaultValue: ${config.opacity.max},
                 hidden: (opacity) => opacity.type !== "Range"
+            }
+        }
+    },
+    shape: {
+        type: ControlType.Object,
+        title: "Shape",
+        controls: {
+            type: {
+                type: ControlType.Enum,
+                title: "Type",
+                options: ["circle", "square", "triangle", "diamond", "hexagon", "star", "text"],
+                defaultValue: "${config.shape.type}"
+            },
+            text: {
+                type: ControlType.String,
+                title: "Text/Emoji",
+                defaultValue: "${config.shape.text}",
+                hidden: (shape) => shape.type !== "text"
             }
         }
     },
@@ -1210,10 +1442,23 @@ export function App() {
         radius: 0,
         width: 800,
         height: 600,
+        shape: {
+            type: "circle",
+            text: "✨",
+            iconName: "Star",
+            sides: 6,
+            mixedTypes: ["circle", "square", "triangle"],
+            textBackground: false,
+            textPadding: 4,
+            fontFamily: "Inter",
+            fontWeight: 400,
+            imageUrl: ""
+        },
         border: {
             enable: false,
             color: "#ffffff",
-            width: 0.3
+            width: 2.5,
+            radius: 0
         },
         glow: {
             enable: true,
@@ -1279,7 +1524,7 @@ export function App() {
             backdrop: "#000000", backgroundOpacity: 1, color: "#ffffff", colors: [], amount: 50,
             size: { type: "Range" as const, value: 3, min: 2, max: 4 },
             opacity: { type: "Range" as const, value: 0.7, min: 0.5, max: 1 },
-            radius: 0, width: 800, height: 600, border: { enable: false, color: "#ffffff", width: 0.3 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: false, speed: 1, minOpacity: 0.1, maxOpacity: 1 },
+            radius: 0, width: 800, height: 600, shape: { type: "circle" as const, text: "✨", emoji: "✨", sides: 6, textBackground: false, textPadding: 4, fontFamily: "Inter", fontWeight: 400, imageUrl: "" }, border: { enable: false, color: "#ffffff", width: 2.5 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: false, speed: 1, minOpacity: 0.1, maxOpacity: 1 },
             modes: { connect: 0, connectRadius: 0, connectLinks: 1, grab: 140, grabLinks: 1, bubble: 400, bubbleSize: 40, bubbleDuration: 2, repulse: 200, repulseDistance: 0.4, push: 4, remove: 2, trail: 1, trailDelay: 0.005 },
             move: { enable: true, direction: "none", speed: 1.5, random: false, straight: false, out: "out", trail: false, trailLength: 10, gravity: false, gravityAcceleration: 9.81, spin: false, spinSpeed: 2, attract: false, attractDistance: 200, vibrate: false, vibrateFrequency: 50 },
             click: { enable: false, mode: "push" },
@@ -1289,7 +1534,7 @@ export function App() {
             backdrop: "#0d1b2a", backgroundOpacity: 1, color: "#ffffff", colors: ["#ffffff", "#f8f9fa", "#e9ecef"], amount: 150,
             size: { type: "Range" as const, value: 1.5, min: 1, max: 2.5 },
             opacity: { type: "Range" as const, value: 0.7, min: 0.4, max: 0.9 },
-            radius: 0, width: 800, height: 600, border: { enable: false, color: "#ffffff", width: 0.3 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: true, speed: 0.2, minOpacity: 0.3, maxOpacity: 0.8 },
+            radius: 0, width: 800, height: 600, shape: { type: "emoji" as const, text: "❄️", emoji: "❄️", sides: 6 }, border: { enable: false, color: "#ffffff", width: 2.5 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: true, speed: 0.2, minOpacity: 0.3, maxOpacity: 0.8 },
             modes: { connect: 0, connectRadius: 0, connectLinks: 1, grab: 140, grabLinks: 1, bubble: 400, bubbleSize: 40, bubbleDuration: 2, repulse: 200, repulseDistance: 0.4, push: 4, remove: 2, trail: 1, trailDelay: 0.005 },
             move: { enable: true, direction: "bottom", speed: 1.2, random: false, straight: true, out: "out", trail: false, trailLength: 10, gravity: false, gravityAcceleration: 9.81, spin: false, spinSpeed: 2, attract: false, attractDistance: 200, vibrate: true, vibrateFrequency: 8 },
             click: { enable: false, mode: "push" },
@@ -1299,7 +1544,7 @@ export function App() {
             backdrop: "#000000", backgroundOpacity: 1, color: "#ffffff", colors: ["#ff6b6b", "#4ecdc4", "#45b7d1", "#96ceb4", "#feca57", "#fd79a8", "#a29bfe", "#ff7675"], amount: 60,
             size: { type: "Range" as const, value: 3, min: 2, max: 6 },
             opacity: { type: "Range" as const, value: 0.7, min: 0.5, max: 0.9 },
-            radius: 0, width: 800, height: 600, border: { enable: false, color: "#ffffff", width: 0.3 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: true, speed: 2, minOpacity: 0.3, maxOpacity: 1 },
+            radius: 0, width: 800, height: 600, shape: { type: "star" as const, text: "★", emoji: "🌟", sides: 5 }, border: { enable: false, color: "#ffffff", width: 2.5 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: true, speed: 2, minOpacity: 0.3, maxOpacity: 1 },
             modes: { connect: 0, connectRadius: 0, connectLinks: 1, grab: 140, grabLinks: 1, bubble: 400, bubbleSize: 40, bubbleDuration: 2, repulse: 200, repulseDistance: 0.4, push: 6, remove: 2, trail: 1, trailDelay: 0.005 },
             move: { enable: true, direction: "none", speed: 2, random: true, straight: false, out: "out", trail: true, trailLength: 8, gravity: false, gravityAcceleration: 9.81, spin: true, spinSpeed: 1, attract: false, attractDistance: 200, vibrate: false, vibrateFrequency: 50 },
             click: { enable: false, mode: "push" },
@@ -1309,7 +1554,7 @@ export function App() {
             backdrop: "#0a0a0a", backgroundOpacity: 1, color: "#00ff88", colors: ["#00ff88", "#00ccff", "#0088ff"], amount: 25,
             size: { type: "Value" as const, value: 3, min: 1, max: 5 },
             opacity: { type: "Value" as const, value: 0.8, min: 0.1, max: 1 },
-            radius: 0, width: 800, height: 600, border: { enable: false, color: "#ffffff", width: 0.3 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: false, speed: 1, minOpacity: 0.1, maxOpacity: 1 },
+            radius: 0, width: 800, height: 600, shape: { type: "hexagon" as const, text: "⬢", emoji: "🔷", sides: 6 }, border: { enable: false, color: "#ffffff", width: 2.5 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: false, speed: 1, minOpacity: 0.1, maxOpacity: 1 },
             modes: { connect: 150, connectRadius: 120, connectLinks: 0.6, grab: 140, grabLinks: 1, bubble: 400, bubbleSize: 40, bubbleDuration: 2, repulse: 200, repulseDistance: 0.4, push: 4, remove: 2, trail: 1, trailDelay: 0.005 },
             move: { enable: true, direction: "none", speed: 0.5, random: false, straight: false, out: "bounce", trail: false, trailLength: 10, gravity: false, gravityAcceleration: 9.81, spin: false, spinSpeed: 2, attract: false, attractDistance: 200, vibrate: false, vibrateFrequency: 50 },
             click: { enable: false, mode: "push" },
@@ -1319,7 +1564,7 @@ export function App() {
             backdrop: "#001a33", backgroundOpacity: 1, color: "#66ccff", colors: ["#66ccff", "#99ddff", "#ccf0ff", "#ffffff"], amount: 15,
             size: { type: "Range" as const, value: 12, min: 8, max: 35 },
             opacity: { type: "Range" as const, value: 0.3, min: 0.1, max: 0.5 },
-            radius: 0, width: 800, height: 600, border: { enable: false, color: "#ffffff", width: 0.3 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: true, speed: 0.8, minOpacity: 0.1, maxOpacity: 0.6 },
+            radius: 0, width: 800, height: 600, shape: { type: "emoji" as const, text: "○", emoji: "🫧", sides: 6 }, border: { enable: false, color: "#ffffff", width: 2.5 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: true, speed: 0.8, minOpacity: 0.1, maxOpacity: 0.6 },
             modes: { connect: 0, connectRadius: 0, connectLinks: 1, grab: 200, grabLinks: 1, bubble: 500, bubbleSize: 80, bubbleDuration: 2, repulse: 300, repulseDistance: 0.6, push: 3, remove: 2, trail: 1, trailDelay: 0.005 },
             move: { enable: true, direction: "top", speed: 0.8, random: true, straight: false, out: "out", trail: false, trailLength: 10, gravity: false, gravityAcceleration: 9.81, spin: false, spinSpeed: 2, attract: false, attractDistance: 200, vibrate: true, vibrateFrequency: 30 },
             click: { enable: false, mode: "bubble" },
@@ -1329,7 +1574,7 @@ export function App() {
             backdrop: "#000000", backgroundOpacity: 1, color: "#00ff41", colors: ["#00ff41", "#00cc33", "#008822", "#39ff14"], amount: 80,
             size: { type: "Range" as const, value: 1.5, min: 1, max: 2 },
             opacity: { type: "Range" as const, value: 0.9, min: 0.6, max: 1 },
-            radius: 0, width: 800, height: 600, border: { enable: false, color: "#ffffff", width: 0.3 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: true, speed: 5, minOpacity: 0.3, maxOpacity: 1 },
+            radius: 0, width: 800, height: 600, shape: { type: "text" as const, text: "0", emoji: "🔢", sides: 6 }, border: { enable: false, color: "#ffffff", width: 2.5 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: true, speed: 5, minOpacity: 0.3, maxOpacity: 1 },
             modes: { connect: 0, connectRadius: 0, connectLinks: 1, grab: 140, grabLinks: 1, bubble: 400, bubbleSize: 40, bubbleDuration: 2, repulse: 200, repulseDistance: 0.4, push: 10, remove: 2, trail: 1, trailDelay: 0.005 },
             move: { enable: true, direction: "bottom", speed: 6, random: false, straight: true, out: "out", trail: true, trailLength: 25, gravity: false, gravityAcceleration: 9.81, spin: false, spinSpeed: 2, attract: false, attractDistance: 200, vibrate: false, vibrateFrequency: 50 },
             click: { enable: false, mode: "push" },
@@ -1339,7 +1584,7 @@ export function App() {
             backdrop: "#0a0a1a", backgroundOpacity: 1, color: "#ffffff", colors: ["#ffffff", "#cce7ff", "#a8c8ec", "#8bb3d3", "#7c9fd9", "#e6f3ff"], amount: 80,
             size: { type: "Range" as const, value: 1.5, min: 1, max: 3 },
             opacity: { type: "Range" as const, value: 0.8, min: 0.4, max: 1 },
-            radius: 0, width: 800, height: 600, border: { enable: false, color: "#ffffff", width: 0.3 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: true, speed: 0.8, minOpacity: 0.3, maxOpacity: 1 },
+            radius: 0, width: 800, height: 600, shape: { type: "diamond" as const, text: "◆", emoji: "💎", sides: 4 }, border: { enable: false, color: "#ffffff", width: 2.5 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: true, speed: 0.8, minOpacity: 0.3, maxOpacity: 1 },
             modes: { connect: 0, connectRadius: 0, connectLinks: 1, grab: 140, grabLinks: 1, bubble: 400, bubbleSize: 40, bubbleDuration: 2, repulse: 200, repulseDistance: 0.4, push: 4, remove: 2, trail: 1, trailDelay: 0.005 },
             move: { enable: true, direction: "none", speed: 0.3, random: false, straight: false, out: "out", trail: false, trailLength: 10, gravity: false, gravityAcceleration: 9.81, spin: true, spinSpeed: 0.2, attract: true, attractDistance: 300, vibrate: false, vibrateFrequency: 50 },
             click: { enable: false, mode: "push" },
@@ -1349,11 +1594,21 @@ export function App() {
             backdrop: "#0a0a0a", backgroundOpacity: 1, color: "#ff00ff", colors: ["#ff00ff", "#00ffff", "#ffff00", "#ff0080"], amount: 35,
             size: { type: "Range" as const, value: 5, min: 3, max: 12 },
             opacity: { type: "Value" as const, value: 0.9, min: 0.1, max: 1 },
-            radius: 0, width: 800, height: 600, border: { enable: false, color: "#ffffff", width: 0.3 }, glow: { enable: true, intensity: 0.4, size: 2.5 }, twinkle: { enable: true, speed: 2.5, minOpacity: 0.4, maxOpacity: 1 },
+            radius: 0, width: 800, height: 600, shape: { type: "square" as const, text: "■", emoji: "🔥", sides: 4 }, border: { enable: false, color: "#ffffff", width: 2.5 }, glow: { enable: true, intensity: 0.4, size: 2.5 }, twinkle: { enable: true, speed: 2.5, minOpacity: 0.4, maxOpacity: 1 },
             modes: { connect: 0, connectRadius: 0, connectLinks: 1, grab: 140, grabLinks: 1, bubble: 400, bubbleSize: 40, bubbleDuration: 2, repulse: 200, repulseDistance: 0.4, push: 4, remove: 2, trail: 1, trailDelay: 0.005 },
             move: { enable: true, direction: "none", speed: 1.5, random: true, straight: false, out: "bounce", trail: false, trailLength: 10, gravity: false, gravityAcceleration: 9.81, spin: false, spinSpeed: 2, attract: false, attractDistance: 200, vibrate: true, vibrateFrequency: 80 },
             click: { enable: false, mode: "push" },
             hover: { enable: true, mode: "bubble", parallax: false, force: 80, smooth: 8 }
+        },
+        bordered: {
+            backdrop: "#1a1a1a", backgroundOpacity: 1, color: "#ffffff", colors: ["#ffffff", "#e0e0e0", "#c0c0c0"], amount: 40,
+            size: { type: "Range" as const, value: 4, min: 3, max: 6 },
+            opacity: { type: "Range" as const, value: 0.8, min: 0.6, max: 1 },
+            radius: 0, width: 800, height: 600, shape: { type: "triangle" as const, text: "▲", emoji: "🔺", sides: 3 }, border: { enable: true, color: "#ffffff", width: 4.0 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: false, speed: 1, minOpacity: 0.1, maxOpacity: 1 },
+            modes: { connect: 0, connectRadius: 0, connectLinks: 1, grab: 140, grabLinks: 1, bubble: 400, bubbleSize: 40, bubbleDuration: 2, repulse: 200, repulseDistance: 0.4, push: 4, remove: 2, trail: 1, trailDelay: 0.005 },
+            move: { enable: true, direction: "random", speed: 1.5, random: false, straight: false, out: "out", trail: false, trailLength: 10, gravity: false, gravityAcceleration: 9.81, spin: false, spinSpeed: 2, attract: false, attractDistance: 200, vibrate: false, vibrateFrequency: 50 },
+            click: { enable: false, mode: "push" },
+            hover: { enable: true, mode: "grab", parallax: false, force: 60, smooth: 10 }
         }
     }
 
@@ -1873,19 +2128,6 @@ export function App() {
                         />
                     </div>
 
-                    <div style={{ marginBottom: '12px' }}>
-                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                            Border Radius: {particleConfig.radius}px
-                        </label>
-                        <input
-                            type="range"
-                            min="0"
-                            max="50"
-                            value={particleConfig.radius}
-                            onChange={(e) => updateConfig('radius', parseInt(e.target.value))}
-                            style={{ width: '100%' }}
-                        />
-                    </div>
                 </div>
 
                 {/* Particle Appearance */}
@@ -2022,6 +2264,163 @@ export function App() {
                         </div>
                     )}
 
+                    {/* Shape Controls */}
+                    <div style={{ marginBottom: '12px' }}>
+                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
+                            Particle Shape
+                        </label>
+                        <select
+                            value={particleConfig.shape.type}
+                            onChange={(e) => updateConfig('shape.type', e.target.value)}
+                            style={{ width: '100%', padding: '6px', border: '1px solid var(--border)', borderRadius: '4px', fontSize: '11px', marginBottom: '8px' }}
+                        >
+                            <option value="circle">Circle</option>
+                            <option value="square">Square</option>
+                            <option value="triangle">Triangle</option>
+                            <option value="diamond">Diamond</option>
+                            <option value="hexagon">Hexagon</option>
+                            <option value="star">Star</option>
+                            <option value="text">Text/Emoji</option>
+                            <option value="icon">Phosphor Icon</option>
+                            <option value="mixed">Mixed Shapes</option>
+                        </select>
+                    </div>
+
+                    {/* Mixed Shape Selection */}
+                    {particleConfig.shape.type === 'mixed' && (
+                        <div style={{ marginBottom: '12px' }}>
+                            <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                                Select Shapes to Mix:
+                            </label>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+                                {(['circle', 'square', 'triangle', 'star', 'hexagon', 'diamond'] as const).map(shapeType => (
+                                    <label key={shapeType} style={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        fontSize: '10px', 
+                                        cursor: 'pointer',
+                                        padding: '4px',
+                                        backgroundColor: particleConfig.shape.mixedTypes.includes(shapeType) ? 'var(--accent)' : 'var(--divider)',
+                                        borderRadius: '4px',
+                                        transition: 'background-color 0.2s'
+                                    }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={particleConfig.shape.mixedTypes.includes(shapeType)}
+                                            onChange={(e) => {
+                                                const newMixedTypes = e.target.checked
+                                                    ? [...particleConfig.shape.mixedTypes, shapeType]
+                                                    : particleConfig.shape.mixedTypes.filter(t => t !== shapeType)
+                                                updateConfig('shape.mixedTypes', newMixedTypes)
+                                            }}
+                                            style={{ marginRight: '4px', width: '12px', height: '12px' }}
+                                        />
+                                        {shapeType.charAt(0).toUpperCase() + shapeType.slice(1)}
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Text/Emoji/Icon Input */}
+                    {(particleConfig.shape.type === "text" || particleConfig.shape.type === "icon") && (
+                        <div style={{ marginBottom: '12px' }}>
+                            <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                                {particleConfig.shape.type === "text" ? "Text/Emoji Content" : "Phosphor Icon Name"}
+                            </label>
+                            <input
+                                type="text"
+                                value={particleConfig.shape.type === "text" ? particleConfig.shape.text : particleConfig.shape.iconName}
+                                onChange={(e) => {
+                                    if (particleConfig.shape.type === "text") {
+                                        updateConfig('shape.text', e.target.value)
+                                    } else {
+                                        updateConfig('shape.iconName', e.target.value)
+                                    }
+                                }}
+                                placeholder={particleConfig.shape.type === "text" ? "Enter text or emoji..." : "Star, Heart, Lightning..."}
+                                style={{ 
+                                    width: '100%', 
+                                    padding: '6px', 
+                                    border: '1px solid var(--border)', 
+                                    borderRadius: '4px', 
+                                    fontSize: '11px',
+                                    background: 'var(--background)',
+                                    color: 'var(--text)'
+                                }}
+                            />
+                            <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                                {particleConfig.shape.type === "text" 
+                                    ? "Enter any text or emojis: \"Hello\" or \"✨ 🎉 🚀 💎 🌟\"" 
+                                    : "Enter Phosphor icon names: Star, Heart, Lightning, Circle, etc."
+                                }
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Opacity Controls */}
+                    <div style={{ marginBottom: '12px' }}>
+                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                            Opacity Type
+                        </label>
+                        <select
+                            value={particleConfig.opacity.type}
+                            onChange={(e) => updateConfig('opacity.type', e.target.value)}
+                            style={{ width: '100%', padding: '6px', border: '1px solid var(--border)', borderRadius: '4px', fontSize: '11px' }}
+                        >
+                            <option value="Value">Fixed Value</option>
+                            <option value="Range">Random Range</option>
+                        </select>
+                    </div>
+
+                    {particleConfig.opacity.type === "Value" ? (
+                        <div style={{ marginBottom: '12px' }}>
+                            <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                                Opacity: {particleConfig.opacity.value}
+                            </label>
+                            <input
+                                type="range"
+                                min="0.1"
+                                max="1"
+                                step="0.1"
+                                value={particleConfig.opacity.value}
+                                onChange={(e) => updateConfig('opacity.value', parseFloat(e.target.value))}
+                                style={{ width: '100%' }}
+                            />
+                        </div>
+                    ) : (
+                        <>
+                            <div style={{ marginBottom: '12px' }}>
+                                <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                                    Opacity Min: {particleConfig.opacity.min}
+                                </label>
+                                <input
+                                    type="range"
+                                    min="0.1"
+                                    max="1"
+                                    step="0.1"
+                                    value={particleConfig.opacity.min}
+                                    onChange={(e) => updateConfig('opacity.min', parseFloat(e.target.value))}
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
+                            <div style={{ marginBottom: '12px' }}>
+                                <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                                    Opacity Max: {particleConfig.opacity.max}
+                                </label>
+                                <input
+                                    type="range"
+                                    min="0.1"
+                                    max="1"
+                                    step="0.1"
+                                    value={particleConfig.opacity.max}
+                                    onChange={(e) => updateConfig('opacity.max', parseFloat(e.target.value))}
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
+                        </>
+                    )}
+
                 </div>
 
                 {/* Particle Properties */}
@@ -2142,68 +2541,6 @@ export function App() {
                     )}
 
                     <div style={{ marginBottom: '12px' }}>
-                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                            Opacity Type
-                        </label>
-                        <select
-                            value={particleConfig.opacity.type}
-                            onChange={(e) => updateConfig('opacity.type', e.target.value)}
-                            style={{ width: '100%', padding: '6px', border: '1px solid var(--border)', borderRadius: '4px', fontSize: '11px' }}
-                        >
-                            <option value="Value">Fixed Value</option>
-                            <option value="Range">Random Range</option>
-                        </select>
-                    </div>
-
-                    {particleConfig.opacity.type === "Value" ? (
-                        <div style={{ marginBottom: '12px' }}>
-                            <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                                Opacity: {particleConfig.opacity.value}
-                            </label>
-                            <input
-                                type="range"
-                                min="0.1"
-                                max="1"
-                                step="0.1"
-                                value={particleConfig.opacity.value}
-                                onChange={(e) => updateConfig('opacity.value', parseFloat(e.target.value))}
-                                style={{ width: '100%' }}
-                            />
-                        </div>
-                    ) : (
-                        <>
-                            <div style={{ marginBottom: '12px' }}>
-                                <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                                    Opacity Min: {particleConfig.opacity.min}
-                                </label>
-                                <input
-                                    type="range"
-                                    min="0.1"
-                                    max="0.8"
-                                    step="0.1"
-                                    value={particleConfig.opacity.min}
-                                    onChange={(e) => updateConfig('opacity.min', parseFloat(e.target.value))}
-                                    style={{ width: '100%' }}
-                                />
-                            </div>
-                            <div style={{ marginBottom: '12px' }}>
-                                <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                                    Opacity Max: {particleConfig.opacity.max}
-                                </label>
-                                <input
-                                    type="range"
-                                    min="0.2"
-                                    max="1"
-                                    step="0.1"
-                                    value={particleConfig.opacity.max}
-                                    onChange={(e) => updateConfig('opacity.max', parseFloat(e.target.value))}
-                                    style={{ width: '100%' }}
-                                />
-                            </div>
-                        </>
-                    )}
-
-                    <div style={{ marginBottom: '12px' }}>
                         <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <input
                                 type="checkbox"
@@ -2255,6 +2592,64 @@ export function App() {
                                     step="0.1"
                                     value={particleConfig.twinkle.maxOpacity}
                                     onChange={(e) => updateConfig('twinkle.maxOpacity', parseFloat(e.target.value))}
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    {/* Border Controls */}
+                    <div style={{ marginBottom: '12px' }}>
+                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <input
+                                type="checkbox"
+                                checked={particleConfig.border.enable}
+                                onChange={(e) => updateConfig('border.enable', e.target.checked)}
+                            />
+                            Enable Border
+                        </label>
+                    </div>
+
+                    {particleConfig.border.enable && (
+                        <>
+                            <div style={{ marginBottom: '12px' }}>
+                                <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                                    Border Color (white = match particle color)
+                                </label>
+                                <input
+                                    type="color"
+                                    value={particleConfig.border.color}
+                                    onChange={(e) => updateConfig('border.color', e.target.value)}
+                                    style={{ width: '100%', height: '30px', border: '1px solid var(--border)', borderRadius: '4px' }}
+                                />
+                            </div>
+
+                            <div style={{ marginBottom: '12px' }}>
+                                <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                                    Border Width: {particleConfig.border.width}
+                                </label>
+                                <input
+                                    type="range"
+                                    min="0.1"
+                                    max="15"
+                                    step="0.1"
+                                    value={particleConfig.border.width}
+                                    onChange={(e) => updateConfig('border.width', parseFloat(e.target.value))}
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
+
+                            <div style={{ marginBottom: '12px' }}>
+                                <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                                    Border Radius: {particleConfig.border.radius}px
+                                </label>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="20"
+                                    step="0.5"
+                                    value={particleConfig.border.radius}
+                                    onChange={(e) => updateConfig('border.radius', parseFloat(e.target.value))}
                                     style={{ width: '100%' }}
                                 />
                             </div>
@@ -2768,53 +3163,6 @@ export function App() {
                                 <option value="bubble">Bubble</option>
                             </select>
                         </div>
-                    )}
-                </div>
-
-                {/* Border Settings */}
-                <div style={{ marginBottom: '20px', background: 'var(--card-bg)', padding: '15px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                    <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--text)' }}>Border Settings</h3>
-                    
-                    <div style={{ marginBottom: '12px' }}>
-                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <input
-                                type="checkbox"
-                                checked={particleConfig.border.enable}
-                                onChange={(e) => updateConfig('border.enable', e.target.checked)}
-                            />
-                            Enable Border
-                        </label>
-                    </div>
-
-                    {particleConfig.border.enable && (
-                        <>
-                            <div style={{ marginBottom: '12px' }}>
-                                <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                                    Border Color (white = match particle color)
-                                </label>
-                                <input
-                                    type="color"
-                                    value={particleConfig.border.color}
-                                    onChange={(e) => updateConfig('border.color', e.target.value)}
-                                    style={{ width: '100%', height: '30px', border: '1px solid var(--border)', borderRadius: '4px' }}
-                                />
-                            </div>
-
-                            <div style={{ marginBottom: '12px' }}>
-                                <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                                    Border Width: {particleConfig.border.width}
-                                </label>
-                                <input
-                                    type="range"
-                                    min="0.1"
-                                    max="3"
-                                    step="0.1"
-                                    value={particleConfig.border.width}
-                                    onChange={(e) => updateConfig('border.width', parseFloat(e.target.value))}
-                                    style={{ width: '100%' }}
-                                />
-                            </div>
-                        </>
                     )}
                 </div>
 

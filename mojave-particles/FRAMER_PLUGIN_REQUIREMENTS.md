@@ -18,7 +18,8 @@
 
 ### **3. Server Requirements**
 - ❌ **WRONG**: HTTP server (`http://localhost:5173`)
-- ✅ **CORRECT**: HTTPS server (`https://localhost:5173`)
+- ❌ **WRONG**: Different port (`https://localhost:5174` or `https://localhost:5175`)
+- ✅ **CORRECT**: HTTPS server (`https://localhost:5173`) - port 5173 is required
 - ✅ **REQUIRED**: `vite-plugin-mkcert` for SSL certificates
 
 **Rule**: Framer requires HTTPS for plugin development.
@@ -146,7 +147,7 @@ export default defineConfig({
 
 ### **If Server Won't Start:**
 ```bash
-# 1. Check if port is in use
+# 1. Check if port 5173 is in use (required for Framer)
 lsof -ti:5173
 kill -9 $(lsof -ti:5173)
 
@@ -157,7 +158,7 @@ rm -rf .vite && rm -rf node_modules/.vite
 rm -rf node_modules package-lock.json
 npm install --legacy-peer-deps
 
-# 4. Restart server
+# 4. Restart server (must use port 5173)
 npm run dev
 ```
 
@@ -199,7 +200,8 @@ npm run dev
 ### **ALWAYS REMEMBER:**
 1. **Plugin ID**: 6-character hexadecimal string
 2. **HTTPS**: Server must use HTTPS, not HTTP
-3. **Directory**: Must be in plugin directory with package.json
+3. **Port 5173**: Server must run on port 5173 (required for Framer)
+4. **Directory**: Must be in plugin directory with package.json
 4. **Structure**: Use `framer.showUI()`, not direct canvas components
 5. **Imports**: Must import `framer-plugin/framer.css`
 6. **Developer Tools**: Must be enabled in Framer

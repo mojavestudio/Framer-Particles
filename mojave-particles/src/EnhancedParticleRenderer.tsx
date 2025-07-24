@@ -11,10 +11,18 @@ interface ParticleConfig {
     radius: number
     width: number
     height: number
+    shape: {
+        type: "circle" | "square" | "triangle" | "star" | "hexagon" | "diamond" | "text" | "icon" | "mixed"
+        text: string
+        iconName: string
+        sides: number
+        mixedTypes: ("circle" | "square" | "triangle" | "star" | "hexagon" | "diamond")[]
+    }
     border: {
         enable: boolean
         color: string
         width: number
+        radius: number
     }
     glow: {
         enable: boolean
@@ -261,7 +269,7 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
 
             const particles = particlesRef.current
 
-            particles.forEach((particle) => {
+            particles.forEach((particle, i) => {
                 // Reset size for bubble effect
                 particle.size = particle.originalSize
 
@@ -349,12 +357,109 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                     ctx.fill()
                 }
                 
-                // Main particle
+                // Main particle with shape-based rendering
                 ctx.globalCompositeOperation = "source-over"
                 ctx.shadowBlur = 0
                 ctx.globalAlpha = currentOpacity
                 ctx.beginPath()
-                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
+                
+                // Draw different shapes based on config
+                switch (config.shape.type) {
+                    case "circle":
+                        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
+                        break
+                    case "square":
+                        ctx.rect(particle.x - particle.size, particle.y - particle.size, particle.size * 2, particle.size * 2)
+                        break
+                    case "triangle":
+                        ctx.moveTo(particle.x, particle.y - particle.size)
+                        ctx.lineTo(particle.x - particle.size, particle.y + particle.size)
+                        ctx.lineTo(particle.x + particle.size, particle.y + particle.size)
+                        ctx.closePath()
+                        break
+                    case "diamond":
+                        ctx.moveTo(particle.x, particle.y - particle.size)
+                        ctx.lineTo(particle.x + particle.size, particle.y)
+                        ctx.lineTo(particle.x, particle.y + particle.size)
+                        ctx.lineTo(particle.x - particle.size, particle.y)
+                        ctx.closePath()
+                        break
+                    case "hexagon":
+                        const sides = 6
+                        const angleStep = (Math.PI * 2) / sides
+                        ctx.moveTo(particle.x + particle.size * Math.cos(0), particle.y + particle.size * Math.sin(0))
+                        for (let i = 1; i <= sides; i++) {
+                            const angle = i * angleStep
+                            ctx.lineTo(particle.x + particle.size * Math.cos(angle), particle.y + particle.size * Math.sin(angle))
+                        }
+                        break
+                    case "star":
+                        const spikes = 5
+                        const outerRadius = particle.size
+                        const innerRadius = particle.size * 0.5
+                        ctx.moveTo(particle.x + outerRadius * Math.cos(0), particle.y + outerRadius * Math.sin(0))
+                        for (let i = 0; i < spikes * 2; i++) {
+                            const radius = i % 2 === 0 ? outerRadius : innerRadius
+                            const angle = (i * Math.PI) / spikes
+                            ctx.lineTo(particle.x + radius * Math.cos(angle), particle.y + radius * Math.sin(angle))
+                        }
+                        ctx.closePath()
+                        break
+                    case "text":
+                        // For text, we don't draw any background shape
+                        break
+                    case "icon":
+                        // For icon, we don't draw any background shape
+                        break
+                    case "mixed":
+                        // For mixed shapes, choose a consistent shape based on particle index
+                        const randomShape = config.shape.mixedTypes[i % config.shape.mixedTypes.length] || "circle"
+                        switch(randomShape) {
+                            case "square":
+                                ctx.rect(particle.x - particle.size, particle.y - particle.size, particle.size * 2, particle.size * 2)
+                                break
+                            case "triangle":
+                                const height = particle.size * Math.sqrt(3)
+                                ctx.moveTo(particle.x, particle.y - height * 0.6)
+                                ctx.lineTo(particle.x - particle.size, particle.y + height * 0.4)
+                                ctx.lineTo(particle.x + particle.size, particle.y + height * 0.4)
+                                ctx.closePath()
+                                break
+                            case "star":
+                                const spikes = 5
+                                const outerRadius = particle.size
+                                const innerRadius = particle.size * 0.4
+                                ctx.moveTo(particle.x + outerRadius * Math.cos(0), particle.y + outerRadius * Math.sin(0))
+                                for (let i = 0; i < spikes * 2; i++) {
+                                    const radius = i % 2 === 0 ? outerRadius : innerRadius
+                                    const angle = (i * Math.PI) / spikes
+                                    ctx.lineTo(particle.x + radius * Math.cos(angle), particle.y + radius * Math.sin(angle))
+                                }
+                                ctx.closePath()
+                                break
+                            case "hexagon":
+                                const sides = 6
+                                ctx.moveTo(particle.x + particle.size * Math.cos(0), particle.y + particle.size * Math.sin(0))
+                                for (let i = 1; i < sides; i++) {
+                                    const angle = (i * 2 * Math.PI) / sides
+                                    ctx.lineTo(particle.x + particle.size * Math.cos(angle), particle.y + particle.size * Math.sin(angle))
+                                }
+                                ctx.closePath()
+                                break
+                            case "diamond":
+                                ctx.moveTo(particle.x, particle.y - particle.size)
+                                ctx.lineTo(particle.x + particle.size, particle.y)
+                                ctx.lineTo(particle.x, particle.y + particle.size)
+                                ctx.lineTo(particle.x - particle.size, particle.y)
+                                ctx.closePath()
+                                break
+                            default:
+                                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
+                        }
+                        break
+                    default:
+                        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
+                }
                 
                 // Color with opacity - simple hex parsing
                 if (particle.color.includes('#')) {
@@ -367,6 +472,108 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                 }
                 
                 ctx.fill()
+                
+                // Render text, emoji, or icon on top if needed
+                if (config.shape.type === "text" || config.shape.type === "icon") {
+                    ctx.save()
+                    const displayText = config.shape.type === "text" ? config.shape.text : config.shape.iconName
+                    ctx.font = `${particle.size * 1.2}px Arial`
+                    ctx.textAlign = "center"
+                    ctx.textBaseline = "middle"
+                    
+                    // Measure text for background/border
+                    const textMetrics = ctx.measureText(displayText)
+                    const textWidth = textMetrics.width
+                    const textHeight = particle.size * 1.2
+                    const padding = 4
+                    
+                    // Determine if content is likely emoji (no letters/numbers and not spaces/punctuation only)
+                    const isEmojiContent = displayText && !/[a-zA-Z0-9]/.test(displayText) && /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(displayText)
+                    
+                    // Draw background box and border based on content type and border setting
+                    if (config.border.enable && config.border.width > 0) {
+                        // Draw background box for text content (not pure emoji)
+                        if (!isEmojiContent) {
+                            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
+                            ctx.fillRect(
+                                particle.x - textWidth / 2 - padding,
+                                particle.y - textHeight / 2 - padding,
+                                textWidth + padding * 2,
+                                textHeight + padding * 2
+                            )
+                        }
+                        
+                        // Draw border
+                        ctx.strokeStyle = config.border.color
+                        ctx.lineWidth = config.border.width
+                        if (config.border.radius > 0) {
+                            // Rounded rectangle border
+                            const rectX = particle.x - textWidth / 2 - padding
+                            const rectY = particle.y - textHeight / 2 - padding
+                            const rectWidth = textWidth + padding * 2
+                            const rectHeight = textHeight + padding * 2
+                            const radius = Math.min(config.border.radius, rectWidth / 2, rectHeight / 2)
+                            
+                            ctx.beginPath()
+                            ctx.moveTo(rectX + radius, rectY)
+                            ctx.lineTo(rectX + rectWidth - radius, rectY)
+                            ctx.quadraticCurveTo(rectX + rectWidth, rectY, rectX + rectWidth, rectY + radius)
+                            ctx.lineTo(rectX + rectWidth, rectY + rectHeight - radius)
+                            ctx.quadraticCurveTo(rectX + rectWidth, rectY + rectHeight, rectX + rectWidth - radius, rectY + rectHeight)
+                            ctx.lineTo(rectX + radius, rectY + rectHeight)
+                            ctx.quadraticCurveTo(rectX, rectY + rectHeight, rectX, rectY + rectHeight - radius)
+                            ctx.lineTo(rectX, rectY + radius)
+                            ctx.quadraticCurveTo(rectX, rectY, rectX + radius, rectY)
+                            ctx.closePath()
+                            ctx.stroke()
+                        } else {
+                            // Regular rectangle border
+                            ctx.strokeRect(
+                                particle.x - textWidth / 2 - padding,
+                                particle.y - textHeight / 2 - padding,
+                                textWidth + padding * 2,
+                                textHeight + padding * 2
+                            )
+                        }
+                    }
+                    
+                    // Draw the text/emoji/icon
+                    ctx.fillStyle = particle.color
+                    ctx.fillText(displayText, particle.x, particle.y)
+                    ctx.restore()
+                }
+                
+                // Add border if enabled
+                if (config.border.enable && config.border.width > 0) {
+                    // Save context for border drawing
+                    ctx.save()
+                    
+                    // Use border color if specified, otherwise use particle color
+                    if (config.border.color && config.border.color !== "#ffffff") {
+                        if (typeof config.border.color === "object" && (config.border.color as any).r !== undefined) {
+                            const borderColor = config.border.color as any
+                            ctx.strokeStyle = `rgba(${Math.round(borderColor.r * 255)}, ${Math.round(borderColor.g * 255)}, ${Math.round(borderColor.b * 255)}, ${currentOpacity})`
+                        } else {
+                            ctx.strokeStyle = config.border.color as string
+                        }
+                    } else {
+                        // Parse particle color for border
+                        if (particle.color.includes('#')) {
+                            const r = parseInt(particle.color.slice(1, 3), 16)
+                            const g = parseInt(particle.color.slice(3, 5), 16)
+                            const b = parseInt(particle.color.slice(5, 7), 16)
+                            ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${currentOpacity})`
+                        } else {
+                            ctx.strokeStyle = particle.color
+                        }
+                    }
+                    ctx.lineWidth = config.border.width
+                    ctx.stroke()
+                    
+                    // Restore context after border
+                    ctx.restore()
+                }
+                
                 ctx.restore()
             })
 

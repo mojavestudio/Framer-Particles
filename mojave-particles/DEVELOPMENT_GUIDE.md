@@ -8,7 +8,7 @@
    ```bash
    npm run dev
    ```
-   This starts Vite on `https://localhost:5173/`
+   This starts Vite on `https://localhost:5173/` (port 5173 is required for Framer)
 
 2. **Load in Framer:**
    - Open Framer → Plugins → Developer Tools
@@ -66,7 +66,7 @@
 
 ### **Local Development:**
 ```bash
-npm run dev          # Start development server (https://localhost:5173/)
+npm run dev          # Start development server (https://localhost:5173/ - port 5173 required)
 npm run lint         # Check code quality
 npm run build        # Build for production
 npm run preview      # Preview production build
@@ -110,7 +110,7 @@ npm run build && node aws-deploy.js
 ## 🌐 URLs
 
 ### **Development:**
-- **Local Server**: `https://localhost:5173/`
+- **Local Server**: `https://localhost:5173/` (port 5173 required)
 - **Plugin URL for Framer**: `https://localhost:5173/`
 - **Main File**: `src/plugin.tsx` (source code)
 
@@ -120,7 +120,7 @@ npm run build && node aws-deploy.js
 
 ## ✅ Current Status
 
-- **✅ Development Server**: Running on `https://localhost:5173/`
+- **✅ Development Server**: Running on `https://localhost:5173/` (port 5173 required)
 - **✅ HTTPS**: Proper SSL certificate for local development
 - **✅ Auto-reload**: Changes reflect immediately in Framer
 - **✅ Production Build**: Available on AWS S3
@@ -128,11 +128,11 @@ npm run build && node aws-deploy.js
 
 ## 🚀 Next Steps
 
-1. **Test Local Development**: Load `https://localhost:5173/` in Framer
+1. **Test Local Development**: Load `https://localhost:5173/` in Framer (port 5173 required)
 2. **Make Changes**: Edit `src/plugin.tsx` and see live updates
 3. **Test Production**: Build and deploy to AWS
 4. **Submit to Marketplace**: Create plugin package and upload
 
 ---
 
-**🎯 Your plugin is ready for development! Use `https://localhost:5173/` in Framer.** 
+**🎯 Your plugin is ready for development! Use `https://localhost:5173/` in Framer (port 5173 required).** 
