@@ -1594,7 +1594,7 @@ export function App() {
             opacity: 1.0
         },
         glow: {
-            enable: true,
+            enable: false,
             intensity: 0.2,
             size: 1.5
         },
