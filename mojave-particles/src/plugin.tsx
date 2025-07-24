@@ -39,7 +39,7 @@ interface ParticleConfig {
     width: number
     height: number
     shape: {
-        type: "circle" | "square" | "triangle" | "star" | "hexagon" | "diamond" | "text" | "icon" | "mixed"
+        type: "circle" | "square" | "triangle" | "star" | "hexagon" | "diamond" | "text" | "mixed"
         text: string
         iconName: string
         sides: number
@@ -474,81 +474,11 @@ function LivePreview({ config }: { config: ParticleConfig }) {
                 ctx.fillStyle = gradient
                 ctx.fill()
                 
-                // Render text, emoji, or icon on top if needed
-                if (config.shape.type === "text" || config.shape.type === "icon") {
+                // Render text or emoji on top if needed
+                if (config.shape.type === "text") {
                     ctx.save()
                     
-                    // TRUE Phosphor-style icon mapping - pure text/symbol characters only (NO emojis)
-                    const getIconDisplay = (iconName: string): string => {
-                        const iconMap: Record<string, string> = {
-                            // Basic Shapes & Symbols
-                            'Star': '★', 'Heart': '♥', 'Lightning': '⚡', 'Circle': '●', 'Square': '■', 'Triangle': '▲', 'Diamond': '♦',
-                            'Plus': '+', 'Minus': '−', 'X': '×', 'Check': '✓', 'Info': 'ℹ', 'Warning': '⚠',
-                            
-                            // Arrows & Directions  
-                            'Arrow': '→', 'ArrowUp': '↑', 'ArrowDown': '↓', 'ArrowLeft': '←', 'ArrowRight': '→',
-                            'ArrowUpRight': '↗', 'ArrowDownRight': '↘', 'ArrowDownLeft': '↙', 'ArrowUpLeft': '↖',
-                            'CaretUp': '▲', 'CaretDown': '▼', 'CaretLeft': '◀', 'CaretRight': '▶',
-                            'ChevronUp': '⌃', 'ChevronDown': '⌄', 'ChevronLeft': '⌅', 'ChevronRight': '⌆',
-                            
-                            // Weather & Nature (text symbols only)
-                            'Sun': '☀', 'Moon': '☽', 'Cloud': '☁', 'Snowflake': '❄', 'Rain': '⌐', 'Storm': '⌭',
-                            'Fire': '◊', 'Water': '≈', 'Leaf': '❦', 'Tree': '⌘', 'Flower': '❀',
-                            
-                            // Technology & Communication (text symbols)
-                            'Phone': '☎', 'Email': '✉', 'Bell': '⍾', 'Wifi': '⌘', 'Battery': '⎆', 'Bluetooth': '⌘',
-                            'Camera': '⌬', 'Microphone': '⌐', 'Speaker': '⌂', 'Power': '⌽',
-                            
-                            // Navigation & Interface
-                            'Home': '⌂', 'Settings': '⚙', 'Search': '⌕', 'Filter': '⧩', 'Sort': '⥮', 'Menu': '☰',
-                            'Bookmark': '⌘', 'Tag': '⌫', 'Pin': '⌘', 'Link': '⌘', 'Eye': '👁', 'Gear': '⚙',
-                            
-                            // Media & Entertainment
-                            'Play': '▶', 'Pause': '⏸', 'Stop': '⏹', 'Record': '⏺', 'Skip': '⏭', 'Rewind': '⏪',
-                            'Music': '♪', 'Note': '♫', 'Volume': '♬', 'Mute': '🔇',
-                            
-                            // Files & Documents
-                            'File': '⌘', 'Folder': '⌘', 'Archive': '⌘', 'Trash': '⌘', 'Save': '⌘',
-                            'Download': '⇩', 'Upload': '⇧', 'Share': '⌘', 'Copy': '⌘', 'Cut': '✂',
-                            
-                            // Social & People (minimal text symbols)
-                            'User': '👤', 'Users': '👥', 'Chat': '💬', 'Message': '⌘', 'Mail': '✉',
-                            
-                            // Time & Calendar
-                            'Clock': '⌚', 'Time': '⌚', 'Calendar': '⌘', 'Date': '⌘', 'Timer': '⏲',
-                            'Alarm': '⏰', 'Schedule': '⌘',
-                            
-                            // Tools & Objects
-                            'Wrench': '⌘', 'Hammer': '⌘', 'Tool': '⌘', 'Key': '⌘', 'Lock': '🔒', 'Unlock': '🔓',
-                            'Shield': '⌘', 'Security': '⌘',
-                            
-                            // Math & Science
-                            'Multiply': '×', 'Divide': '÷', 'Equals': '=',
-                            'Percent': '%', 'Hash': '#', 'At': '@', 'And': '&', 'Dollar': '$',
-                            
-                            // Punctuation & Special
-                            'Question': '?', 'Exclamation': '!', 'Period': '.', 'Comma': ',', 'Colon': ':',
-                            'Semicolon': ';', 'Quote': '"', 'Apostrophe': "'", 'Slash': '/', 'Backslash': '\\'
-                        }
-                        
-                        // Case-insensitive lookup
-                        const normalizedName = iconName.charAt(0).toUpperCase() + iconName.slice(1).toLowerCase()
-                        const exactMatch = iconMap[iconName] || iconMap[normalizedName]
-                        if (exactMatch) return exactMatch
-                        
-                        // Try partial matches for common variations
-                        const lowerName = iconName.toLowerCase()
-                        for (const [key, value] of Object.entries(iconMap)) {
-                            if (key.toLowerCase().includes(lowerName) || lowerName.includes(key.toLowerCase())) {
-                                return value
-                            }
-                        }
-                        
-                        // Fallback to first letter
-                        return iconName.charAt(0).toUpperCase()
-                    }
-                    
-                    const displayText = config.shape.type === "text" ? config.shape.text : getIconDisplay(config.shape.iconName)
+                    const displayText = config.shape.text
                     ctx.font = `${particle.size * 1.2}px Arial`
                     ctx.textAlign = "center"
                     ctx.textBaseline = "middle"
