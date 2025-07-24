@@ -6,37 +6,30 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:remote": "vite build --config vite.config.ts",
-    "build:prod": "vite build --mode production",
     "preview": "vite preview",
     "lint": "eslint .",
-    "deploy": "npm run build:prod && node aws-deploy.js",
-    "deploy:dev": "npm run build && node aws-deploy.js",
-    "pack": "npm run build && node scripts/pack.js",
-    "dev:aws": "node dev-server-aws.js"
+    "pack": "npm run build && node scripts/pack.js"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
-    "@vitejs/plugin-react-swc": "^3.11.0",
-    "archiver": "^7.0.1",
     "framer-plugin": "^3.4.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "vite-plugin-framer": "^1.0.7",
-    "vite-plugin-mkcert": "^1.17.8"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@aws-sdk/client-cloudfront": "^3.665.0",
-    "@aws-sdk/client-s3": "^3.665.0",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
     "@vitejs/plugin-react": "^4.2.1",
+    "@vitejs/plugin-react-swc": "^3.11.0",
+    "archiver": "^7.0.1",
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
     "typescript": "^5.2.2",
-    "vite": "^5.2.0"
+    "vite": "^5.2.0",
+    "vite-plugin-framer": "^1.0.7",
+    "vite-plugin-mkcert": "^1.17.8"
   }
 }

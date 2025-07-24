@@ -334,9 +334,25 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                     currentOpacity = config.twinkle.minOpacity + (config.twinkle.maxOpacity - config.twinkle.minOpacity) * twinkleMultiplier
                 }
 
-                // Draw particle - SIMPLE AND WORKING
+                // Draw particle with glow effect if enabled
                 ctx.save()
+                
+                // Add glow effect if enabled
+                if (config.glow.enable) {
+                    ctx.globalCompositeOperation = "source-over"
+                    ctx.shadowBlur = config.glow.size * particle.size
+                    ctx.shadowColor = particle.color
+                    ctx.globalAlpha = config.glow.intensity
+                    ctx.beginPath()
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
+                    ctx.fillStyle = particle.color
+                    ctx.fill()
+                }
+                
+                // Main particle
                 ctx.globalCompositeOperation = "source-over"
+                ctx.shadowBlur = 0
+                ctx.globalAlpha = currentOpacity
                 ctx.beginPath()
                 ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
                 

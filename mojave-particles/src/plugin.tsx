@@ -372,8 +372,19 @@ function LivePreview({ config }: { config: ParticleConfig }) {
                     }
                 }
                 
-                // Add subtle glow effect for better visibility (disabled to remove border appearance)
-                // Glow effect can create unwanted border appearance, so we'll skip it
+                // Add glow effect if enabled
+                if (config.glow.enable) {
+                    ctx.save()
+                    ctx.globalCompositeOperation = "source-over"
+                    ctx.shadowBlur = config.glow.size * particle.size
+                    ctx.shadowColor = particle.color
+                    ctx.globalAlpha = config.glow.intensity
+                    ctx.beginPath()
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
+                    ctx.fillStyle = particle.color
+                    ctx.fill()
+                    ctx.restore()
+                }
                 
                 // Main particle with radial gradient
                 ctx.beginPath()
@@ -544,6 +555,8 @@ export default function MojaveParticles(props) {
         click = ${JSON.stringify(config.click)},
         modes = ${JSON.stringify(config.modes)},
         twinkle = ${JSON.stringify(config.twinkle)},
+        glow = ${JSON.stringify(config.glow)},
+        border = ${JSON.stringify(config.border)},
         radius = ${config.radius},
         width = ${config.width},
         height = ${config.height}
@@ -638,8 +651,25 @@ export default function MojaveParticles(props) {
                     currentOpacity = twinkle.minOpacity + (twinkle.maxOpacity - twinkle.minOpacity) * twinkleMultiplier
                 }
 
-                // Draw particle
+                // Draw particle with glow if enabled
                 ctx.save()
+                
+                // Add glow effect if enabled
+                if (glow.enable) {
+                    ctx.globalCompositeOperation = "source-over"
+                    ctx.shadowBlur = glow.size * particle.size
+                    ctx.shadowColor = particle.color
+                    ctx.globalAlpha = glow.intensity
+                    ctx.beginPath()
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
+                    ctx.fillStyle = particle.color
+                    ctx.fill()
+                }
+                
+                // Main particle
+                ctx.globalCompositeOperation = "source-over"
+                ctx.shadowBlur = 0
+                ctx.globalAlpha = currentOpacity
                 ctx.beginPath()
                 ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
                 
@@ -654,6 +684,15 @@ export default function MojaveParticles(props) {
                 }
                 
                 ctx.fill()
+                
+                // Add border if enabled
+                if (border.enable && border.width > 0) {
+                    ctx.globalAlpha = currentOpacity
+                    ctx.strokeStyle = border.color || particle.color
+                    ctx.lineWidth = border.width
+                    ctx.stroke()
+                }
+                
                 ctx.restore()
             })
 
@@ -668,7 +707,7 @@ export default function MojaveParticles(props) {
                 cancelAnimationFrame(animationRef.current)
             }
             }
-    }, [amount, color, colors, move, hover, click, modes, twinkle, backdrop, backgroundOpacity, size, opacity, radius, width, height])
+    }, [amount, color, colors, move, hover, click, modes, twinkle, glow, border, backdrop, backgroundOpacity, size, opacity, radius, width, height])
 
     return (
         <div style={{
@@ -1039,6 +1078,55 @@ addPropertyControls(MojaveParticles, {
             }
         }
     },
+    glow: {
+        type: ControlType.Object,
+        title: "Glow",
+        controls: {
+            enable: {
+                type: ControlType.Boolean,
+                title: "Enable Glow",
+                defaultValue: ${config.glow.enable}
+            },
+            intensity: {
+                type: ControlType.Number,
+                title: "Intensity",
+                min: 0, max: 1, step: 0.1,
+                defaultValue: ${config.glow.intensity},
+                hidden: (glow) => !glow.enable
+            },
+            size: {
+                type: ControlType.Number,
+                title: "Size",
+                min: 0.5, max: 5, step: 0.1,
+                defaultValue: ${config.glow.size},
+                hidden: (glow) => !glow.enable
+            }
+        }
+    },
+    border: {
+        type: ControlType.Object,
+        title: "Border",
+        controls: {
+            enable: {
+                type: ControlType.Boolean,
+                title: "Enable Border",
+                defaultValue: ${config.border.enable}
+            },
+            color: {
+                type: ControlType.Color,
+                title: "Color",
+                defaultValue: "${config.border.color}",
+                hidden: (border) => !border.enable
+            },
+            width: {
+                type: ControlType.Number,
+                title: "Width",
+                min: 0.1, max: 5, step: 0.1,
+                defaultValue: ${config.border.width},
+                hidden: (border) => !border.enable
+            }
+        }
+    },
     radius: {
         type: ControlType.Number,
         defaultValue: ${config.radius}
@@ -1261,7 +1349,7 @@ export function App() {
             backdrop: "#0a0a0a", backgroundOpacity: 1, color: "#ff00ff", colors: ["#ff00ff", "#00ffff", "#ffff00", "#ff0080"], amount: 35,
             size: { type: "Range" as const, value: 5, min: 3, max: 12 },
             opacity: { type: "Value" as const, value: 0.9, min: 0.1, max: 1 },
-            radius: 0, width: 800, height: 600, border: { enable: false, color: "#ffffff", width: 0.3 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: true, speed: 2.5, minOpacity: 0.4, maxOpacity: 1 },
+            radius: 0, width: 800, height: 600, border: { enable: false, color: "#ffffff", width: 0.3 }, glow: { enable: true, intensity: 0.4, size: 2.5 }, twinkle: { enable: true, speed: 2.5, minOpacity: 0.4, maxOpacity: 1 },
             modes: { connect: 0, connectRadius: 0, connectLinks: 1, grab: 140, grabLinks: 1, bubble: 400, bubbleSize: 40, bubbleDuration: 2, repulse: 200, repulseDistance: 0.4, push: 4, remove: 2, trail: 1, trailDelay: 0.005 },
             move: { enable: true, direction: "none", speed: 1.5, random: true, straight: false, out: "bounce", trail: false, trailLength: 10, gravity: false, gravityAcceleration: 9.81, spin: false, spinSpeed: 2, attract: false, attractDistance: 200, vibrate: true, vibrateFrequency: 80 },
             click: { enable: false, mode: "push" },
