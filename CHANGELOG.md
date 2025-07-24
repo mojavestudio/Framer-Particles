@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.2] - 2025-01-24
+
+### 🎯 Major Feature Enhancements
+- **Fixed Size Components**: Components now use exact dimensions from plugin configuration instead of responsive containers
+- **Comprehensive Property Controls**: Added full 50+ property controls matching original component capabilities
+- **Interactive Hover Effects**: Enabled hover attraction by default for all presets (Basic, Snow, Bubbles, Matrix)
+- **Fixed Component Generation**: Resolved "Code File was not found" error with proper JavaScript syntax
+- **Enhanced Sidebar Customization**: Complete feature parity between plugin interface and Framer sidebar controls
+
+### 🔧 Technical Improvements
+- **Fixed Canvas Sizing**: Components now render at specified width/height (800x600 default) with proper container wrapping
+- **Corrected Color Parsing**: Fixed template literal escaping issue in generated component code
+- **Enhanced Property Structure**: Added comprehensive nested controls for Size, Opacity, Twinkle, Movement, Interactions
+- **Improved Type Safety**: Added proper TypeScript interfaces for all configuration objects
+- **Optimized Build**: Clean production build with no console.log statements or debug code
+
+### ✨ User Experience
+- **Instant Interaction**: All presets now have engaging hover effects by default
+- **Professional Controls**: Full access to particle physics, animations, and interactive effects
+- **Consistent Sizing**: Particles maintain exact dimensions across plugin preview and inserted components
+- **Real-time Updates**: All property changes reflect immediately in both live preview and inserted components
+- **Comprehensive Customization**: Users can adjust everything from basic colors to advanced physics simulations
+
+### 🎨 Preset Improvements
+- **Basic Preset**: Now includes hover attraction for better interactivity
+- **Snow Preset**: Added gentle hover interactions
+- **Bubbles Preset**: Enhanced with bubble hover effects
+- **Matrix Preset**: Includes repulse interactions for digital rain effect
+- **All Presets**: Maintained existing unique characteristics while adding consistent hover behavior
+
+### 🧹 Code Quality
+- **Removed Debug Code**: Cleaned up all console.log statements and temporary debugging
+- **Streamlined Architecture**: Maintained clean component generation under 100 lines
+- **Error Handling**: Robust error handling for component creation and Framer API interactions
+- **Documentation**: Comprehensive inline code documentation and user-facing guides
+
+### 🔧 Bug Fixes
+- **Fixed**: "Code File was not found" error due to malformed JavaScript in generated components
+- **Fixed**: Component sizing issues where particles appeared in wrong dimensions
+- **Fixed**: Template literal escaping causing syntax errors in generated code
+- **Fixed**: Missing property controls preventing full customization in Framer sidebar
+- **Fixed**: Inconsistent hover behavior across different presets
+
+### 🎯 Breaking Changes
+- **Component Sizing**: Components now use fixed dimensions instead of responsive containers (better for precise layouts)
+- **Default Interactions**: Most presets now include hover effects by default (can be disabled in controls)
+
 ## [1.2.1] - 2025-01-22
 
 ### Added
