@@ -17,6 +17,70 @@ import {
 } from "@phosphor-icons/react"
 import { EnhancedLivePreview } from "./EnhancedParticleRenderer"
 
+// Custom clearable number input component
+interface ClearableNumberInputProps {
+    min: number
+    max: number
+    value: number
+    onChange: (value: number) => void
+    style?: React.CSSProperties
+    step?: number
+}
+
+const ClearableNumberInput: React.FC<ClearableNumberInputProps> = ({ min, max, value, onChange, style, step }) => {
+    const [inputValue, setInputValue] = useState<string>(value.toString())
+    const [isFocused, setIsFocused] = useState(false)
+
+    // Update local state when prop value changes (but not when focused)
+    useEffect(() => {
+        if (!isFocused) {
+            setInputValue(value.toString())
+        }
+    }, [value, isFocused])
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = e.target.value
+        setInputValue(newValue)
+        
+        // Only update parent if it's a valid number
+        if (newValue !== '' && !isNaN(Number(newValue))) {
+            const numValue = parseFloat(newValue)
+            const clampedValue = Math.max(min, Math.min(max, numValue))
+            onChange(clampedValue)
+        }
+    }
+
+    const handleBlur = () => {
+        setIsFocused(false)
+        // If empty or invalid, reset to the current prop value
+        if (inputValue === '' || isNaN(Number(inputValue))) {
+            setInputValue(value.toString())
+        }
+    }
+
+    const handleFocus = () => {
+        setIsFocused(true)
+        // Clear the input if it's showing 0
+        if (value === 0) {
+            setInputValue('')
+        }
+    }
+
+    return (
+        <input
+            type="number"
+            min={min}
+            max={max}
+            step={step}
+            value={inputValue}
+            onChange={handleChange}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            style={style}
+        />
+    )
+}
+
 // Show UI only in canvas mode (for insertion)
 if (framer.mode === "canvas") {
     framer.showUI({
@@ -33,8 +97,8 @@ interface ParticleConfig {
     color: string
     colors: string[]
     amount: number
-    size: { type: "Value" | "Range", value: number, min: number, max: number }
-    opacity: { type: "Value" | "Range", value: number, min: number, max: number }
+    size: { type: "Value" | "Range" | "Small" | "Medium" | "Large" | "ExtraLarge", value: number, min: number, max: number }
+    opacity: { type: "Value" | "Range" | "Fade" | "Normal" | "Full", value: number, min: number, max: number }
     radius: number
     width: number
     height: number
@@ -117,590 +181,6 @@ interface ParticleConfig {
     }
 }
 
-// Live Preview Canvas Component
-function LivePreview({ config }: { config: ParticleConfig }) {
-    const canvasRef = useRef<HTMLCanvasElement>(null)
-    const animationRef = useRef<number | null>(null)
-    const particlesRef = useRef<Array<{
-        x: number
-        y: number
-        vx: number
-        vy: number
-        color: string
-        size: number
-        opacity: number
-        twinklePhase: number
-        gravityVel: number
-        spinAngle: number
-        originalSize: number
-    }>>([])
-    const mouseRef = useRef<{ x: number; y: number; isHovering: boolean }>({
-        x: -1, y: -1, isHovering: false
-    })
-
-    useEffect(() => {
-        const canvas = canvasRef.current
-        if (!canvas) return
-
-        const ctx = canvas.getContext('2d', {
-            alpha: true,
-            desynchronized: false,
-            colorSpace: "srgb",
-            willReadFrequently: false
-        })
-        if (!ctx) return
-
-        // Enhanced pixel ratio handling for crisp rendering
-        const getPixelRatio = () => {
-            const ratio = window.devicePixelRatio || 1
-            return Math.min(ratio, 3) // Cap at 3x for performance
-        }
-        
-        const dpr = getPixelRatio()
-        const renderScale = 1.5 // Additional scaling for crispness
-        
-        // Set canvas size dynamically
-        const container = canvas.parentElement
-        const width = container ? container.clientWidth - 16 : 300
-        const height = 200
-        
-        // Set the actual canvas size (internal resolution) with enhanced scaling
-        canvas.width = width * dpr * renderScale
-        canvas.height = height * dpr * renderScale
-        
-        // Scale the canvas back down using CSS
-        canvas.style.width = width + "px"
-        canvas.style.height = height + "px"
-        
-        // Scale the context to match the device pixel ratio and render scale
-        ctx.scale(dpr * renderScale, dpr * renderScale)
-        
-        // Enhanced context properties for crisp rendering
-        ctx.imageSmoothingEnabled = true
-        ctx.imageSmoothingQuality = "high"
-        ctx.globalCompositeOperation = "source-over"
-        ctx.lineCap = "round"
-        ctx.lineJoin = "round"
-
-        // Resize handler to make canvas responsive
-        const handleResize = () => {
-            const newWidth = container ? container.clientWidth - 16 : 300
-            const currentWidth = canvas.width / dpr
-            if (Math.abs(currentWidth - newWidth) > 1) {
-                // Set the actual canvas size (internal resolution)
-                canvas.width = newWidth * dpr
-                canvas.height = height * dpr
-                
-                // Scale the canvas back down using CSS
-                canvas.style.width = newWidth + "px"
-                canvas.style.height = height + "px"
-                
-                // Reset the context scale
-                ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-                
-                createParticles() // Recreate particles for new dimensions
-            }
-        }
-
-        // Add resize listener
-        window.addEventListener('resize', handleResize)
-
-        // Create particles based on config
-        function createParticles() {
-            const particles: Array<{
-                x: number
-                y: number
-                vx: number
-                vy: number
-                color: string
-                size: number
-                opacity: number
-                twinklePhase: number
-                gravityVel: number
-                spinAngle: number
-                originalSize: number
-            }> = []
-            const amount = Math.min(config.amount, 30) // Limit for preview
-            const cols = config.colors.length > 0 ? config.colors : [config.color]
-            
-            for (let i = 0; i < amount; i++) {
-                const particleColor = cols[Math.floor(Math.random() * cols.length)]
-                
-                let vx = 0, vy = 0
-                const speed = config.move.speed * 0.05 // Slower for preview
-                
-                switch (config.move.direction) {
-                    case "top": vy = -speed; break
-                    case "bottom": vy = speed; break
-                    case "left": vx = -speed; break
-                    case "right": vx = speed; break
-                    case "random":
-                    default:
-                        vx = (Math.random() - 0.5) * speed
-                        vy = (Math.random() - 0.5) * speed
-                        break
-                }
-
-                particles.push({
-                    x: Math.random() * width,
-                    y: Math.random() * height,
-                    vx, vy,
-                    color: particleColor,
-                    size: config.size.type === "Range" 
-                        ? Math.random() * (config.size.max - config.size.min) + config.size.min
-                        : config.size.value,
-                    opacity: config.opacity.type === "Range"
-                        ? Math.random() * (config.opacity.max - config.opacity.min) + config.opacity.min
-                        : config.opacity.value,
-                    twinklePhase: Math.random() * Math.PI * 2,
-                    gravityVel: 0,
-                    spinAngle: 0,
-                    originalSize: config.size.type === "Range" 
-                        ? Math.random() * (config.size.max - config.size.min) + config.size.min
-                        : config.size.value
-                })
-            }
-            particlesRef.current = particles
-        }
-
-        // Mouse event handlers
-        const handleMouseMove = (e: MouseEvent) => {
-            const rect = canvas.getBoundingClientRect()
-            mouseRef.current = {
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top,
-                isHovering: true,
-            }
-        }
-
-        const handleMouseLeave = () => {
-            mouseRef.current.isHovering = false
-        }
-
-        // Add mouse listeners if hover is enabled
-        if (config.hover.enable) {
-            canvas.addEventListener("mousemove", handleMouseMove)
-            canvas.addEventListener("mouseleave", handleMouseLeave)
-        }
-
-        function animate() {
-            if (!canvas || !ctx) return
-
-            // Clear canvas
-            ctx.clearRect(0, 0, width, height)
-
-            // Draw backdrop
-            if (config.backdrop && config.backgroundOpacity > 0) {
-                ctx.save()
-                ctx.globalAlpha = config.backgroundOpacity
-                ctx.fillStyle = config.backdrop
-                ctx.fillRect(0, 0, width, height)
-                ctx.restore()
-            }
-
-            const particles = particlesRef.current
-
-            particles.forEach((particle) => {
-                // Reset size for bubble effect
-                particle.size = particle.originalSize
-
-                // Movement updates
-                if (config.move.enable) {
-                    // Gravity
-                    if (config.move.gravity) {
-                        particle.gravityVel += config.move.gravityAcceleration * 0.0005
-                        particle.vy += particle.gravityVel
-                    }
-
-                    // Spin
-                    if (config.move.spin) {
-                        particle.spinAngle += config.move.spinSpeed * 0.01
-                    }
-
-                    // Update position
-                    particle.x += particle.vx
-                    particle.y += particle.vy
-
-                    // Boundary handling
-                    if (particle.x <= 0 || particle.x >= width) particle.vx *= -1
-                    if (particle.y <= 0 || particle.y >= height) particle.vy *= -1
-                    particle.x = Math.max(0, Math.min(width, particle.x))
-                    particle.y = Math.max(0, Math.min(height, particle.y))
-                }
-
-                // Hover interactions
-                if (config.hover.enable && mouseRef.current.isHovering) {
-                    const dx = mouseRef.current.x - particle.x
-                    const dy = mouseRef.current.y - particle.y
-                    const distance = Math.sqrt(dx * dx + dy * dy)
-
-                    switch (config.hover.mode) {
-                        case "repulse":
-                            if (distance < config.modes.repulse * 0.5) { // Scale for preview
-                                const force = (config.modes.repulse * 0.5 - distance) / (config.modes.repulse * 0.5) * config.modes.repulseDistance * 2
-                                particle.x -= (dx / distance) * force
-                                particle.y -= (dy / distance) * force
-                            }
-                            break
-                        case "grab":
-                            if (distance < config.modes.grab * 0.5) {
-                                const force = (config.modes.grab * 0.5 - distance) / (config.modes.grab * 0.5) * config.hover.force * 0.02
-                                particle.x += (dx / distance) * force
-                                particle.y += (dy / distance) * force
-                            }
-                            break
-                        case "bubble":
-                            if (distance < config.modes.bubble * 0.3) {
-                                const scale = 1 + (config.modes.bubble * 0.3 - distance) / (config.modes.bubble * 0.3)
-                                particle.size = particle.originalSize * scale
-                            }
-                            break
-                        case "attract":
-                            if (distance < config.move.attractDistance * 0.5) {
-                                const force = config.hover.force * 0.01
-                                particle.x += (dx / distance) * force
-                                particle.y += (dy / distance) * force
-                            }
-                            break
-                    }
-                }
-
-                // Calculate current opacity with twinkle
-                let currentOpacity = particle.opacity
-                if (config.twinkle.enable) {
-                    particle.twinklePhase += config.twinkle.speed * 0.05
-                    const twinkleMultiplier = (Math.sin(particle.twinklePhase) + 1) / 2
-                    currentOpacity = config.twinkle.minOpacity + (config.twinkle.maxOpacity - config.twinkle.minOpacity) * twinkleMultiplier
-                }
-
-                // Enhanced particle rendering with gradients
-                ctx.save()
-                ctx.globalCompositeOperation = "source-over"
-                
-                // Parse color for gradient
-                let r = 255, g = 255, b = 255
-                if (particle.color.includes('#')) {
-                    const hex = particle.color.slice(1)
-                    if (hex.length === 6) {
-                        r = parseInt(hex.slice(0, 2), 16)
-                        g = parseInt(hex.slice(2, 4), 16)
-                        b = parseInt(hex.slice(4, 6), 16)
-                    }
-                }
-                
-                // Add glow effect if enabled
-                if (config.glow.enable) {
-                    ctx.save()
-                    ctx.globalCompositeOperation = "source-over"
-                    ctx.shadowBlur = config.glow.size * particle.size
-                    ctx.shadowColor = particle.color
-                    ctx.globalAlpha = config.glow.intensity
-                    ctx.beginPath()
-                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
-                    ctx.fillStyle = particle.color
-                    ctx.fill()
-                    ctx.restore()
-                }
-                
-                // Main particle with shape-based rendering
-                ctx.beginPath()
-                
-                // Draw different shapes based on config
-                switch (config.shape.type) {
-                    case "circle":
-                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
-                        break
-                    case "square":
-                        ctx.rect(particle.x - particle.size, particle.y - particle.size, particle.size * 2, particle.size * 2)
-                        break
-                    case "triangle":
-                        ctx.moveTo(particle.x, particle.y - particle.size)
-                        ctx.lineTo(particle.x - particle.size, particle.y + particle.size)
-                        ctx.lineTo(particle.x + particle.size, particle.y + particle.size)
-                        ctx.closePath()
-                        break
-                    case "diamond":
-                        ctx.moveTo(particle.x, particle.y - particle.size)
-                        ctx.lineTo(particle.x + particle.size, particle.y)
-                        ctx.lineTo(particle.x, particle.y + particle.size)
-                        ctx.lineTo(particle.x - particle.size, particle.y)
-                        ctx.closePath()
-                        break
-                    case "hexagon":
-                        const sides = 6
-                        const angleStep = (Math.PI * 2) / sides
-                        ctx.moveTo(particle.x + particle.size * Math.cos(0), particle.y + particle.size * Math.sin(0))
-                        for (let i = 1; i <= sides; i++) {
-                            const angle = i * angleStep
-                            ctx.lineTo(particle.x + particle.size * Math.cos(angle), particle.y + particle.size * Math.sin(angle))
-                        }
-                        break
-                    case "star":
-                        const spikes = 5
-                        const outerRadius = particle.size
-                        const innerRadius = particle.size * 0.5
-                        ctx.moveTo(particle.x + outerRadius * Math.cos(0), particle.y + outerRadius * Math.sin(0))
-                        for (let i = 0; i < spikes * 2; i++) {
-                            const radius = i % 2 === 0 ? outerRadius : innerRadius
-                            const angle = (i * Math.PI) / spikes
-                            ctx.lineTo(particle.x + radius * Math.cos(angle), particle.y + radius * Math.sin(angle))
-                        }
-                        ctx.closePath()
-                        break
-                    case "text":
-                        // For text, we don't draw any background shape
-                        break
-                    case "emoji":
-                        // For emoji, we don't draw any background shape
-                        break
-                    default:
-                        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
-                }
-                
-                // Create gradient for depth
-                const gradient = ctx.createRadialGradient(
-                    particle.x - particle.size * 0.3, 
-                    particle.y - particle.size * 0.3, 
-                    0,
-                    particle.x, 
-                    particle.y, 
-                    particle.size
-                )
-                
-                gradient.addColorStop(0, `rgba(${Math.min(255, r + 40)}, ${Math.min(255, g + 40)}, ${Math.min(255, b + 40)}, ${currentOpacity})`)
-                gradient.addColorStop(0.7, `rgba(${r}, ${g}, ${b}, ${currentOpacity})`)
-                gradient.addColorStop(1, `rgba(${Math.max(0, r - 20)}, ${Math.max(0, g - 20)}, ${Math.max(0, b - 20)}, ${currentOpacity * 0.8})`)
-                
-                ctx.fillStyle = gradient
-                ctx.fill()
-                
-                // Render text or emoji on top if needed
-                if (config.shape.type === "text") {
-                    ctx.save()
-                    
-                    const displayText = config.shape.text
-                    ctx.font = `${particle.size * 1.2}px Arial`
-                    ctx.textAlign = "center"
-                    ctx.textBaseline = "middle"
-                    
-                    // Measure text for background/border
-                    const textMetrics = ctx.measureText(displayText)
-                    const textWidth = textMetrics.width
-                    const textHeight = particle.size * 1.2
-                    const padding = 4
-                    
-                    // STRICT: Only show backgrounds when explicitly requested for actual text
-                    // Never show backgrounds for: emojis, single symbols, or phosphor icons
-                    const shouldShowBackground = config.fill.enable && 
-                        config.shape.type === "text" && 
-                        displayText && 
-                        displayText.length > 1 && 
-                        /[a-zA-Z]/.test(displayText) // Must contain at least one letter
-                    
-                    // Draw fill background ONLY for multi-letter text
-                    if (shouldShowBackground) {
-                        const r = parseInt(config.fill.color.slice(1, 3), 16)
-                        const g = parseInt(config.fill.color.slice(3, 5), 16)
-                        const b = parseInt(config.fill.color.slice(5, 7), 16)
-                        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${config.fill.opacity})`
-                        
-                        if (config.border.radius > 0) {
-                            // Rounded rectangle fill
-                            const rectX = particle.x - textWidth / 2 - padding
-                            const rectY = particle.y - textHeight / 2 - padding
-                            const rectWidth = textWidth + padding * 2
-                            const rectHeight = textHeight + padding * 2
-                            const radius = Math.min(config.border.radius, rectWidth / 2, rectHeight / 2)
-                            
-                            ctx.beginPath()
-                            ctx.moveTo(rectX + radius, rectY)
-                            ctx.lineTo(rectX + rectWidth - radius, rectY)
-                            ctx.quadraticCurveTo(rectX + rectWidth, rectY, rectX + rectWidth, rectY + radius)
-                            ctx.lineTo(rectX + rectWidth, rectY + rectHeight - radius)
-                            ctx.quadraticCurveTo(rectX + rectWidth, rectY + rectHeight, rectX + rectWidth - radius, rectY + rectHeight)
-                            ctx.lineTo(rectX + radius, rectY + rectHeight)
-                            ctx.quadraticCurveTo(rectX, rectY + rectHeight, rectX, rectY + rectHeight - radius)
-                            ctx.lineTo(rectX, rectY + radius)
-                            ctx.quadraticCurveTo(rectX, rectY, rectX + radius, rectY)
-                            ctx.closePath()
-                            ctx.fill()
-                        } else {
-                            // Regular rectangle fill
-                            ctx.fillRect(
-                                particle.x - textWidth / 2 - padding,
-                                particle.y - textHeight / 2 - padding,
-                                textWidth + padding * 2,
-                                textHeight + padding * 2
-                            )
-                        }
-                    }
-                        
-                    // Draw border ONLY for multi-letter text (same logic as background)
-                    if (config.border.enable && config.border.width > 0 && shouldShowBackground) {
-                        const r = parseInt(config.border.color.slice(1, 3), 16)
-                        const g = parseInt(config.border.color.slice(3, 5), 16)
-                        const b = parseInt(config.border.color.slice(5, 7), 16)
-                        ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${config.border.opacity})`
-                        ctx.lineWidth = config.border.width
-                        
-                        if (config.border.radius > 0) {
-                            // Rounded rectangle border
-                            const rectX = particle.x - textWidth / 2 - padding
-                            const rectY = particle.y - textHeight / 2 - padding
-                            const rectWidth = textWidth + padding * 2
-                            const rectHeight = textHeight + padding * 2
-                            const radius = Math.min(config.border.radius, rectWidth / 2, rectHeight / 2)
-                            
-                            ctx.beginPath()
-                            ctx.moveTo(rectX + radius, rectY)
-                            ctx.lineTo(rectX + rectWidth - radius, rectY)
-                            ctx.quadraticCurveTo(rectX + rectWidth, rectY, rectX + rectWidth, rectY + radius)
-                            ctx.lineTo(rectX + rectWidth, rectY + rectHeight - radius)
-                            ctx.quadraticCurveTo(rectX + rectWidth, rectY + rectHeight, rectX + rectWidth - radius, rectY + rectHeight)
-                            ctx.lineTo(rectX + radius, rectY + rectHeight)
-                            ctx.quadraticCurveTo(rectX, rectY + rectHeight, rectX, rectY + rectHeight - radius)
-                            ctx.lineTo(rectX, rectY + radius)
-                            ctx.quadraticCurveTo(rectX, rectY, rectX + radius, rectY)
-                            ctx.closePath()
-                            ctx.stroke()
-                        } else {
-                            // Regular rectangle border
-                            ctx.strokeRect(
-                                particle.x - textWidth / 2 - padding,
-                                particle.y - textHeight / 2 - padding,
-                                textWidth + padding * 2,
-                                textHeight + padding * 2
-                            )
-                        }
-                    }
-                    
-                    // Draw the text/emoji
-                    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${currentOpacity})`
-                    ctx.fillText(displayText, particle.x, particle.y)
-                    ctx.restore()
-                }
-                
-                // Add border if enabled - use particle color by default
-                if (config.border.enable && config.border.width > 0) {
-                    // Save context for border drawing
-                    ctx.save()
-                    
-                    // Use border color if specified, otherwise use particle color
-                    if (config.border.color && config.border.color !== "#ffffff") {
-                        if (typeof config.border.color === "object" && (config.border.color as any).r !== undefined) {
-                            const borderColor = config.border.color as any
-                            ctx.strokeStyle = "rgba(" + Math.round(borderColor.r * 255) + ", " + Math.round(borderColor.g * 255) + ", " + Math.round(borderColor.b * 255) + ", " + currentOpacity + ")"
-                } else {
-                            ctx.strokeStyle = config.border.color as string
-                        }
-                    } else {
-                        ctx.strokeStyle = "rgba(" + r + ", " + g + ", " + b + ", " + currentOpacity + ")"
-                    }
-                    ctx.lineWidth = config.border.width
-                    ctx.stroke()
-                    
-                    // Restore context after border
-                    ctx.restore()
-                }
-                
-                ctx.restore()
-            })
-
-            // Enhanced connection lines
-            if (config.modes.connectRadius > 0) {
-                ctx.save()
-                ctx.globalCompositeOperation = "source-over"
-                
-                particles.forEach((particle, i) => {
-                    particles.slice(i + 1).forEach(otherParticle => {
-                        const dx = particle.x - otherParticle.x
-                        const dy = particle.y - otherParticle.y
-                        const distance = Math.sqrt(dx * dx + dy * dy)
-                        
-                        const connectRadius = config.modes.connectRadius * 0.6
-                        if (distance < connectRadius) {
-                            const opacity = config.modes.connectLinks * (1 - distance / connectRadius) * 0.5
-                            
-                            // Parse colors for gradient line
-                            const parseColor = (color: string) => {
-                                if (color.includes('#')) {
-                                    const hex = color.slice(1)
-                                    if (hex.length === 6) {
-                                        return {
-                                            r: parseInt(hex.slice(0, 2), 16),
-                                            g: parseInt(hex.slice(2, 4), 16),
-                                            b: parseInt(hex.slice(4, 6), 16)
-                                        }
-                                    }
-                                }
-                                return { r: 255, g: 255, b: 255 }
-                            }
-                            
-                            // Create gradient line
-                            const gradient = ctx.createLinearGradient(
-                                particle.x, particle.y,
-                                otherParticle.x, otherParticle.y
-                            )
-                            
-                            const color1 = parseColor(particle.color)
-                            const color2 = parseColor(otherParticle.color)
-                            
-                            gradient.addColorStop(0, "rgba(" + color1.r + ", " + color1.g + ", " + color1.b + ", " + opacity + ")")
-                            gradient.addColorStop(1, "rgba(" + color2.r + ", " + color2.g + ", " + color2.b + ", " + opacity + ")")
-                            
-                            ctx.strokeStyle = gradient
-                            ctx.lineWidth = Math.max(0.5, 2 - distance / connectRadius)
-                            ctx.beginPath()
-                            ctx.moveTo(particle.x, particle.y)
-                            ctx.lineTo(otherParticle.x, otherParticle.y)
-                            ctx.stroke()
-                        }
-                    })
-                })
-                ctx.restore()
-            }
-
-            animationRef.current = requestAnimationFrame(animate)
-        }
-
-        // Initialize and start
-        createParticles()
-        animate()
-
-        return () => {
-            if (animationRef.current) {
-                cancelAnimationFrame(animationRef.current)
-            }
-            if (config.hover.enable) {
-                canvas.removeEventListener("mousemove", handleMouseMove)
-                canvas.removeEventListener("mouseleave", handleMouseLeave)
-            }
-            window.removeEventListener('resize', handleResize)
-        }
-    }, [config])
-
-    return (
-        <div style={{
-            width: config.width + "px",
-            height: config.height + "px",
-            position: "relative",
-            overflow: "hidden",
-            borderRadius: config.radius + "px"
-        }}>
-        <canvas
-            ref={canvasRef}
-            style={{
-                    width: "100%",
-                    height: "100%",
-                    border: "none",
-                    background: "transparent",
-                    display: "block"
-                }}
-            />
-    </div>
-  )
-}
-
 // Generate simple working component for Framer
 function createEnhancedParticlesCode(config: ParticleConfig): string {
     return `/**
@@ -761,9 +241,21 @@ export default function MojaveParticles(props) {
             
             for (let i = 0; i < Math.min(amount, 50); i++) {
                 const particleColor = cols[Math.floor(Math.random() * cols.length)]
-                const particleSize = size.type === "Range" 
-                    ? Math.random() * (size.max - size.min) + size.min
-                    : size.value
+                // Calculate particle size based on type
+                let particleSize
+                if (size.type === "Range") {
+                    particleSize = Math.random() * (size.max - size.min) + size.min
+                } else if (size.type === "Small") {
+                    particleSize = Math.random() * (50 - 1) + 1
+                } else if (size.type === "Medium") {
+                    particleSize = Math.random() * (200 - 50) + 50
+                } else if (size.type === "Large") {
+                    particleSize = Math.random() * (500 - 200) + 200
+                } else if (size.type === "ExtraLarge") {
+                    particleSize = Math.random() * (1000 - 500) + 500
+                } else {
+                    particleSize = size.value
+                }
                 
                 let vx = 0, vy = 0
                 const speed = move.speed * 0.05
@@ -785,9 +277,19 @@ export default function MojaveParticles(props) {
                     vx, vy,
                     color: particleColor,
                     size: particleSize,
-                    opacity: opacity.type === "Range"
-                        ? Math.random() * (opacity.max - opacity.min) + opacity.min
-                        : opacity.value,
+                    opacity: (() => {
+                        if (opacity.type === "Range") {
+                            return Math.random() * (opacity.max - opacity.min) + opacity.min
+                        } else if (opacity.type === "Fade") {
+                            return Math.random() * (0.5 - 0.1) + 0.1
+                        } else if (opacity.type === "Normal") {
+                            return Math.random() * (1.0 - 0.5) + 0.5
+                        } else if (opacity.type === "Full") {
+                            return Math.random() * (1.0 - 0.8) + 0.8
+                        } else {
+                            return opacity.value
+                        }
+                    })(),
                     twinklePhase: Math.random() * Math.PI * 2
                 })
             }
@@ -1037,7 +539,7 @@ addPropertyControls(MojaveParticles, {
         controls: {
             type: {
                 type: ControlType.Enum,
-                options: ["Value", "Range"],
+                options: ["Value", "Range", "Small", "Medium", "Large", "ExtraLarge"],
                 defaultValue: "${config.size.type}"
             },
             value: {
@@ -1063,7 +565,7 @@ addPropertyControls(MojaveParticles, {
         controls: {
             type: {
                 type: ControlType.Enum,
-                options: ["Value", "Range"],
+                options: ["Value", "Range", "Fade", "Normal", "Full"],
                 defaultValue: "${config.opacity.type}"
             },
             value: {
@@ -1504,13 +1006,10 @@ export function App() {
             text: "✨",
             iconName: "Star",
             sides: 6,
-            mixedTypes: ["circle", "square", "triangle"],
-            textBackground: false,
-            textPadding: 4,
-            fontFamily: "Inter",
-            fontWeight: 400,
-            imageUrl: ""
+            mixedTypes: ["circle", "square", "triangle"]
         },
+        textBackground: false,
+        textPadding: 4,
         fill: {
             enable: false,
             color: "#000000",
@@ -1587,7 +1086,7 @@ export function App() {
             backdrop: "#000000", backgroundOpacity: 1, color: "#ffffff", colors: [], amount: 50,
             size: { type: "Range" as const, value: 3, min: 2, max: 4 },
             opacity: { type: "Range" as const, value: 0.7, min: 0.5, max: 1 },
-            radius: 0, width: 800, height: 600, shape: { type: "circle" as const, text: "✨", emoji: "✨", sides: 6, textBackground: false, textPadding: 4, fontFamily: "Inter", fontWeight: 400, imageUrl: "" }, border: { enable: false, color: "#ffffff", width: 2.5 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: false, speed: 1, minOpacity: 0.1, maxOpacity: 1 },
+            radius: 0, width: 800, height: 600, shape: { type: "circle" as const, text: "✨", iconName: "", sides: 6, mixedTypes: ["circle", "square", "triangle"] }, textBackground: false, textPadding: 4, fill: { enable: false, color: "#000000", opacity: 0.7 }, border: { enable: false, color: "#ffffff", width: 2.5, radius: 0, opacity: 1 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: false, speed: 1, minOpacity: 0.1, maxOpacity: 1 },
             modes: { connect: 0, connectRadius: 0, connectLinks: 1, grab: 140, grabLinks: 1, bubble: 400, bubbleSize: 40, bubbleDuration: 2, repulse: 200, repulseDistance: 0.4, push: 4, remove: 2, trail: 1, trailDelay: 0.005 },
             move: { enable: true, direction: "none", speed: 1.5, random: false, straight: false, out: "out", trail: false, trailLength: 10, gravity: false, gravityAcceleration: 9.81, spin: false, spinSpeed: 2, attract: false, attractDistance: 200, vibrate: false, vibrateFrequency: 50 },
             click: { enable: false, mode: "push" },
@@ -2420,6 +1919,9 @@ export function App() {
                         >
                             <option value="Value">Fixed Value</option>
                             <option value="Range">Random Range</option>
+                            <option value="Fade">Fade (0.1-0.5)</option>
+                            <option value="Normal">Normal (0.5-1.0)</option>
+                            <option value="Full">Full (0.8-1.0)</option>
                         </select>
                     </div>
 
@@ -2428,47 +1930,116 @@ export function App() {
                             <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
                                 Opacity: {particleConfig.opacity.value}
                             </label>
-                            <input
-                                type="range"
-                                min="0.1"
-                                max="1"
-                                step="0.1"
-                                value={particleConfig.opacity.value}
-                                onChange={(e) => updateConfig('opacity.value', parseFloat(e.target.value))}
-                                style={{ width: '100%' }}
-                            />
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="1"
+                                    step="0.1"
+                                    value={particleConfig.opacity.value}
+                                    onChange={(e) => updateConfig('opacity.value', parseFloat(e.target.value))}
+                                    style={{ flex: 1 }}
+                                />
+                                <ClearableNumberInput
+                                    min={0}
+                                    max={1}
+                                    step={0.1}
+                                    value={particleConfig.opacity.value}
+                                    onChange={(value) => updateConfig('opacity.value', value)}
+                                    style={{ 
+                                        width: '60px', 
+                                        padding: '4px', 
+                                        border: '1px solid var(--border)', 
+                                        borderRadius: '4px', 
+                                        fontSize: '11px' 
+                                    }}
+                                />
+                            </div>
+                            <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                                Range: 0-1 (0 = invisible, 1 = fully visible)
+                            </div>
                         </div>
-                    ) : (
+                    ) : particleConfig.opacity.type === "Range" ? (
                         <>
                             <div style={{ marginBottom: '12px' }}>
                                 <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
                                     Opacity Min: {particleConfig.opacity.min}
                                 </label>
-                                <input
-                                    type="range"
-                                    min="0.1"
-                                    max="1"
-                                    step="0.1"
-                                    value={particleConfig.opacity.min}
-                                    onChange={(e) => updateConfig('opacity.min', parseFloat(e.target.value))}
-                                    style={{ width: '100%' }}
-                                />
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="1"
+                                        step="0.1"
+                                        value={particleConfig.opacity.min}
+                                        onChange={(e) => updateConfig('opacity.min', parseFloat(e.target.value))}
+                                        style={{ flex: 1 }}
+                                    />
+                                    <ClearableNumberInput
+                                        min={0}
+                                        max={1}
+                                        step={0.1}
+                                        value={particleConfig.opacity.min}
+                                        onChange={(value) => updateConfig('opacity.min', value)}
+                                        style={{ 
+                                            width: '60px', 
+                                            padding: '4px', 
+                                            border: '1px solid var(--border)', 
+                                            borderRadius: '4px', 
+                                            fontSize: '11px' 
+                                        }}
+                                    />
+                                </div>
                             </div>
                             <div style={{ marginBottom: '12px' }}>
                                 <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
                                     Opacity Max: {particleConfig.opacity.max}
                                 </label>
-                                <input
-                                    type="range"
-                                    min="0.1"
-                                    max="1"
-                                    step="0.1"
-                                    value={particleConfig.opacity.max}
-                                    onChange={(e) => updateConfig('opacity.max', parseFloat(e.target.value))}
-                                    style={{ width: '100%' }}
-                                />
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="1"
+                                        step="0.1"
+                                        value={particleConfig.opacity.max}
+                                        onChange={(e) => updateConfig('opacity.max', parseFloat(e.target.value))}
+                                        style={{ flex: 1 }}
+                                    />
+                                    <ClearableNumberInput
+                                        min={0}
+                                        max={1}
+                                        step={0.1}
+                                        value={particleConfig.opacity.max}
+                                        onChange={(value) => updateConfig('opacity.max', value)}
+                                        style={{ 
+                                            width: '60px', 
+                                            padding: '4px', 
+                                            border: '1px solid var(--border)', 
+                                            borderRadius: '4px', 
+                                            fontSize: '11px' 
+                                        }}
+                                    />
+                                </div>
                             </div>
                         </>
+                    ) : (
+                        // Preset opacity ranges
+                        <div style={{ marginBottom: '12px' }}>
+                            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                                {particleConfig.opacity.type === "Fade" && "Opacity Range: 0.1-0.5 (subtle fade effect)"}
+                                {particleConfig.opacity.type === "Normal" && "Opacity Range: 0.5-1.0 (standard visibility)"}
+                                {particleConfig.opacity.type === "Full" && "Opacity Range: 0.8-1.0 (high visibility)"}
+                            </div>
+                            <div style={{ 
+                                padding: '8px', 
+                                background: 'var(--accent)', 
+                                borderRadius: '4px', 
+                                fontSize: '10px', 
+                                color: 'var(--text)' 
+                            }}>
+                                Using preset range for consistent effect
+                            </div>
+                        </div>
                     )}
 
                 </div>
@@ -2488,6 +2059,10 @@ export function App() {
                         >
                             <option value="Value">Fixed Value</option>
                             <option value="Range">Random Range</option>
+                            <option value="Small">Small (1-50px)</option>
+                            <option value="Medium">Medium (50-200px)</option>
+                            <option value="Large">Large (200-500px)</option>
+                            <option value="ExtraLarge">Extra Large (500-1000px)</option>
                         </select>
                     </div>
 
@@ -2499,18 +2074,17 @@ export function App() {
                             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                                 <input
                                     type="range"
-                                    min="1"
+                                    min="0"
                                     max="500"
                                     value={Math.min(particleConfig.size.value, 500)}
                                     onChange={(e) => updateConfig('size.value', parseInt(e.target.value))}
                                     style={{ flex: 1 }}
                                 />
-                                <input
-                                    type="number"
-                                    min="1"
-                                    max="2000"
+                                <ClearableNumberInput
+                                    min={0}
+                                    max={2000}
                                     value={particleConfig.size.value}
-                                    onChange={(e) => updateConfig('size.value', Math.max(1, Math.min(2000, parseInt(e.target.value) || 1)))}
+                                    onChange={(value) => updateConfig('size.value', value)}
                                     style={{ 
                                         width: '60px', 
                                         padding: '4px', 
@@ -2521,10 +2095,10 @@ export function App() {
                                 />
                             </div>
                             <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                                Range: 1-2000px (slider: 1-500px)
+                                Range: 0-2000px (slider: 0-500px)
                             </div>
                         </div>
-                    ) : (
+                    ) : particleConfig.size.type === "Range" ? (
                         <>
                             <div style={{ marginBottom: '12px' }}>
                                 <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
@@ -2533,18 +2107,17 @@ export function App() {
                                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                                     <input
                                         type="range"
-                                        min="1"
+                                        min="0"
                                         max="500"
                                         value={Math.min(particleConfig.size.min, 500)}
                                         onChange={(e) => updateConfig('size.min', parseInt(e.target.value))}
                                         style={{ flex: 1 }}
                                     />
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        max="2000"
+                                    <ClearableNumberInput
+                                        min={0}
+                                        max={2000}
                                         value={particleConfig.size.min}
-                                        onChange={(e) => updateConfig('size.min', Math.max(1, Math.min(2000, parseInt(e.target.value) || 1)))}
+                                        onChange={(value) => updateConfig('size.min', value)}
                                         style={{ 
                                             width: '60px', 
                                             padding: '4px', 
@@ -2562,18 +2135,17 @@ export function App() {
                                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                                     <input
                                         type="range"
-                                        min="1"
+                                        min="0"
                                         max="500"
                                         value={Math.min(particleConfig.size.max, 500)}
                                         onChange={(e) => updateConfig('size.max', parseInt(e.target.value))}
                                         style={{ flex: 1 }}
                                     />
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        max="2000"
+                                    <ClearableNumberInput
+                                        min={0}
+                                        max={2000}
                                         value={particleConfig.size.max}
-                                        onChange={(e) => updateConfig('size.max', Math.max(1, Math.min(2000, parseInt(e.target.value) || 1)))}
+                                        onChange={(value) => updateConfig('size.max', value)}
                                         style={{ 
                                             width: '60px', 
                                             padding: '4px', 
@@ -2588,6 +2160,25 @@ export function App() {
                                 </div>
                             </div>
                         </>
+                    ) : (
+                        // Preset ranges
+                        <div style={{ marginBottom: '12px' }}>
+                            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                                {particleConfig.size.type === "Small" && "Size Range: 1-50px"}
+                                {particleConfig.size.type === "Medium" && "Size Range: 50-200px"}
+                                {particleConfig.size.type === "Large" && "Size Range: 200-500px"}
+                                {particleConfig.size.type === "ExtraLarge" && "Size Range: 500-1000px"}
+                            </div>
+                            <div style={{ 
+                                padding: '8px', 
+                                background: 'var(--accent)', 
+                                borderRadius: '4px', 
+                                fontSize: '10px', 
+                                color: 'var(--text)' 
+                            }}>
+                                Using preset range for better performance
+                            </div>
+                        </div>
                     )}
 
                     <div style={{ marginBottom: '12px' }}>
@@ -2609,11 +2200,11 @@ export function App() {
                             </label>
                             <input
                                 type="range"
-                                min="0.1"
-                                    max="5"
+                                min="0"
+                                max="5"
                                 step="0.1"
-                                    value={particleConfig.twinkle.speed}
-                                    onChange={(e) => updateConfig('twinkle.speed', parseFloat(e.target.value))}
+                                value={particleConfig.twinkle.speed}
+                                onChange={(e) => updateConfig('twinkle.speed', parseFloat(e.target.value))}
                                 style={{ width: '100%' }}
                             />
                         </div>
@@ -2623,7 +2214,7 @@ export function App() {
                                 </label>
                                 <input
                                     type="range"
-                                    min="0.1"
+                                    min="0"
                                     max="0.8"
                                     step="0.1"
                                     value={particleConfig.twinkle.minOpacity}

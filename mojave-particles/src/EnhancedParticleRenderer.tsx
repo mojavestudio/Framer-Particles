@@ -6,8 +6,8 @@ interface ParticleConfig {
     color: string
     colors: string[]
     amount: number
-    size: { type: "Value" | "Range", value: number, min: number, max: number }
-    opacity: { type: "Value" | "Range", value: number, min: number, max: number }
+    size: { type: "Value" | "Range" | "Small" | "Medium" | "Large" | "ExtraLarge", value: number, min: number, max: number }
+    opacity: { type: "Value" | "Range" | "Fade" | "Normal" | "Full", value: number, min: number, max: number }
     radius: number
     width: number
     height: number
@@ -208,9 +208,35 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                         break
                 }
 
-                const particleSize = config.size.type === "Range" 
-                    ? Math.random() * (config.size.max - config.size.min) + config.size.min
-                    : config.size.value
+                // Calculate particle size based on type
+                let particleSize: number
+                if (config.size.type === "Range") {
+                    particleSize = Math.random() * (config.size.max - config.size.min) + config.size.min
+                } else if (config.size.type === "Small") {
+                    particleSize = Math.random() * (50 - 1) + 1
+                } else if (config.size.type === "Medium") {
+                    particleSize = Math.random() * (200 - 50) + 50
+                } else if (config.size.type === "Large") {
+                    particleSize = Math.random() * (500 - 200) + 200
+                } else if (config.size.type === "ExtraLarge") {
+                    particleSize = Math.random() * (1000 - 500) + 500
+                } else {
+                    particleSize = config.size.value
+                }
+
+                // Calculate particle opacity based on type
+                let particleOpacity: number
+                if (config.opacity.type === "Range") {
+                    particleOpacity = Math.random() * (config.opacity.max - config.opacity.min) + config.opacity.min
+                } else if (config.opacity.type === "Fade") {
+                    particleOpacity = Math.random() * (0.5 - 0.1) + 0.1
+                } else if (config.opacity.type === "Normal") {
+                    particleOpacity = Math.random() * (1.0 - 0.5) + 0.5
+                } else if (config.opacity.type === "Full") {
+                    particleOpacity = Math.random() * (1.0 - 0.8) + 0.8
+                } else {
+                    particleOpacity = config.opacity.value
+                }
 
                 particles.push({
                     x: Math.random() * width,
@@ -218,9 +244,7 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                     vx, vy,
                     color: particleColor,
                     size: particleSize,
-                    opacity: config.opacity.type === "Range"
-                        ? Math.random() * (config.opacity.max - config.opacity.min) + config.opacity.min
-                        : config.opacity.value,
+                    opacity: particleOpacity,
                     twinklePhase: Math.random() * Math.PI * 2,
                     gravityVel: 0,
                     spinAngle: 0,
