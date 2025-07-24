@@ -408,7 +408,7 @@ function LivePreview({ config }: { config: ParticleConfig }) {
                 // Draw different shapes based on config
                 switch (config.shape.type) {
                     case "circle":
-                        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
                         break
                     case "square":
                         ctx.rect(particle.x - particle.size, particle.y - particle.size, particle.size * 2, particle.size * 2)
@@ -478,34 +478,94 @@ function LivePreview({ config }: { config: ParticleConfig }) {
                 if (config.shape.type === "text" || config.shape.type === "icon") {
                     ctx.save()
                     
-                    // Simple Phosphor icon mapping - convert icon names to Unicode symbols
+                    // Comprehensive Phosphor icon mapping - convert icon names to Unicode symbols
                     const getIconDisplay = (iconName: string): string => {
                         const iconMap: Record<string, string> = {
-                            'Star': '★',
-                            'Heart': '♥',
-                            'Lightning': '⚡',
-                            'Circle': '●',
-                            'Square': '■',
-                            'Triangle': '▲',
-                            'Diamond': '♦',
-                            'Plus': '+',
-                            'Minus': '−',
-                            'X': '×',
-                            'Check': '✓',
-                            'Arrow': '→',
-                            'ArrowUp': '↑',
-                            'ArrowDown': '↓',
-                            'ArrowLeft': '←',
-                            'ArrowRight': '→',
-                            'Sun': '☀',
-                            'Moon': '☽',
-                            'Cloud': '☁',
-                            'Fire': '🔥',
-                            'Water': '💧',
-                            'Leaf': '🍃',
-                            'Sparkle': '✨'
+                            // Basic Shapes & Symbols
+                            'Star': '★', 'HeartIcon': '♥', 'Lightning': '⚡', 'Circle': '●', 'Square': '■', 'Triangle': '▲', 'Diamond': '♦',
+                            'Plus': '+', 'Minus': '−', 'X': '×', 'Check': '✓', 'CheckCircle': '✅', 'Info': 'ℹ', 'Warning': '⚠',
+                            
+                            // Arrows & Directions
+                            'Arrow': '→', 'ArrowUp': '↑', 'ArrowDown': '↓', 'ArrowLeft': '←', 'ArrowRight': '→',
+                            'ArrowUpRight': '↗', 'ArrowDownRight': '↘', 'ArrowDownLeft': '↙', 'ArrowUpLeft': '↖',
+                            'CaretUp': '▲', 'CaretDown': '▼', 'CaretLeft': '◀', 'CaretRight': '▶',
+                            
+                            // Weather & Nature
+                            'Sun': '☀', 'Moon': '☽', 'Cloud': '☁', 'CloudRain': '🌧', 'CloudSnow': '🌨', 'CloudLightning': '⛈',
+                            'Fire': '🔥', 'Water': '💧', 'Leaf': '🍃', 'Tree': '🌳', 'Flower': '🌸', 'Snowflake': '❄',
+                            
+                            // Technology & Communication
+                            'Phone': '📞', 'Email': '✉', 'Bell': '🔔', 'Wifi': '📶', 'Battery': '🔋', 'Bluetooth': '🔗',
+                            'Camera': '📷', 'Microphone': '🎤', 'Speaker': '🔊', 'Headphones': '🎧', 'Monitor': '🖥',
+                            
+                            // Navigation & Interface
+                            'Home': '🏠', 'Settings': '⚙', 'Search': '🔍', 'Filter': '🔽', 'Sort': '↕', 'Menu': '☰',
+                            'Bookmark': '🔖', 'Tag': '🏷', 'Pin': '📌', 'Link': '🔗', 'Eye': '👁', 'EyeSlash': '👁‍🗨',
+                            
+                            // Media & Entertainment
+                            'Play': '▶', 'Pause': '⏸', 'Stop': '⏹', 'Record': '⏺', 'Skip': '⏭', 'Rewind': '⏪',
+                            'Music': '🎵', 'Image': '🖼', 'Video': '🎥', 'Film': '🎬', 'GameController': '🎮',
+                            
+                            // Files & Documents
+                            'File': '📄', 'Folder': '📁', 'FolderOpen': '📂', 'Archive': '🗃', 'Trash': '🗑',
+                            'Download': '⬇', 'Upload': '⬆', 'Share': '📤', 'Copy': '📋', 'Scissors': '✂',
+                            
+                            // Social & People
+                            'User': '👤', 'Users': '👥', 'UserPlus': '👤+', 'Crown': '👑', 'Smiley': '😊',
+                            'Chat': '💬', 'ChatCircle': '💭', 'ThumbsUp': '👍', 'ThumbsDown': '👎',
+                            
+                            // Time & Calendar
+                            'Clock': '🕐', 'Calendar': '📅', 'CalendarBlank': '📆', 'Timer': '⏱', 'Alarm': '⏰',
+                            'Hourglass': '⏳', 'Watch': '⌚',
+                            
+                            // Transportation
+                            'Car': '🚗', 'Bicycle': '🚲', 'Airplane': '✈', 'Train': '🚄', 'Bus': '🚌', 'Boat': '⛵',
+                            'Rocket': '🚀', 'MapPin': '📍', 'Compass': '🧭', 'Road': '🛤',
+                            
+                            // Shopping & Money
+                            'ShoppingCart': '🛒', 'ShoppingBag': '🛍', 'CreditCard': '💳', 'Money': '💰',
+                            'Coin': '🪙', 'Gift': '🎁', 'Receipt': '🧾', 'Storefront': '🏪',
+                            
+                            // Health & Medical
+                            'HeartBeat': '❤', 'Pulse': '💓', 'FirstAid': '🩹', 'Pill': '💊', 'Syringe': '💉',
+                            'Thermometer': '🌡', 'Stethoscope': '🩺',
+                            
+                            // Tools & Objects
+                            'Wrench': '🔧', 'Hammer': '🔨', 'Screwdriver': '🪛', 'Gear': '⚙', 'Key': '🔑',
+                            'Lock': '🔒', 'Unlock': '🔓', 'Shield': '🛡', 'Sword': '⚔', 'Knife': '🔪',
+                            
+                            // Food & Drink
+                            'Coffee': '☕', 'Wine': '🍷', 'Beer': '🍺', 'Apple': '🍎', 'Cookie': '🍪',
+                            'Pizza': '🍕', 'Hamburger': '🍔', 'IceCream': '🍦', 'Cake': '🎂',
+                            
+                            // Sports & Activities
+                            'Football': '🏈', 'Basketball': '🏀', 'Soccer': '⚽', 'Tennis': '🎾', 'Golf': '⛳',
+                            'Dumbbell': '🏋', 'Trophy': '🏆', 'Medal': '🏅', 'Target': '🎯',
+                            
+                            // Academic & Learning
+                            'Book': '📚', 'BookOpen': '📖', 'Notebook': '📓', 'Pencil': '✏', 'Pen': '🖊',
+                            'Ruler': '📏', 'Calculator': '🧮', 'GraduationCap': '🎓', 'Atom': '⚛',
+                            
+                            // Miscellaneous
+                            'Sparkle': '✨', 'Magic': '🪄', 'Crystal': '💎', 'Royalty': '👑', 'Flag': '🏳',
+                            'Balloon': '🎈', 'Confetti': '🎊', 'Fireworks': '🎆', 'Rainbow': '🌈', 'Unicorn': '🦄'
                         }
-                        return iconMap[iconName] || iconName.charAt(0).toUpperCase()
+                        
+                        // Case-insensitive lookup
+                        const normalizedName = iconName.charAt(0).toUpperCase() + iconName.slice(1).toLowerCase()
+                        const exactMatch = iconMap[iconName] || iconMap[normalizedName]
+                        if (exactMatch) return exactMatch
+                        
+                        // Try partial matches for common variations
+                        const lowerName = iconName.toLowerCase()
+                        for (const [key, value] of Object.entries(iconMap)) {
+                            if (key.toLowerCase().includes(lowerName) || lowerName.includes(key.toLowerCase())) {
+                                return value
+                            }
+                        }
+                        
+                        // Fallback to first letter
+                        return iconName.charAt(0).toUpperCase()
                     }
                     
                     const displayText = config.shape.type === "text" ? config.shape.text : getIconDisplay(config.shape.iconName)
@@ -617,7 +677,7 @@ function LivePreview({ config }: { config: ParticleConfig }) {
                         if (typeof config.border.color === "object" && (config.border.color as any).r !== undefined) {
                             const borderColor = config.border.color as any
                             ctx.strokeStyle = "rgba(" + Math.round(borderColor.r * 255) + ", " + Math.round(borderColor.g * 255) + ", " + Math.round(borderColor.b * 255) + ", " + currentOpacity + ")"
-                        } else {
+                } else {
                             ctx.strokeStyle = config.border.color as string
                         }
                     } else {
@@ -941,7 +1001,7 @@ export default function MojaveParticles(props) {
                 
                 // For text, we don't draw any background shape
                 if (shape.type !== "text") {
-                    ctx.fill()
+                ctx.fill()
                 }
                 
                 // Render text or emoji on top if needed
@@ -962,7 +1022,7 @@ export default function MojaveParticles(props) {
                     const isEmojiContent = displayText && !/[a-zA-Z0-9]/.test(displayText)
                     
                     // Draw background box and border based on content type and border setting
-                    if (border.enable && border.width > 0) {
+                if (border.enable && border.width > 0) {
                         // Draw background box for text content (not pure emoji)
                         if (!isEmojiContent) {
                             ctx.fillStyle = "rgba(0, 0, 0, 0.7)"
@@ -1547,7 +1607,7 @@ export function App() {
             imageUrl: ""
         },
         fill: {
-            enable: true,
+            enable: false,
             color: "#000000",
             opacity: 0.7
         },
@@ -2651,20 +2711,20 @@ export function App() {
 
                     {particleConfig.twinkle.enable && (
                         <>
-                            <div style={{ marginBottom: '12px' }}>
-                                <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                        <div style={{ marginBottom: '12px' }}>
+                            <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
                                     Twinkle Speed: {particleConfig.twinkle.speed}
-                                </label>
-                                <input
-                                    type="range"
-                                    min="0.1"
+                            </label>
+                            <input
+                                type="range"
+                                min="0.1"
                                     max="5"
-                                    step="0.1"
+                                step="0.1"
                                     value={particleConfig.twinkle.speed}
                                     onChange={(e) => updateConfig('twinkle.speed', parseFloat(e.target.value))}
-                                    style={{ width: '100%' }}
-                                />
-                            </div>
+                                style={{ width: '100%' }}
+                            />
+                        </div>
                             <div style={{ marginBottom: '12px' }}>
                                 <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
                                     Twinkle Min Opacity: {particleConfig.twinkle.minOpacity}

@@ -483,34 +483,94 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                 if (config.shape.type === "text" || config.shape.type === "icon") {
                     ctx.save()
                     
-                    // Simple Phosphor icon mapping - convert icon names to Unicode symbols
+                    // Comprehensive Phosphor icon mapping - convert icon names to Unicode symbols
                     const getIconDisplay = (iconName: string): string => {
                         const iconMap: Record<string, string> = {
-                            'Star': '★',
-                            'Heart': '♥',
-                            'Lightning': '⚡',
-                            'Circle': '●',
-                            'Square': '■',
-                            'Triangle': '▲',
-                            'Diamond': '♦',
-                            'Plus': '+',
-                            'Minus': '−',
-                            'X': '×',
-                            'Check': '✓',
-                            'Arrow': '→',
-                            'ArrowUp': '↑',
-                            'ArrowDown': '↓',
-                            'ArrowLeft': '←',
-                            'ArrowRight': '→',
-                            'Sun': '☀',
-                            'Moon': '☽',
-                            'Cloud': '☁',
-                            'Fire': '🔥',
-                            'Water': '💧',
-                            'Leaf': '🍃',
-                            'Sparkle': '✨'
+                            // Basic Shapes & Symbols
+                            'Star': '★', 'HeartIcon': '♥', 'Lightning': '⚡', 'Circle': '●', 'Square': '■', 'Triangle': '▲', 'Diamond': '♦',
+                            'Plus': '+', 'Minus': '−', 'X': '×', 'Check': '✓', 'CheckCircle': '✅', 'Info': 'ℹ', 'Warning': '⚠',
+                            
+                            // Arrows & Directions
+                            'Arrow': '→', 'ArrowUp': '↑', 'ArrowDown': '↓', 'ArrowLeft': '←', 'ArrowRight': '→',
+                            'ArrowUpRight': '↗', 'ArrowDownRight': '↘', 'ArrowDownLeft': '↙', 'ArrowUpLeft': '↖',
+                            'CaretUp': '▲', 'CaretDown': '▼', 'CaretLeft': '◀', 'CaretRight': '▶',
+                            
+                            // Weather & Nature
+                            'Sun': '☀', 'Moon': '☽', 'Cloud': '☁', 'CloudRain': '🌧', 'CloudSnow': '🌨', 'CloudLightning': '⛈',
+                            'Fire': '🔥', 'Water': '💧', 'Leaf': '🍃', 'Tree': '🌳', 'Flower': '🌸', 'Snowflake': '❄',
+                            
+                            // Technology & Communication
+                            'Phone': '📞', 'Email': '✉', 'Bell': '🔔', 'Wifi': '📶', 'Battery': '🔋', 'Bluetooth': '🔗',
+                            'Camera': '📷', 'Microphone': '🎤', 'Speaker': '🔊', 'Headphones': '🎧', 'Monitor': '🖥',
+                            
+                            // Navigation & Interface
+                            'Home': '🏠', 'Settings': '⚙', 'Search': '🔍', 'Filter': '🔽', 'Sort': '↕', 'Menu': '☰',
+                            'Bookmark': '🔖', 'Tag': '🏷', 'Pin': '📌', 'Link': '🔗', 'Eye': '👁', 'EyeSlash': '👁‍🗨',
+                            
+                            // Media & Entertainment
+                            'Play': '▶', 'Pause': '⏸', 'Stop': '⏹', 'Record': '⏺', 'Skip': '⏭', 'Rewind': '⏪',
+                            'Music': '🎵', 'Image': '🖼', 'Video': '🎥', 'Film': '🎬', 'GameController': '🎮',
+                            
+                            // Files & Documents
+                            'File': '📄', 'Folder': '📁', 'FolderOpen': '📂', 'Archive': '🗃', 'Trash': '🗑',
+                            'Download': '⬇', 'Upload': '⬆', 'Share': '📤', 'Copy': '📋', 'Scissors': '✂',
+                            
+                            // Social & People
+                            'User': '👤', 'Users': '👥', 'UserPlus': '👤+', 'Crown': '👑', 'Smiley': '😊',
+                            'Chat': '💬', 'ChatCircle': '💭', 'ThumbsUp': '👍', 'ThumbsDown': '👎',
+                            
+                            // Time & Calendar
+                            'Clock': '🕐', 'Calendar': '📅', 'CalendarBlank': '📆', 'Timer': '⏱', 'Alarm': '⏰',
+                            'Hourglass': '⏳', 'Watch': '⌚',
+                            
+                            // Transportation
+                            'Car': '🚗', 'Bicycle': '🚲', 'Airplane': '✈', 'Train': '🚄', 'Bus': '🚌', 'Boat': '⛵',
+                            'Rocket': '🚀', 'MapPin': '📍', 'Compass': '🧭', 'Road': '🛤',
+                            
+                            // Shopping & Money
+                            'ShoppingCart': '🛒', 'ShoppingBag': '🛍', 'CreditCard': '💳', 'Money': '💰',
+                            'Coin': '🪙', 'Gift': '🎁', 'Receipt': '🧾', 'Storefront': '🏪',
+                            
+                            // Health & Medical
+                            'HeartBeat': '❤', 'Pulse': '💓', 'FirstAid': '🩹', 'Pill': '💊', 'Syringe': '💉',
+                            'Thermometer': '🌡', 'Stethoscope': '🩺',
+                            
+                            // Tools & Objects
+                            'Wrench': '🔧', 'Hammer': '🔨', 'Screwdriver': '🪛', 'Gear': '⚙', 'Key': '🔑',
+                            'Lock': '🔒', 'Unlock': '🔓', 'Shield': '🛡', 'Sword': '⚔', 'Knife': '🔪',
+                            
+                            // Food & Drink
+                            'Coffee': '☕', 'Wine': '🍷', 'Beer': '🍺', 'Apple': '🍎', 'Cookie': '🍪',
+                            'Pizza': '🍕', 'Hamburger': '🍔', 'IceCream': '🍦', 'Cake': '🎂',
+                            
+                            // Sports & Activities
+                            'Football': '🏈', 'Basketball': '🏀', 'Soccer': '⚽', 'Tennis': '🎾', 'Golf': '⛳',
+                            'Dumbbell': '🏋', 'Trophy': '🏆', 'Medal': '🏅', 'Target': '🎯',
+                            
+                            // Academic & Learning
+                            'Book': '📚', 'BookOpen': '📖', 'Notebook': '📓', 'Pencil': '✏', 'Pen': '🖊',
+                            'Ruler': '📏', 'Calculator': '🧮', 'GraduationCap': '🎓', 'Atom': '⚛',
+                            
+                            // Miscellaneous
+                            'Sparkle': '✨', 'Magic': '🪄', 'Crystal': '💎', 'Royalty': '👑', 'Flag': '🏳',
+                            'Balloon': '🎈', 'Confetti': '🎊', 'Fireworks': '🎆', 'Rainbow': '🌈', 'Unicorn': '🦄'
                         }
-                        return iconMap[iconName] || iconName.charAt(0).toUpperCase()
+                        
+                        // Case-insensitive lookup
+                        const normalizedName = iconName.charAt(0).toUpperCase() + iconName.slice(1).toLowerCase()
+                        const exactMatch = iconMap[iconName] || iconMap[normalizedName]
+                        if (exactMatch) return exactMatch
+                        
+                        // Try partial matches for common variations
+                        const lowerName = iconName.toLowerCase()
+                        for (const [key, value] of Object.entries(iconMap)) {
+                            if (key.toLowerCase().includes(lowerName) || lowerName.includes(key.toLowerCase())) {
+                                return value
+                            }
+                        }
+                        
+                        // Fallback to first letter
+                        return iconName.charAt(0).toUpperCase()
                     }
                     
                     const displayText = config.shape.type === "text" ? config.shape.text : getIconDisplay(config.shape.iconName)
