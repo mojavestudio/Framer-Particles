@@ -30,11 +30,19 @@ npm run dev
 
 ## ✨ Features
 
-### **50+ Customizable Properties**
-- **Basic**: Amount, size, opacity, color, backdrop
-- **Physics**: Movement, gravity, spin, vibration, attraction
-- **Effects**: Twinkle, hover interactions, particle connections
-- **Advanced**: Multi-color support, device pixel ratio rendering
+### **🎨 Professional Interface Design**
+- **Logical Organization**: Settings grouped into Canvas, Appearance, Properties, and Interactions sections
+- **Enhanced Size Controls**: Support for particles up to 2000px with dual slider + number input
+- **Professional Icons**: Consistent Phosphor icon system (LinkSimple, CursorClick, Ruler)
+- **Smart Color Management**: Multi-color palette with random generation and visual color picker
+
+### **⚙️ 50+ Customizable Properties**
+- **Canvas Settings**: Dimensions, background color/opacity, border radius
+- **Particle Appearance**: Amount, primary color, multi-color palette management
+- **Particle Properties**: Advanced size (1-2000px) and opacity controls with type selection
+- **Particle Connections**: Network line drawing with distance and opacity controls
+- **Mouse Interactions**: Hover effects (grab, bubble, repulse, attract) with strength tuning
+- **Interaction Distances**: Fine-grained control over all effect ranges and forces
 
 ### **8 Professional Presets**
 - **Basic** - Clean, minimal particle field

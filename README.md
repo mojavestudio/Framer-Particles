@@ -41,14 +41,23 @@ npm run dev
 
 ## ✨ Key Features
 
-- **Clean Component Generation**: ~100 line components instead of 2000+ line dumps
-- **Professional Branding**: Comprehensive copyright and mojavestud.io integration
-- **AWS Infrastructure**: Complete CI/CD pipeline with GitHub Actions
-- **8 Professional Presets**: Network, Bubbles, Matrix, Galaxy, Neon, and more
-- **Advanced Physics**: Gravity, spin, vibration, attraction effects
-- **Interactive Effects**: Hover, click, and connection systems
-- **Live Preview**: Real-time preview in plugin window
-- **Dark Mode Support**: Automatic theme detection
+### 🎨 **Professional UI Design**
+- **Intuitive Organization**: Settings grouped logically (Canvas, Appearance, Properties, Interactions)
+- **Enhanced Size Controls**: Supports particles up to 2000px with dual slider + number input
+- **Professional Icons**: Consistent Phosphor icon system throughout interface
+- **Smart Color Palette**: Multi-color support with random generation and visual management
+
+### 🚀 **Advanced Particle System**
+- **8 Professional Presets**: Basic, Snow, Rainbow, Network, Bubbles, Matrix, Galaxy, Neon
+- **Interactive Effects**: Comprehensive hover/click systems with descriptive controls
+- **Physics Simulation**: Gravity, spin, vibration, attraction, and repulsion effects
+- **Connection Networks**: Dynamic particle linking with customizable distance and opacity
+
+### ⚙️ **Technical Excellence**
+- **Clean Component Generation**: Optimized ~100 line components instead of bloated alternatives
+- **Live Preview**: Real-time particle rendering in plugin window
+- **Full Customization**: 50+ controls accessible in both plugin and Framer sidebar
+- **Professional Branding**: Complete mojavestud.io integration and copyright compliance
 
 ## 📚 Documentation
 

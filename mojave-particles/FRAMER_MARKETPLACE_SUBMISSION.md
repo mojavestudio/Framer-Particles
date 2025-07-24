@@ -1,9 +1,25 @@
 # 🚀 Framer Marketplace Submission - Mojave Particles Pro
 
 **Submission Date**: January 24, 2025  
-**Plugin Version**: 1.2.2  
-**Package Status**: ✅ **READY FOR SUBMISSION** (Updated: 17:35)  
-**Package File**: `plugin.zip` (0.15 MB / 152KB) - **CURRENT VERSION**  
+**Plugin Version**: 1.2.3  
+**Package Status**: ✅ **READY FOR SUBMISSION** (Updated: $(date +"%H:%M"))  
+**Package File**: `plugin.zip` (0.15 MB / 153KB) - **CURRENT VERSION**  
+
+---
+
+## 🎯 **VERSION 1.2.3 HIGHLIGHTS**
+
+### **🚀 Major UI/UX Improvements**
+- **Enhanced Size Controls**: Now supports particles up to 2000px with intuitive dual controls
+- **Professional Interface**: Complete UI reorganization with logical grouping and Phosphor icons
+- **Smart Color Management**: Improved multi-color palette with random generation
+- **Clear Descriptions**: Every setting now includes helpful explanations and usage hints
+
+### **📱 Interface Redesign**
+- **Canvas Settings**: Grouped dimensions, background, and styling options
+- **Particle Appearance**: Streamlined particle count, colors, and visual properties
+- **Particle Properties**: Dedicated section for size/opacity with enhanced controls
+- **Organized Interactions**: Split into Connection, Mouse, and Distance sections with icons
 
 ---
 

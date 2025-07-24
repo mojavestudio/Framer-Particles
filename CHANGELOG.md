@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.3] - 2025-01-24
+
+### 🚀 Major UI/UX Improvements
+- **Enhanced Particle Size Controls**: Now supports particles up to 2000px with dual slider + number input controls
+- **Improved UI Organization**: Completely reorganized settings into logical groups (Canvas Settings, Particle Appearance, Particle Properties)
+- **Professional Icon System**: Replaced emojis with consistent Phosphor icons throughout the interface
+- **Enhanced Color Palette**: Improved color management with random color generation, better visual design, and clear user instructions
+
+### 🎨 Interface Redesign
+- **Canvas Settings Section**: Groups canvas dimensions, background color/opacity, and border radius
+- **Particle Appearance Section**: Contains particle count, primary color, and multi-color palette management
+- **Particle Properties Section**: Dedicated section for size and opacity controls with enhanced input methods
+- **Reorganized Interactions**: Split complex interactions into three clear sections:
+  - **Particle Connections** (LinkSimple icon): Connection line settings with clear descriptions
+  - **Mouse Interactions** (CursorClick icon): Hover/click effects with descriptive option labels
+  - **Interaction Distances** (Ruler icon): Fine-tuning ranges and strengths with helpful explanations
+
+### ✨ Enhanced Controls
+- **Dual Size Input**: Slider (1-500px) + number field (1-2000px) for precise control
+- **Improved Color Palette**: Random color generation, larger swatches (35x35px), color counter, tooltips
+- **Descriptive Labels**: Clear explanations for all interaction modes (e.g., "Grab - Pull particles toward cursor")
+- **Helper Text**: Context descriptions for every setting explaining its purpose and effect
+
+### 🎯 User Experience
+- **Intuitive Grouping**: Related settings logically organized for better workflow
+- **Professional Icons**: Consistent Phosphor icon system replaces emoji inconsistencies
+- **Clear Instructions**: Every setting includes helpful descriptions and usage hints
+- **Enhanced Accessibility**: Better visual hierarchy and improved readability
+
+### 🔧 Technical Enhancements
+- **Flexible Size Support**: Particle system now handles large particles efficiently
+- **Improved Input Validation**: Number inputs with proper min/max bounds and fallbacks
+- **Better Visual Feedback**: Enhanced tooltips, color counters, and status indicators
+
 ## [1.2.2] - 2025-01-24
 
 ### 🎯 Major Feature Enhancements

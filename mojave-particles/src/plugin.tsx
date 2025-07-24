@@ -9,8 +9,11 @@ import {
     GridNine, 
     Planet, 
     Lightning, 
-    Star,
-    Play
+    Star, 
+    Play,
+    LinkSimple,
+    CursorClick,
+    Ruler
 } from "@phosphor-icons/react"
 import { EnhancedLivePreview } from "./EnhancedParticleRenderer"
 
@@ -1226,7 +1229,7 @@ export function App() {
         },
         bubbles: {
             backdrop: "#001a33", backgroundOpacity: 1, color: "#66ccff", colors: ["#66ccff", "#99ddff", "#ccf0ff", "#ffffff"], amount: 15,
-            size: { type: "Range" as const, value: 12, min: 8, max: 20 },
+            size: { type: "Range" as const, value: 12, min: 8, max: 35 },
             opacity: { type: "Range" as const, value: 0.3, min: 0.1, max: 0.5 },
             radius: 0, width: 800, height: 600, border: { enable: false, color: "#ffffff", width: 0.3 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: true, speed: 0.8, minOpacity: 0.1, maxOpacity: 0.6 },
             modes: { connect: 0, connectRadius: 0, connectLinks: 1, grab: 200, grabLinks: 1, bubble: 500, bubbleSize: 80, bubbleDuration: 2, repulse: 300, repulseDistance: 0.6, push: 3, remove: 2, trail: 1, trailDelay: 0.005 },
@@ -1256,7 +1259,7 @@ export function App() {
         },
         neon: {
             backdrop: "#0a0a0a", backgroundOpacity: 1, color: "#ff00ff", colors: ["#ff00ff", "#00ffff", "#ffff00", "#ff0080"], amount: 35,
-            size: { type: "Range" as const, value: 5, min: 3, max: 8 },
+            size: { type: "Range" as const, value: 5, min: 3, max: 12 },
             opacity: { type: "Value" as const, value: 0.9, min: 0.1, max: 1 },
             radius: 0, width: 800, height: 600, border: { enable: false, color: "#ffffff", width: 0.3 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: true, speed: 2.5, minOpacity: 0.4, maxOpacity: 1 },
             modes: { connect: 0, connectRadius: 0, connectLinks: 1, grab: 140, grabLinks: 1, bubble: 400, bubbleSize: 40, bubbleDuration: 2, repulse: 200, repulseDistance: 0.4, push: 4, remove: 2, trail: 1, trailDelay: 0.005 },
@@ -1706,11 +1709,11 @@ export function App() {
                     </div>
                 </div>
 
-                {/* Size Settings */}
+                {/* Canvas Settings */}
                 <div style={{ marginBottom: '20px', background: 'var(--card-bg)', padding: '15px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                    <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--text)' }}>Size Settings</h3>
+                    <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--text)' }}>Canvas Settings</h3>
                     
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
                         <div>
                             <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
                                 Width (px)
@@ -1754,29 +1757,10 @@ export function App() {
                             />
                         </div>
                     </div>
-                </div>
-
-                {/* Basic Settings */}
-                <div style={{ marginBottom: '20px', background: 'var(--card-bg)', padding: '15px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                    <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--text)' }}>Basic Settings</h3>
-                    
-                    <div style={{ marginBottom: '12px' }}>
-                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                            Amount: {particleConfig.amount}
-                        </label>
-                        <input
-                            type="range"
-                            min="0"
-                            max="300"
-                            value={particleConfig.amount}
-                            onChange={(e) => updateConfig('amount', parseInt(e.target.value))}
-                            style={{ width: '100%' }}
-                        />
-                    </div>
 
                     <div style={{ marginBottom: '12px' }}>
                         <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                            Background
+                            Background Color
                         </label>
                         <input
                             type="color"
@@ -1803,7 +1787,40 @@ export function App() {
 
                     <div style={{ marginBottom: '12px' }}>
                         <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                            Particle Color
+                            Border Radius: {particleConfig.radius}px
+                        </label>
+                        <input
+                            type="range"
+                            min="0"
+                            max="50"
+                            value={particleConfig.radius}
+                            onChange={(e) => updateConfig('radius', parseInt(e.target.value))}
+                            style={{ width: '100%' }}
+                        />
+                    </div>
+                </div>
+
+                {/* Particle Appearance */}
+                <div style={{ marginBottom: '20px', background: 'var(--card-bg)', padding: '15px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--text)' }}>Particle Appearance</h3>
+                    
+                    <div style={{ marginBottom: '12px' }}>
+                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                            Amount: {particleConfig.amount}
+                        </label>
+                        <input
+                            type="range"
+                            min="0"
+                            max="300"
+                            value={particleConfig.amount}
+                            onChange={(e) => updateConfig('amount', parseInt(e.target.value))}
+                            style={{ width: '100%' }}
+                        />
+                    </div>
+
+                    <div style={{ marginBottom: '12px' }}>
+                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                            Primary Color
                         </label>
                         <input
                             type="color"
@@ -1833,9 +1850,9 @@ export function App() {
                     {particleConfig.colors.length > 0 && (
                         <div style={{ marginBottom: '12px' }}>
                             <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
-                                Color Palette
+                                Color Palette ({particleConfig.colors.length} colors)
                             </label>
-                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                                 {particleConfig.colors.map((color, index) => (
                                     <div key={index} style={{ position: 'relative' }}>
                                         <input
@@ -1847,12 +1864,13 @@ export function App() {
                                                 updateConfig('colors', newColors)
                                             }}
                                             style={{ 
-                                                width: '30px', 
-                                                height: '30px', 
+                                                width: '35px', 
+                                                height: '35px', 
                                                 border: '1px solid var(--border)', 
-                                                borderRadius: '4px',
+                                                borderRadius: '6px',
                                                 cursor: 'pointer'
                                             }}
+                                            title={`Color ${index + 1}: ${color}`}
                                         />
                                         {particleConfig.colors.length > 1 && (
                                             <button
@@ -1862,20 +1880,22 @@ export function App() {
                                                 }}
                                                 style={{
                                                     position: 'absolute',
-                                                    top: '-5px',
-                                                    right: '-5px',
-                                                    width: '15px',
-                                                    height: '15px',
+                                                    top: '-6px',
+                                                    right: '-6px',
+                                                    width: '18px',
+                                                    height: '18px',
                                                     background: '#ff4444',
                                                     color: 'white',
                                                     border: 'none',
                                                     borderRadius: '50%',
-                                                    fontSize: '8px',
+                                                    fontSize: '10px',
                                                     cursor: 'pointer',
                                                     display: 'flex',
                                                     alignItems: 'center',
-                                                    justifyContent: 'center'
+                                                    justifyContent: 'center',
+                                                    fontWeight: 'bold'
                                                 }}
+                                                title="Remove this color"
                                             >
                                                 ×
                                             </button>
@@ -1884,29 +1904,42 @@ export function App() {
                                 ))}
                                 <button
                                     onClick={() => {
-                                        const newColors = [...particleConfig.colors, '#ffffff']
+                                        // Generate a random color for variety
+                                        const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')
+                                        const newColors = [...particleConfig.colors, randomColor]
                                         updateConfig('colors', newColors)
                                     }}
                                     style={{
-                                        width: '30px',
-                                        height: '30px',
-                                        border: '1px dashed var(--border)',
-                                        borderRadius: '4px',
+                                        width: '35px',
+                                        height: '35px',
+                                        border: '2px dashed var(--border)',
+                                        borderRadius: '6px',
                                         background: 'transparent',
                                         color: 'var(--text-secondary)',
                                         cursor: 'pointer',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        fontSize: '16px'
+                                        fontSize: '18px',
+                                        fontWeight: 'bold'
                                     }}
+                                    title="Add new color"
                                 >
                                     +
                                 </button>
                             </div>
+                            <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                                Click + to add colors, × to remove colors
+                            </div>
                         </div>
                     )}
 
+                </div>
+
+                {/* Particle Properties */}
+                <div style={{ marginBottom: '20px', background: 'var(--card-bg)', padding: '15px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--text)' }}>Particle Properties</h3>
+                    
                     <div style={{ marginBottom: '12px' }}>
                         <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
                             Size Type
@@ -1924,44 +1957,98 @@ export function App() {
                     {particleConfig.size.type === "Value" ? (
                         <div style={{ marginBottom: '12px' }}>
                             <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                                Size: {particleConfig.size.value}
+                                Size: {particleConfig.size.value}px
                             </label>
-                            <input
-                                type="range"
-                                min="1"
-                                max="20"
-                                value={particleConfig.size.value}
-                                onChange={(e) => updateConfig('size.value', parseInt(e.target.value))}
-                                style={{ width: '100%' }}
-                            />
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="500"
+                                    value={Math.min(particleConfig.size.value, 500)}
+                                    onChange={(e) => updateConfig('size.value', parseInt(e.target.value))}
+                                    style={{ flex: 1 }}
+                                />
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="2000"
+                                    value={particleConfig.size.value}
+                                    onChange={(e) => updateConfig('size.value', Math.max(1, Math.min(2000, parseInt(e.target.value) || 1)))}
+                                    style={{ 
+                                        width: '60px', 
+                                        padding: '4px', 
+                                        border: '1px solid var(--border)', 
+                                        borderRadius: '4px', 
+                                        fontSize: '11px' 
+                                    }}
+                                />
+                            </div>
+                            <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                                Range: 1-2000px (slider: 1-500px)
+                            </div>
                         </div>
                     ) : (
                         <>
                             <div style={{ marginBottom: '12px' }}>
                                 <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                                    Size Min: {particleConfig.size.min}
+                                    Size Min: {particleConfig.size.min}px
                                 </label>
-                                <input
-                                    type="range"
-                                    min="1"
-                                    max="10"
-                                    value={particleConfig.size.min}
-                                    onChange={(e) => updateConfig('size.min', parseInt(e.target.value))}
-                                    style={{ width: '100%' }}
-                                />
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    <input
+                                        type="range"
+                                        min="1"
+                                        max="500"
+                                        value={Math.min(particleConfig.size.min, 500)}
+                                        onChange={(e) => updateConfig('size.min', parseInt(e.target.value))}
+                                        style={{ flex: 1 }}
+                                    />
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="2000"
+                                        value={particleConfig.size.min}
+                                        onChange={(e) => updateConfig('size.min', Math.max(1, Math.min(2000, parseInt(e.target.value) || 1)))}
+                                        style={{ 
+                                            width: '60px', 
+                                            padding: '4px', 
+                                            border: '1px solid var(--border)', 
+                                            borderRadius: '4px', 
+                                            fontSize: '11px' 
+                                        }}
+                                    />
+                                </div>
                             </div>
                             <div style={{ marginBottom: '12px' }}>
                                 <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                                    Size Max: {particleConfig.size.max}
+                                    Size Max: {particleConfig.size.max}px
                                 </label>
-                                <input
-                                    type="range"
-                                    min="5"
-                                    max="20"
-                                    value={particleConfig.size.max}
-                                    onChange={(e) => updateConfig('size.max', parseInt(e.target.value))}
-                                    style={{ width: '100%' }}
-                                />
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    <input
+                                        type="range"
+                                        min="1"
+                                        max="500"
+                                        value={Math.min(particleConfig.size.max, 500)}
+                                        onChange={(e) => updateConfig('size.max', parseInt(e.target.value))}
+                                        style={{ flex: 1 }}
+                                    />
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="2000"
+                                        value={particleConfig.size.max}
+                                        onChange={(e) => updateConfig('size.max', Math.max(1, Math.min(2000, parseInt(e.target.value) || 1)))}
+                                        style={{ 
+                                            width: '60px', 
+                                            padding: '4px', 
+                                            border: '1px solid var(--border)', 
+                                            borderRadius: '4px', 
+                                            fontSize: '11px' 
+                                        }}
+                                    />
+                                </div>
+                                <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                                    Max 2000px each (slider: up to 500px)
+                                </div>
                             </div>
                         </>
                     )}
@@ -2027,20 +2114,6 @@ export function App() {
                             </div>
                         </>
                     )}
-
-                    <div style={{ marginBottom: '12px' }}>
-                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                            Border Radius: {particleConfig.radius}px
-                        </label>
-                        <input
-                            type="range"
-                            min="0"
-                            max="50"
-                            value={particleConfig.radius}
-                            onChange={(e) => updateConfig('radius', parseInt(e.target.value))}
-                            style={{ width: '100%' }}
-                        />
-                    </div>
 
                     <div style={{ marginBottom: '12px' }}>
                         <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -2334,9 +2407,15 @@ export function App() {
                     )}
                 </div>
 
-                {/* Connections & Interaction Settings */}
+                {/* Particle Connections */}
                 <div style={{ marginBottom: '20px', background: 'var(--card-bg)', padding: '15px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                    <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--text)' }}>Connections & Interactions</h3>
+                    <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <LinkSimple size={16} />
+                        Particle Connections
+                    </h3>
+                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                        Draw lines between nearby particles to create network effects
+                    </div>
                     
                     <div style={{ marginBottom: '12px' }}>
                         <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -2345,7 +2424,7 @@ export function App() {
                                 checked={particleConfig.modes.connectRadius > 0}
                                 onChange={(e) => updateConfig('modes.connectRadius', e.target.checked ? 100 : 0)}
                             />
-                            Enable Connections (Links)
+                            Enable Connection Lines
                         </label>
                     </div>
 
@@ -2353,8 +2432,11 @@ export function App() {
                         <>
                             <div style={{ marginBottom: '12px' }}>
                                 <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                                    Connection Distance: {particleConfig.modes.connectRadius}
+                                    Max Distance: {particleConfig.modes.connectRadius}px
                                 </label>
+                                <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                                    How far apart particles can be and still connect
+                                </div>
                                 <input
                                     type="range"
                                     min="50"
@@ -2366,8 +2448,11 @@ export function App() {
                             </div>
                             <div style={{ marginBottom: '12px' }}>
                                 <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                                    Connection Opacity: {particleConfig.modes.connectLinks}
+                                    Line Opacity: {particleConfig.modes.connectLinks}
                                 </label>
+                                <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                                    How visible the connection lines are
+                                </div>
                                 <input
                                     type="range"
                                     min="0.1"
@@ -2380,76 +2465,16 @@ export function App() {
                             </div>
                         </>
                     )}
+                </div>
 
-                    <div style={{ marginBottom: '12px' }}>
-                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                            Grab Distance: {particleConfig.modes.grab}
-                        </label>
-                        <input
-                            type="range"
-                            min="50"
-                            max="300"
-                            value={particleConfig.modes.grab}
-                            onChange={(e) => updateConfig('modes.grab', parseInt(e.target.value))}
-                            style={{ width: '100%' }}
-                        />
-                    </div>
-
-                    <div style={{ marginBottom: '12px' }}>
-                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                            Bubble Distance: {particleConfig.modes.bubble}
-                        </label>
-                        <input
-                            type="range"
-                            min="100"
-                            max="600"
-                            value={particleConfig.modes.bubble}
-                            onChange={(e) => updateConfig('modes.bubble', parseInt(e.target.value))}
-                            style={{ width: '100%' }}
-                        />
-                    </div>
-
-                    <div style={{ marginBottom: '12px' }}>
-                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                            Bubble Size: {particleConfig.modes.bubbleSize}
-                        </label>
-                        <input
-                            type="range"
-                            min="10"
-                            max="100"
-                            value={particleConfig.modes.bubbleSize}
-                            onChange={(e) => updateConfig('modes.bubbleSize', parseInt(e.target.value))}
-                            style={{ width: '100%' }}
-                        />
-                    </div>
-
-                    <div style={{ marginBottom: '12px' }}>
-                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                            Repulse Distance: {particleConfig.modes.repulse}
-                        </label>
-                        <input
-                            type="range"
-                            min="50"
-                            max="400"
-                            value={particleConfig.modes.repulse}
-                            onChange={(e) => updateConfig('modes.repulse', parseInt(e.target.value))}
-                            style={{ width: '100%' }}
-                        />
-                    </div>
-
-                    <div style={{ marginBottom: '12px' }}>
-                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                            Repulse Force: {particleConfig.modes.repulseDistance}
-                        </label>
-                        <input
-                            type="range"
-                            min="0.1"
-                            max="2"
-                            step="0.1"
-                            value={particleConfig.modes.repulseDistance}
-                            onChange={(e) => updateConfig('modes.repulseDistance', parseFloat(e.target.value))}
-                            style={{ width: '100%' }}
-                        />
+                {/* Mouse Interactions */}
+                <div style={{ marginBottom: '20px', background: 'var(--card-bg)', padding: '15px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <CursorClick size={16} />
+                        Mouse Interactions
+                    </h3>
+                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                        How particles react when you hover or click on them
                     </div>
                     
                     <div style={{ marginBottom: '12px' }}>
@@ -2467,26 +2492,29 @@ export function App() {
                         <>
                             <div style={{ marginBottom: '12px' }}>
                                 <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                                    Hover Mode
+                                    Hover Effect Type
                                 </label>
                                 <select
                                     value={particleConfig.hover.mode}
                                     onChange={(e) => updateConfig('hover.mode', e.target.value)}
                                     style={{ width: '100%', padding: '6px', border: '1px solid var(--border)', borderRadius: '4px', fontSize: '11px' }}
                                 >
-                                    <option value="none">None</option>
-                                    <option value="grab">Grab</option>
-                                    <option value="bubble">Bubble</option>
-                                    <option value="repulse">Repulse</option>
-                                    <option value="attract">Attract</option>
-                                    <option value="connect">Connect</option>
+                                    <option value="none">None - No effect</option>
+                                    <option value="grab">Grab - Pull particles toward cursor</option>
+                                    <option value="bubble">Bubble - Grow particles when hovering</option>
+                                    <option value="repulse">Repulse - Push particles away from cursor</option>
+                                    <option value="attract">Attract - Draw particles to cursor</option>
+                                    <option value="connect">Connect - Connect particles to cursor</option>
                                 </select>
                             </div>
 
                             <div style={{ marginBottom: '12px' }}>
                                 <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                                    Hover Force: {particleConfig.hover.force}
+                                    Effect Strength: {particleConfig.hover.force}
                                 </label>
+                                <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                                    How strong the hover effect is
+                                </div>
                                 <input
                                     type="range"
                                     min="10"
@@ -2499,8 +2527,11 @@ export function App() {
 
                             <div style={{ marginBottom: '12px' }}>
                                 <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                                    Hover Smooth: {particleConfig.hover.smooth}
+                                    Smoothness: {particleConfig.hover.smooth}
                                 </label>
+                                <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                                    How smoothly particles respond to hover (higher = slower)
+                                </div>
                                 <input
                                     type="range"
                                     min="1"
@@ -2518,7 +2549,7 @@ export function App() {
                                         checked={particleConfig.hover.parallax}
                                         onChange={(e) => updateConfig('hover.parallax', e.target.checked)}
                                     />
-                                    Parallax Effect
+                                    Parallax Effect (3D depth simulation)
                                 </label>
                             </div>
                         </>
@@ -2533,6 +2564,103 @@ export function App() {
                             />
                             Enable Click Effects
                         </label>
+                    </div>
+                </div>
+
+                {/* Interaction Distances */}
+                <div style={{ marginBottom: '20px', background: 'var(--card-bg)', padding: '15px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Ruler size={16} />
+                        Interaction Distances
+                    </h3>
+                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                        Fine-tune the ranges and strengths of different particle effects
+                    </div>
+
+                    <div style={{ marginBottom: '12px' }}>
+                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                            Grab Range: {particleConfig.modes.grab}px
+                        </label>
+                        <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                            Distance for "grab" hover effect
+                        </div>
+                        <input
+                            type="range"
+                            min="50"
+                            max="300"
+                            value={particleConfig.modes.grab}
+                            onChange={(e) => updateConfig('modes.grab', parseInt(e.target.value))}
+                            style={{ width: '100%' }}
+                        />
+                    </div>
+
+                    <div style={{ marginBottom: '12px' }}>
+                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                            Bubble Range: {particleConfig.modes.bubble}px
+                        </label>
+                        <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                            Distance for "bubble" hover effect
+                        </div>
+                        <input
+                            type="range"
+                            min="100"
+                            max="600"
+                            value={particleConfig.modes.bubble}
+                            onChange={(e) => updateConfig('modes.bubble', parseInt(e.target.value))}
+                            style={{ width: '100%' }}
+                        />
+                    </div>
+
+                    <div style={{ marginBottom: '12px' }}>
+                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                            Bubble Growth: {particleConfig.modes.bubbleSize}x
+                        </label>
+                        <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                            How much particles grow when bubbled
+                        </div>
+                        <input
+                            type="range"
+                            min="10"
+                            max="100"
+                            value={particleConfig.modes.bubbleSize}
+                            onChange={(e) => updateConfig('modes.bubbleSize', parseInt(e.target.value))}
+                            style={{ width: '100%' }}
+                        />
+                    </div>
+
+                    <div style={{ marginBottom: '12px' }}>
+                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                            Repulse Range: {particleConfig.modes.repulse}px
+                        </label>
+                        <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                            Distance for "repulse" hover effect
+                        </div>
+                        <input
+                            type="range"
+                            min="50"
+                            max="400"
+                            value={particleConfig.modes.repulse}
+                            onChange={(e) => updateConfig('modes.repulse', parseInt(e.target.value))}
+                            style={{ width: '100%' }}
+                        />
+                    </div>
+
+                    <div style={{ marginBottom: '12px' }}>
+                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                            Repulse Strength: {particleConfig.modes.repulseDistance}x
+                        </label>
+                        <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                            How strongly particles are pushed away
+                        </div>
+                        <input
+                            type="range"
+                            min="0.1"
+                            max="2"
+                            step="0.1"
+                            value={particleConfig.modes.repulseDistance}
+                            onChange={(e) => updateConfig('modes.repulseDistance', parseFloat(e.target.value))}
+                            style={{ width: '100%' }}
+                        />
                     </div>
 
                     {particleConfig.click.enable && (
