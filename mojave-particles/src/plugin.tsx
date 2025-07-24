@@ -1001,13 +1001,15 @@ export default function MojaveParticles(props) {
                     const textHeight = particle.size * 1.2
                     const padding = 4
                     
-                    // Determine if content is likely emoji (no letters/numbers)
-                    const isEmojiContent = displayText && !/[a-zA-Z0-9]/.test(displayText)
+                    // FIXED: Use the same strict background logic as preview
+                    // Only show backgrounds for multi-letter text with actual letters
+                    const shouldShowBackground = false // Always false for generated components - no automatic backgrounds
                     
-                    // Draw border based on border settings only - NO hardcoded backgrounds
-                if (border.enable && border.width > 0) {
-                        
-                        // Add border for both text and emoji
+                    // Draw background ONLY if explicitly enabled in fill settings (will be added via property controls)
+                    // This ensures clean floating text/emojis/icons by default
+                    
+                    // Draw border only if enabled - no automatic backgrounds
+                    if (border.enable && border.width > 0) {
                         ctx.strokeStyle = border.color || (r !== undefined ? "rgba(" + r + ", " + g + ", " + b + ", " + currentOpacity + ")" : particle.color)
                         ctx.lineWidth = border.width
                         ctx.strokeRect(
