@@ -2335,7 +2335,7 @@ export function App() {
                         <select
                             value={particleConfig.shape.type}
                             onChange={(e) => updateConfig('shape.type', e.target.value)}
-                            style={{ width: '100%', padding: '6px', border: '1px solid var(--border)', borderRadius: '4px', fontSize: '11px', marginBottom: '8px' }}
+                            style={{ width: '100%', padding: '6px', border: '1px solid var(--border)', borderRadius: '4px', fontSize: '11px' }}
                         >
                             <option value="circle">Circle</option>
                             <option value="square">Square</option>
@@ -2344,7 +2344,6 @@ export function App() {
                             <option value="hexagon">Hexagon</option>
                             <option value="star">Star</option>
                             <option value="text">Text/Emoji</option>
-                            <option value="icon">Phosphor Icon</option>
                             <option value="mixed">Mixed Shapes</option>
                         </select>
                     </div>
@@ -2385,23 +2384,16 @@ export function App() {
                         </div>
                     )}
 
-                    {/* Text/Emoji/Icon Input */}
-                    {(particleConfig.shape.type === "text" || particleConfig.shape.type === "icon") && (
+                    {/* Text/Emoji Input */}
+                    {particleConfig.shape.type === "text" && (
                         <div style={{ marginBottom: '12px' }}>
                             <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                                {particleConfig.shape.type === "text" ? "Text/Emoji Content" : "Phosphor Icon Name"}
+                                Text/Emoji Content
                             </label>
                             <input
                                 type="text"
-                                value={particleConfig.shape.type === "text" ? particleConfig.shape.text : particleConfig.shape.iconName}
-                                onChange={(e) => {
-                                    if (particleConfig.shape.type === "text") {
-                                        updateConfig('shape.text', e.target.value)
-                                    } else {
-                                        updateConfig('shape.iconName', e.target.value)
-                                    }
-                                }}
-                                placeholder={particleConfig.shape.type === "text" ? "Enter text or emoji..." : "Star, Heart, Lightning..."}
+                                value={particleConfig.shape.text}
+                                onChange={(e) => updateConfig('shape.text', e.target.value)}
                                 style={{ 
                                     width: '100%', 
                                     padding: '6px', 
@@ -2411,13 +2403,8 @@ export function App() {
                                     background: 'var(--background)',
                                     color: 'var(--text)'
                                 }}
+                                placeholder="Enter text or emoji (e.g., Hello, 🌟, ⭐)"
                             />
-                            <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                                {particleConfig.shape.type === "text" 
-                                    ? "Enter any text or emojis: \"Hello\" or \"✨ 🎉 🚀 💎 🌟\"" 
-                                    : "Enter Phosphor icon names: Star, Heart, Lightning, Circle, etc."
-                                }
-                            </div>
                         </div>
                     )}
 
