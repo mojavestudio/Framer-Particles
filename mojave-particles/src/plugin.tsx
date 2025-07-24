@@ -1004,18 +1004,8 @@ export default function MojaveParticles(props) {
                     // Determine if content is likely emoji (no letters/numbers)
                     const isEmojiContent = displayText && !/[a-zA-Z0-9]/.test(displayText)
                     
-                    // Draw background box and border based on content type and border setting
+                    // Draw border based on border settings only - NO hardcoded backgrounds
                 if (border.enable && border.width > 0) {
-                        // Draw background box for text content (not pure emoji)
-                        if (!isEmojiContent) {
-                            ctx.fillStyle = "rgba(0, 0, 0, 0.7)"
-                            ctx.fillRect(
-                                particle.x - textWidth/2 - padding,
-                                particle.y - textHeight/2 - padding,
-                                textWidth + padding * 2,
-                                textHeight + padding * 2
-                            )
-                        }
                         
                         // Add border for both text and emoji
                         ctx.strokeStyle = border.color || (r !== undefined ? "rgba(" + r + ", " + g + ", " + b + ", " + currentOpacity + ")" : particle.color)
