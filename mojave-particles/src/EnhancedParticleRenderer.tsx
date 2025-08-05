@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback } from 'react'
+import { useRef, useEffect } from 'react'
 
 interface ParticleConfig {
     backdrop: string
