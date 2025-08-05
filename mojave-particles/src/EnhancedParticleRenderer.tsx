@@ -123,9 +123,19 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
         })
         if (!ctx) return
 
-        // Use preview-appropriate size while keeping logic unified
-        const previewWidth = Math.min(config.width, 400) // Cap at 400px for preview
-        const previewHeight = Math.min(config.height, 300) // Cap at 300px for preview
+        // Use preview-appropriate size while maintaining aspect ratio
+        const maxPreviewSize = 400
+        let previewWidth, previewHeight
+        
+        if (config.width > config.height) {
+            // Landscape: cap width, scale height proportionally
+            previewWidth = Math.min(config.width, maxPreviewSize)
+            previewHeight = (config.height / config.width) * previewWidth
+        } else {
+            // Portrait or square: cap height, scale width proportionally
+            previewHeight = Math.min(config.height, maxPreviewSize)
+            previewWidth = (config.width / config.height) * previewHeight
+        }
         
         canvas.width = previewWidth
         canvas.height = previewHeight
