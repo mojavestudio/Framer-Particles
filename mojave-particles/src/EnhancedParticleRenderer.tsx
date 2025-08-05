@@ -56,6 +56,7 @@ interface ParticleConfig {
         remove: number
         trail: number
         trailDelay: number
+
     }
     move: {
         enable: boolean
@@ -286,8 +287,8 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                 ctx.globalAlpha = config.backgroundOpacity
                 
                 // Handle Framer Color objects
-                if (typeof config.backdrop === "object" && (config.backdrop as any).r !== undefined) {
-                    const color = config.backdrop as any
+                if (typeof config.backdrop === "object" && (config.backdrop as { r: number; g: number; b: number }).r !== undefined) {
+                    const color = config.backdrop as { r: number; g: number; b: number }
                     ctx.fillStyle = `rgba(${Math.round(color.r * 255)}, ${Math.round(color.g * 255)}, ${Math.round(color.b * 255)}, 1)`
                 } else {
                     ctx.fillStyle = config.backdrop as string
@@ -308,7 +309,11 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                     // Gravity
                     if (config.move.gravity) {
                         particle.gravityVel += config.move.gravityAcceleration * 0.0005
-                        particle.vy += particle.gravityVel
+                        if (config.move.reverseGravity) {
+                            particle.vy -= particle.gravityVel // Reverse gravity
+                        } else {
+                            particle.vy += particle.gravityVel // Normal gravity
+                        }
                     }
 
                     // Spin
@@ -320,11 +325,20 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                     particle.x += particle.vx
                     particle.y += particle.vy
 
-                    // Boundary handling
-                    if (particle.x <= 0 || particle.x >= width) particle.vx *= -1
-                    if (particle.y <= 0 || particle.y >= height) particle.vy *= -1
-                    particle.x = Math.max(0, Math.min(width, particle.x))
-                    particle.y = Math.max(0, Math.min(height, particle.y))
+                    // Handle boundary behavior
+                    if (config.move.out === "out") {
+                        // Remove particles that exit the frame
+                        if (particle.x < 0 || particle.x > width || particle.y < 0 || particle.y > height) {
+                            particle.x = Math.random() * width
+                            particle.y = -10 // Start from top
+                        }
+                    } else {
+                        // Bounce off edges (default behavior)
+                        if (particle.x <= 0 || particle.x >= width) particle.vx *= -1
+                        if (particle.y <= 0 || particle.y >= height) particle.vy *= -1
+                        particle.x = Math.max(0, Math.min(width, particle.x))
+                        particle.y = Math.max(0, Math.min(height, particle.y))
+                    }
                 }
 
                 // Hover interactions
@@ -334,33 +348,37 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                     const distance = Math.sqrt(dx * dx + dy * dy)
 
                     switch (config.hover.mode) {
-                        case "repulse":
+                        case "repulse": {
                             if (distance < config.modes.repulse * 0.5) { // Scale for preview
                                 const force = (config.modes.repulse * 0.5 - distance) / (config.modes.repulse * 0.5) * config.modes.repulseDistance * 2
                                 particle.x -= (dx / distance) * force
                                 particle.y -= (dy / distance) * force
                             }
                             break
-                        case "grab":
+                        }
+                        case "grab": {
                             if (distance < config.modes.grab * 0.5) {
                                 const force = (config.modes.grab * 0.5 - distance) / (config.modes.grab * 0.5) * config.hover.force * 0.02
                                 particle.x += (dx / distance) * force
                                 particle.y += (dy / distance) * force
                             }
                             break
-                        case "bubble":
+                        }
+                        case "bubble": {
                             if (distance < config.modes.bubble * 0.3) {
                                 const scale = 1 + (config.modes.bubble * 0.3 - distance) / (config.modes.bubble * 0.3)
                                 particle.size = particle.originalSize * scale
                             }
                             break
-                        case "attract":
+                        }
+                        case "attract": {
                             if (distance < config.move.attractDistance * 0.5) {
                                 const force = config.hover.force * 0.01
                                 particle.x += (dx / distance) * force
                                 particle.y += (dy / distance) * force
                             }
                             break
+                        }
                     }
                 }
 
@@ -382,7 +400,53 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                     ctx.shadowColor = particle.color
                     ctx.globalAlpha = config.glow.intensity
                     ctx.beginPath()
-                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
+                    
+                    // Draw glow with same shape as particle
+                    switch (config.shape.type) {
+                        case "circle":
+                            ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
+                            break
+                        case "square":
+                            ctx.rect(particle.x - particle.size, particle.y - particle.size, particle.size * 2, particle.size * 2)
+                            break
+                        case "triangle":
+                            ctx.moveTo(particle.x, particle.y - particle.size)
+                            ctx.lineTo(particle.x - particle.size, particle.y + particle.size)
+                            ctx.lineTo(particle.x + particle.size, particle.y + particle.size)
+                            ctx.closePath()
+                            break
+                        case "diamond":
+                            ctx.moveTo(particle.x, particle.y - particle.size)
+                            ctx.lineTo(particle.x + particle.size, particle.y)
+                            ctx.lineTo(particle.x, particle.y + particle.size)
+                            ctx.lineTo(particle.x - particle.size, particle.y)
+                            ctx.closePath()
+                            break
+                        case "hexagon":
+                            const sides = 6
+                            const angleStep = (Math.PI * 2) / sides
+                            ctx.moveTo(particle.x + particle.size * Math.cos(0), particle.y + particle.size * Math.sin(0))
+                            for (let i = 1; i <= sides; i++) {
+                                const angle = i * angleStep
+                                ctx.lineTo(particle.x + particle.size * Math.cos(angle), particle.y + particle.size * Math.sin(angle))
+                            }
+                            break
+                        case "star":
+                            const spikes = 5
+                            const outerRadius = particle.size
+                            const innerRadius = particle.size * 0.5
+                            ctx.moveTo(particle.x + outerRadius * Math.cos(0), particle.y + outerRadius * Math.sin(0))
+                            for (let i = 0; i < spikes * 2; i++) {
+                                const radius = i % 2 === 0 ? outerRadius : innerRadius
+                                const angle = (i * Math.PI) / spikes
+                                ctx.lineTo(particle.x + radius * Math.cos(angle), particle.y + radius * Math.sin(angle))
+                            }
+                            ctx.closePath()
+                            break
+                        default:
+                            ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
+                    }
+                    
                     ctx.fillStyle = particle.color
                     ctx.fill()
                 }
@@ -414,7 +478,7 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                         ctx.lineTo(particle.x - particle.size, particle.y)
                         ctx.closePath()
                         break
-                    case "hexagon":
+                    case "hexagon": {
                         const sides = 6
                         const angleStep = (Math.PI * 2) / sides
                         ctx.moveTo(particle.x + particle.size * Math.cos(0), particle.y + particle.size * Math.sin(0))
@@ -423,7 +487,8 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                             ctx.lineTo(particle.x + particle.size * Math.cos(angle), particle.y + particle.size * Math.sin(angle))
                         }
                         break
-                    case "star":
+                    }
+                    case "star": {
                         const spikes = 5
                         const outerRadius = particle.size
                         const innerRadius = particle.size * 0.5
@@ -435,25 +500,28 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                         }
                         ctx.closePath()
                         break
-                    case "text":
+                    }
+                    case "text": {
                         // For text, we don't draw any background shape
                         break
-
-                    case "mixed":
+                    }
+                    case "mixed": {
                         // For mixed shapes, choose a consistent shape based on particle index
                         const randomShape = config.shape.mixedTypes[i % config.shape.mixedTypes.length] || "circle"
                         switch(randomShape) {
-                            case "square":
+                            case "square": {
                                 ctx.rect(particle.x - particle.size, particle.y - particle.size, particle.size * 2, particle.size * 2)
                                 break
-                            case "triangle":
+                            }
+                            case "triangle": {
                                 const height = particle.size * Math.sqrt(3)
                                 ctx.moveTo(particle.x, particle.y - height * 0.6)
                                 ctx.lineTo(particle.x - particle.size, particle.y + height * 0.4)
                                 ctx.lineTo(particle.x + particle.size, particle.y + height * 0.4)
                                 ctx.closePath()
                                 break
-                            case "star":
+                            }
+                            case "star": {
                                 const spikes = 5
                                 const outerRadius = particle.size
                                 const innerRadius = particle.size * 0.4
@@ -465,7 +533,8 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                                 }
                                 ctx.closePath()
                                 break
-                            case "hexagon":
+                            }
+                            case "hexagon": {
                                 const sides = 6
                                 ctx.moveTo(particle.x + particle.size * Math.cos(0), particle.y + particle.size * Math.sin(0))
                                 for (let i = 1; i < sides; i++) {
@@ -474,17 +543,21 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                                 }
                                 ctx.closePath()
                                 break
-                            case "diamond":
+                            }
+                            case "diamond": {
                                 ctx.moveTo(particle.x, particle.y - particle.size)
                                 ctx.lineTo(particle.x + particle.size, particle.y)
                                 ctx.lineTo(particle.x, particle.y + particle.size)
                                 ctx.lineTo(particle.x - particle.size, particle.y)
                                 ctx.closePath()
                                 break
-                            default:
+                            }
+                            default: {
                                 ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
+                            }
                         }
                         break
+                    }
                     default:
                         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
                 }
@@ -613,8 +686,8 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                     
                     // Use border color if specified, otherwise use particle color
                     if (config.border.color && config.border.color !== "#ffffff") {
-                        if (typeof config.border.color === "object" && (config.border.color as any).r !== undefined) {
-                            const borderColor = config.border.color as any
+                        if (typeof config.border.color === "object" && (config.border.color as { r: number; g: number; b: number }).r !== undefined) {
+                            const borderColor = config.border.color as { r: number; g: number; b: number }
                             ctx.strokeStyle = `rgba(${Math.round(borderColor.r * 255)}, ${Math.round(borderColor.g * 255)}, ${Math.round(borderColor.b * 255)}, ${currentOpacity})`
                         } else {
                             ctx.strokeStyle = config.border.color as string
@@ -650,8 +723,8 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                         
                         if (distance < config.modes.connectRadius * 0.5) { // Scale for preview
                             ctx.save()
-                            ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 * (1 - distance / (config.modes.connectRadius * 0.5))})`
-                            ctx.lineWidth = 1
+                            ctx.strokeStyle = `rgba(255, 255, 255, ${0.6 * (1 - distance / (config.modes.connectRadius * 0.5))})`
+                            ctx.lineWidth = 3
                             ctx.beginPath()
                             ctx.moveTo(particle.x, particle.y)
                             ctx.lineTo(otherParticle.x, otherParticle.y)
@@ -661,6 +734,8 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                     })
                 })
             }
+
+
 
             animationRef.current = requestAnimationFrame(animate)
         }

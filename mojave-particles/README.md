@@ -35,26 +35,30 @@ npm run dev
 - **Enhanced Size Controls**: Support for particles up to 2000px with dual slider + number input
 - **Professional Icons**: Consistent Phosphor icon system (LinkSimple, CursorClick, Ruler)
 - **Smart Color Management**: Multi-color palette with random generation and visual color picker
+- **Combined Effects**: Glow & Twinkle effects grouped in one intuitive section
 
-### **⚙️ 50+ Customizable Properties**
+### **⚙️ 60+ Customizable Properties**
 - **Canvas Settings**: Dimensions, background color/opacity, border radius
 - **Particle Appearance**: Amount, primary color, multi-color palette management
 - **Particle Properties**: Advanced size (1-2000px) and opacity controls with type selection
 - **Particle Connections**: Network line drawing with distance and opacity controls
-- **Mouse Interactions**: Hover effects (grab, bubble, repulse, attract) with strength tuning
-- **Interaction Distances**: Fine-grained control over all effect ranges and forces
+- **Mouse Interactions**: Hover effects (grab, bubble, repulse) with strength tuning
+- **Physics Controls**: Gravity, reverse gravity, spin, vibration, and boundary behavior
+- **Visual Effects**: Shape-aware glow effects and twinkle animations
 
-### **8 Professional Presets**
-- **Basic** - Clean, minimal particle field
-- **Snow** - Gentle falling snowflakes with twinkle
-- **Rainbow** - Colorful, vibrant particle system
-- **Network** - Connected network visualization
-- **Bubbles** - Floating bubble effect
-- **Matrix** - Digital rain effect
-- **Galaxy** - Cosmic star field with attraction
-- **Neon** - Bright, energetic neon particles
+### **9 Professional Presets**
+- **Black Hole** - Clean, minimal cosmic particles
+- **Snow** - Gentle falling snowflakes with natural physics
+- **Rainbow** - Colorful, vibrant particle system with trails
+- **Network** - Connected network visualization with thick white lines
+- **Bubbles** - Floating bubble effect with glow
+- **Lazer** - Red laser beam particles with glow and twinkle
+- **Galaxy** - Cosmic star field with diamond particles
+- **Neon** - Bright, energetic neon particles with glow
+- **Lava Lamp** - Warm, flowing lava particles with reverse gravity
 
 ### **Advanced Rendering**
+- **Shape-aware glow effects** - Glow matches particle shape (square, triangle, diamond, etc.)
 - **Ultra-clean rendering** with device pixel ratio support
 - **GPU acceleration** for smooth 60fps animations
 - **No artifacts** or pixelation issues
@@ -65,8 +69,8 @@ npm run dev
 ### **Plugin Interface**
 The plugin provides a comprehensive UI panel with:
 - **Live Preview** - Real-time particle system preview
-- **Property Controls** - All 50+ customization options
-- **Preset Library** - 8 professional presets for instant effects
+- **Property Controls** - All 60+ customization options
+- **Preset Library** - 9 professional presets for instant effects
 - **Create/Edit Modes** - Optimized workflow for different use cases
 
 ### **Adding Particles to Canvas**
@@ -81,9 +85,9 @@ The plugin provides a comprehensive UI panel with:
 ```
 mojave-particles/
 ├── src/
-│   ├── plugin.tsx          # Main plugin interface (2174 lines)
+│   ├── plugin.tsx          # Main plugin interface (3057 lines)
+│   ├── EnhancedParticleRenderer.tsx # Live preview component (709 lines)
 │   ├── main.tsx            # Entry point
-│   ├── App.css             # Styles
 │   └── vite-env.d.ts       # TypeScript declarations
 ├── public/                 # Static assets
 ├── framer.json            # Plugin configuration
@@ -93,67 +97,55 @@ mojave-particles/
 
 ### **Key Files**
 - **`src/plugin.tsx`** - Complete plugin interface with all features
+- **`src/EnhancedParticleRenderer.tsx`** - Live preview with shape-aware effects
 - **`framer.json`** - Plugin configuration (ID: `a1b2c3`)
 - **`vite.config.ts`** - HTTPS development server setup
 - **`FRAMER_PLUGIN_REQUIREMENTS.md`** - Critical requirements documentation
 
 ### **Available Scripts**
 ```bash
-npm run dev          # Start development server (HTTPS, port 5173 required)
-npm run build        # Build for production
-npm run preview      # Preview production build
-npm run lint         # Run ESLint
+npm run dev      # Start development server (HTTPS on port 5173)
+npm run build    # Build for production
+npm run preview  # Preview production build
+npm run lint     # Run ESLint
+npm run pack     # Create plugin package
 ```
 
-## 🚨 Troubleshooting
+## 🎯 Recent Updates
 
-### **Common Issues**
-- **"Failed to load"**: Check `FRAMER_PLUGIN_REQUIREMENTS.md`
-- **Plugin ID errors**: Must be 6-character hexadecimal
-- **HTTPS required**: Server must use HTTPS, not HTTP
-- **Port 5173 required**: Server must run on port 5173 (not 5174, 5175, etc.)
-- **Directory issues**: Must run from `mojave-particles` directory
+### **v1.3.0 - Enhanced Physics & Effects**
+- **✅ Reverse Gravity Toggle** - Authentic lava lamp physics
+- **✅ Shape-Aware Glow Effects** - Glow matches particle shape perfectly
+- **✅ Improved Snow Physics** - Natural falling without bouncing
+- **✅ Enhanced Network Preset** - Thick, visible connection lines
+- **✅ Combined UI Sections** - Glow & Twinkle effects grouped together
+- **✅ Removed Mouse Attraction** - Cleaner, more focused interactions
+- **✅ Better Boundary Handling** - Particles exit frame naturally
 
-### **Quick Fixes**
-```bash
-# Clear cache and restart
-rm -rf .vite && npm run dev
-
-# Reinstall dependencies
-rm -rf node_modules package-lock.json
-npm install --legacy-peer-deps
-
-# Check server status
-lsof -i :5173
-```
+### **v1.2.0 - Professional Presets**
+- **✅ 9 Professional Presets** - From Black Hole to Lava Lamp
+- **✅ Enhanced Network Visualization** - Dense, visible connections
+- **✅ Improved Snow Effect** - Realistic falling physics
+- **✅ Authentic Lava Lamp** - Reverse gravity for rising bubbles
 
 ## 📚 Documentation
 
-### **Essential Guides**
-- **[FRAMER_PLUGIN_REQUIREMENTS.md](FRAMER_PLUGIN_REQUIREMENTS.md)** - Critical requirements (DON'T FORGET!)
-- **[SERVER_SCRIPTS.md](SERVER_SCRIPTS.md)** - Server management scripts
-- **[DEPLOYMENT.md](DEPLOYMENT.md)** - AWS deployment guide
+- **`FRAMER_PLUGIN_REQUIREMENTS.md`** - Critical requirements and setup
+- **`DEVELOPMENT_GUIDE.md`** - Development workflow and best practices
+- **`FRAMER_PUBLISHING.md`** - Publishing to Framer marketplace
+- **`FRAMER_MARKETPLACE_SUBMISSION.md`** - Submission guidelines
 
-### **Development Workflow**
-1. **Start development**: `npm run dev`
-2. **Load in Framer**: Use Developer Tools
-3. **Make changes**: Edit `src/plugin.tsx`
-4. **Test**: Changes auto-reload in Framer
-5. **Deploy**: Follow `DEPLOYMENT.md` guide
+## 🤝 Contributing
 
-## 🔐 License
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
-© 2025 Mojave Studio LLC - All Rights Reserved
+## 📄 License
 
-This is proprietary software. Unauthorized copying, modification, distribution, or use is strictly prohibited.
+© 2025 Mojave Studio - mojavestud.io
+Custom Automated Web Design Experts
 
-## 🌟 Support
-
-- **Documentation**: See guides above
-- **Issues**: GitHub Issues
-- **Contact**: info@mojavestud.io
-
----
-
-**Built with ❤️ for the Framer community by Mojave Studio**
-# Test auto-deployment Tue Jul 22 15:42:46 PDT 2025
+Built with ❤️ for the Framer community
