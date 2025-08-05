@@ -123,52 +123,13 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
         })
         if (!ctx) return
 
-        // Get device pixel ratio for crisp rendering
-        const dpr = window.devicePixelRatio || 1
-        
-        // Set canvas size dynamically
-        const container = canvas.parentElement
-        const width = container ? container.clientWidth - 16 : 300 // Account for padding
-        const height = 200
-        
-        // Set the actual canvas size (internal resolution) - higher resolution for crisp particles
-        canvas.width = width * dpr
-        canvas.height = height * dpr
-        
-        // Scale the canvas back down using CSS
-        canvas.style.width = width + "px"
-        canvas.style.height = height + "px"
-        
-        // Scale the context to match the device pixel ratio
-        ctx.scale(dpr, dpr)
-        
-        // Set additional context properties for smooth rendering
-        ctx.imageSmoothingEnabled = true
-        ctx.imageSmoothingQuality = "high"
-        ctx.globalCompositeOperation = "source-over"
+        // Use fixed size from configuration (matching generated code)
+        canvas.width = config.width
+        canvas.height = config.height
+        canvas.style.width = config.width + "px"
+        canvas.style.height = config.height + "px"
 
-        // Resize handler to make canvas responsive
-        const handleResize = () => {
-            const newWidth = container ? container.clientWidth - 16 : 300
-            const currentWidth = canvas.width / dpr
-            if (Math.abs(currentWidth - newWidth) > 1) {
-                // Set the actual canvas size (internal resolution)
-                canvas.width = newWidth * dpr
-                canvas.height = height * dpr
-                
-                // Scale the canvas back down using CSS
-                canvas.style.width = newWidth + "px"
-                canvas.style.height = height + "px"
-                
-                // Reset the context scale
-                ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-                
-                createParticles() // Recreate particles for new dimensions
-            }
-        }
 
-        // Add resize listener
-        window.addEventListener('resize', handleResize)
 
         // Create particles based on config
         function createParticles() {
@@ -187,7 +148,7 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                 spinAngle: number
                 originalSize: number
             }> = []
-            const amount = Math.min(config.amount, 30) // Limit for preview
+            const amount = config.amount // Use full amount for consistency with generated code
             const cols = config.colors.length > 0 ? config.colors : [config.color]
             
             // Using color array for particle creation
@@ -244,41 +205,42 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                     particleSize = config.size.value
                 }
 
-                // Calculate particle opacity based on type
-                let particleOpacity: number
-                if (config.opacity.type === "Range") {
-                    particleOpacity = Math.random() * (config.opacity.max - config.opacity.min) + config.opacity.min
-                } else if (config.opacity.type === "Fade") {
-                    particleOpacity = Math.random() * (0.5 - 0.1) + 0.1
-                } else if (config.opacity.type === "Normal") {
-                    particleOpacity = Math.random() * (1.0 - 0.5) + 0.5
-                } else if (config.opacity.type === "Full") {
-                    particleOpacity = Math.random() * (1.0 - 0.8) + 0.8
-                } else {
-                    particleOpacity = config.opacity.value
-                }
+                // Calculate particle opacity based on type (matching generated code)
+                const particleOpacity = (() => {
+                    if (config.opacity.type === "Range") {
+                        return Math.random() * (config.opacity.max - config.opacity.min) + config.opacity.min
+                    } else if (config.opacity.type === "Fade") {
+                        return Math.random() * (0.5 - 0.1) + 0.1
+                    } else if (config.opacity.type === "Normal") {
+                        return Math.random() * (1.0 - 0.5) + 0.5
+                    } else if (config.opacity.type === "Full") {
+                        return Math.random() * (1.0 - 0.8) + 0.8
+                    } else {
+                        return config.opacity.value
+                    }
+                })()
 
                 // Position particles for natural infinite streams
-                let startX = Math.random() * width
-                let startY = Math.random() * height
+                let startX = Math.random() * config.width
+                let startY = Math.random() * config.height
                 
                 // For directional movement, create natural infinite streams
                 if (config.move.direction === "top") {
                     // For upward movement (bubbles), distribute naturally
-                    startX = Math.random() * width
-                    startY = height - Math.random() * (height * 0.3) // Bottom 30% for natural flow
+                    startX = Math.random() * config.width
+                    startY = config.height - Math.random() * (config.height * 0.3) // Bottom 30% for natural flow
                 } else if (config.move.direction === "bottom") {
                     // For downward movement (snow), distribute naturally
-                    startX = Math.random() * width
-                    startY = Math.random() * (height * 0.3) // Top 30% for natural flow
+                    startX = Math.random() * config.width
+                    startY = Math.random() * (config.height * 0.3) // Top 30% for natural flow
                 } else if (config.move.direction === "left") {
                     // For leftward movement, distribute naturally
-                    startX = width - Math.random() * (width * 0.3) // Right 30% for natural flow
-                    startY = Math.random() * height
+                    startX = config.width - Math.random() * (config.width * 0.3) // Right 30% for natural flow
+                    startY = Math.random() * config.height
                 } else if (config.move.direction === "right") {
                     // For rightward movement, distribute naturally
-                    startX = Math.random() * (width * 0.3) // Left 30% for natural flow
-                    startY = Math.random() * height
+                    startX = Math.random() * (config.width * 0.3) // Left 30% for natural flow
+                    startY = Math.random() * config.height
                 }
                 
 
@@ -323,7 +285,7 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
             if (!canvas || !ctx) return
 
             // Clear canvas
-            ctx.clearRect(0, 0, width, height)
+            ctx.clearRect(0, 0, config.width, config.height)
 
             // Draw backdrop with proper Framer Color handling
             if (config.backdrop && config.backgroundOpacity > 0) {
@@ -338,7 +300,7 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                     ctx.fillStyle = config.backdrop as string
                 }
                 
-                ctx.fillRect(0, 0, width, height)
+                ctx.fillRect(0, 0, config.width, config.height)
                 ctx.restore()
             }
 
@@ -372,39 +334,39 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                     // Handle boundary behavior
                     if (config.move.out === "out") {
                         // Remove particles that exit the frame
-                        if (particle.x < 0 || particle.x > width || particle.y < 0 || particle.y > height) {
+                        if (particle.x < 0 || particle.x > config.width || particle.y < 0 || particle.y > config.height) {
                             if (config.move.infinite) {
                                 // Infinite particles: spawn based on movement direction with better distribution
                                 if (config.move.direction === "top") {
                                     // For upward movement (bubbles), spawn at bottom for infinite stream
-                                    particle.x = Math.random() * width
-                                    particle.y = height - Math.random() * 50 // Spawn within bottom area
+                                    particle.x = Math.random() * config.width
+                                    particle.y = config.height - Math.random() * 50 // Spawn within bottom area
                                 } else if (config.move.direction === "bottom") {
                                     // For downward movement (snow), spawn at top for infinite stream
-                                    particle.x = Math.random() * width
+                                    particle.x = Math.random() * config.width
                                     particle.y = Math.random() * 50 // Spawn within top area
                                 } else if (config.move.direction === "left") {
                                     // For leftward movement, spawn at right for infinite stream
-                                    particle.x = width - Math.random() * 50 // Spawn within right area
-                                    particle.y = Math.random() * height
+                                    particle.x = config.width - Math.random() * 50 // Spawn within right area
+                                    particle.y = Math.random() * config.height
                                 } else if (config.move.direction === "right") {
                                     // For rightward movement, spawn at left for infinite stream
                                     particle.x = Math.random() * 50 // Spawn within left area
-                                    particle.y = Math.random() * height
+                                    particle.y = Math.random() * config.height
                                 } else {
                                     // For random or other directions, spawn on opposite side
                                     if (particle.x < 0) {
-                                        particle.x = width - Math.random() * 50
-                                        particle.y = Math.random() * height
-                                    } else if (particle.x > width) {
+                                        particle.x = config.width - Math.random() * 50
+                                        particle.y = Math.random() * config.height
+                                    } else if (particle.x > config.width) {
                                         particle.x = Math.random() * 50
-                                        particle.y = Math.random() * height
+                                        particle.y = Math.random() * config.height
                                     } else if (particle.y < 0) {
-                                        particle.y = height - Math.random() * 50
-                                        particle.x = Math.random() * width
-                                    } else if (particle.y > height) {
+                                        particle.y = config.height - Math.random() * 50
+                                        particle.x = Math.random() * config.width
+                                    } else if (particle.y > config.height) {
                                         particle.y = Math.random() * 50
-                                        particle.x = Math.random() * width
+                                        particle.x = Math.random() * config.width
                                     }
                                 }
                                 
@@ -437,7 +399,7 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                                 particle.twinklePhase = Math.random() * Math.PI * 2
                             } else {
                                 // Normal behavior: reset to top with controlled velocities
-                                particle.x = Math.random() * width
+                                particle.x = Math.random() * config.width
                                 particle.y = -10 // Start from top
                                 
                                 // Reset velocities to prevent chaotic movement
