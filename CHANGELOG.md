@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2025-01-24
+
+### 🚀 Infinite Streams & Hover Interactions
+- **Fixed Infinite Stream Logic**: Eliminated banding issues with natural continuous particle flows
+- **Enhanced Hover Interactions**: Added proper mouse tracking for bubble, grab, and attract effects
+- **Natural Speed Variation**: Particles now move at varied speeds (0.6x to 1.4x) for organic movement
+- **Eliminated Violent Motion**: Particles stay within canvas bounds, no more artifacts outside view
+- **Unified Positioning System**: Consistent particle distribution for initial creation and boundary reset
+- **Improved Bubble Effects**: Particles grow naturally when hovering with bubble mode enabled
+- **Better Boundary Handling**: Particles reset at edges with natural distribution patterns
+
+### 🎯 Technical Improvements
+- **Mouse Event Handlers**: Added proper mousemove and mouseleave event listeners
+- **Hover Interaction Logic**: Implemented distance-based hover effects with force calculations
+- **Particle Size Reset**: Added proper size reset each frame for dynamic bubble scaling
+- **Speed Variation**: Replaced consistent speeds with natural variation for more realistic movement
+- **Boundary Logic**: Fixed infinite mode to keep particles within canvas bounds
+- **Event Cleanup**: Proper cleanup of mouse event listeners to prevent memory leaks
+
+### 🔧 Bug Fixes
+- **Fixed**: Particles appearing in bands due to inconsistent positioning systems
+- **Fixed**: Violent motion artifacts from particles spawning outside canvas bounds
+- **Fixed**: Missing hover interactions in generated code
+- **Fixed**: Large gaps between initial and subsequent particle streams
+- **Fixed**: Inconsistent speed variation between live preview and generated code
+
+### ✨ User Experience
+- **Natural Movement**: Particles now flow organically without artificial patterns
+- **Responsive Interactions**: Hover effects work consistently across all particle types
+- **Smooth Animations**: No more jarring artifacts or violent motion
+- **Continuous Streams**: Infinite mode creates seamless, natural particle flows
+
 ## [1.2.3] - 2025-01-24
 
 ### 🚀 Major UI/UX Improvements
