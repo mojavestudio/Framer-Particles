@@ -123,11 +123,14 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
         })
         if (!ctx) return
 
-        // Use fixed size from configuration (matching generated code)
-        canvas.width = config.width
-        canvas.height = config.height
-        canvas.style.width = config.width + "px"
-        canvas.style.height = config.height + "px"
+        // Use preview-appropriate size while keeping logic unified
+        const previewWidth = Math.min(config.width, 400) // Cap at 400px for preview
+        const previewHeight = Math.min(config.height, 300) // Cap at 300px for preview
+        
+        canvas.width = previewWidth
+        canvas.height = previewHeight
+        canvas.style.width = previewWidth + "px"
+        canvas.style.height = previewHeight + "px"
 
 
 
@@ -220,27 +223,27 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                     }
                 })()
 
-                // Position particles for natural infinite streams
-                let startX = Math.random() * config.width
-                let startY = Math.random() * config.height
+                // Position particles for natural infinite streams (using preview dimensions)
+                let startX = Math.random() * previewWidth
+                let startY = Math.random() * previewHeight
                 
                 // For directional movement, create natural infinite streams
                 if (config.move.direction === "top") {
                     // For upward movement (bubbles), distribute naturally
-                    startX = Math.random() * config.width
-                    startY = config.height - Math.random() * (config.height * 0.3) // Bottom 30% for natural flow
+                    startX = Math.random() * previewWidth
+                    startY = previewHeight - Math.random() * (previewHeight * 0.3) // Bottom 30% for natural flow
                 } else if (config.move.direction === "bottom") {
                     // For downward movement (snow), distribute naturally
-                    startX = Math.random() * config.width
-                    startY = Math.random() * (config.height * 0.3) // Top 30% for natural flow
+                    startX = Math.random() * previewWidth
+                    startY = Math.random() * (previewHeight * 0.3) // Top 30% for natural flow
                 } else if (config.move.direction === "left") {
                     // For leftward movement, distribute naturally
-                    startX = config.width - Math.random() * (config.width * 0.3) // Right 30% for natural flow
-                    startY = Math.random() * config.height
+                    startX = previewWidth - Math.random() * (previewWidth * 0.3) // Right 30% for natural flow
+                    startY = Math.random() * previewHeight
                 } else if (config.move.direction === "right") {
                     // For rightward movement, distribute naturally
-                    startX = Math.random() * (config.width * 0.3) // Left 30% for natural flow
-                    startY = Math.random() * config.height
+                    startX = Math.random() * (previewWidth * 0.3) // Left 30% for natural flow
+                    startY = Math.random() * previewHeight
                 }
                 
 
@@ -285,7 +288,7 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
             if (!canvas || !ctx) return
 
             // Clear canvas
-            ctx.clearRect(0, 0, config.width, config.height)
+            ctx.clearRect(0, 0, previewWidth, previewHeight)
 
             // Draw backdrop with proper Framer Color handling
             if (config.backdrop && config.backgroundOpacity > 0) {
@@ -300,7 +303,7 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                     ctx.fillStyle = config.backdrop as string
                 }
                 
-                ctx.fillRect(0, 0, config.width, config.height)
+                ctx.fillRect(0, 0, previewWidth, previewHeight)
                 ctx.restore()
             }
 
@@ -334,39 +337,39 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                     // Handle boundary behavior
                     if (config.move.out === "out") {
                         // Remove particles that exit the frame
-                        if (particle.x < 0 || particle.x > config.width || particle.y < 0 || particle.y > config.height) {
+                        if (particle.x < 0 || particle.x > previewWidth || particle.y < 0 || particle.y > previewHeight) {
                             if (config.move.infinite) {
                                 // Infinite particles: spawn based on movement direction with better distribution
                                 if (config.move.direction === "top") {
                                     // For upward movement (bubbles), spawn at bottom for infinite stream
-                                    particle.x = Math.random() * config.width
-                                    particle.y = config.height - Math.random() * 50 // Spawn within bottom area
+                                    particle.x = Math.random() * previewWidth
+                                    particle.y = previewHeight - Math.random() * 50 // Spawn within bottom area
                                 } else if (config.move.direction === "bottom") {
                                     // For downward movement (snow), spawn at top for infinite stream
-                                    particle.x = Math.random() * config.width
+                                    particle.x = Math.random() * previewWidth
                                     particle.y = Math.random() * 50 // Spawn within top area
                                 } else if (config.move.direction === "left") {
                                     // For leftward movement, spawn at right for infinite stream
-                                    particle.x = config.width - Math.random() * 50 // Spawn within right area
-                                    particle.y = Math.random() * config.height
+                                    particle.x = previewWidth - Math.random() * 50 // Spawn within right area
+                                    particle.y = Math.random() * previewHeight
                                 } else if (config.move.direction === "right") {
                                     // For rightward movement, spawn at left for infinite stream
                                     particle.x = Math.random() * 50 // Spawn within left area
-                                    particle.y = Math.random() * config.height
+                                    particle.y = Math.random() * previewHeight
                                 } else {
                                     // For random or other directions, spawn on opposite side
                                     if (particle.x < 0) {
-                                        particle.x = config.width - Math.random() * 50
-                                        particle.y = Math.random() * config.height
-                                    } else if (particle.x > config.width) {
+                                        particle.x = previewWidth - Math.random() * 50
+                                        particle.y = Math.random() * previewHeight
+                                    } else if (particle.x > previewWidth) {
                                         particle.x = Math.random() * 50
-                                        particle.y = Math.random() * config.height
+                                        particle.y = Math.random() * previewHeight
                                     } else if (particle.y < 0) {
-                                        particle.y = config.height - Math.random() * 50
-                                        particle.x = Math.random() * config.width
-                                    } else if (particle.y > config.height) {
+                                        particle.y = previewHeight - Math.random() * 50
+                                        particle.x = Math.random() * previewWidth
+                                    } else if (particle.y > previewHeight) {
                                         particle.y = Math.random() * 50
-                                        particle.x = Math.random() * config.width
+                                        particle.x = Math.random() * previewWidth
                                     }
                                 }
                                 
@@ -399,7 +402,7 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                                 particle.twinklePhase = Math.random() * Math.PI * 2
                             } else {
                                 // Normal behavior: reset to top with controlled velocities
-                                particle.x = Math.random() * config.width
+                                particle.x = Math.random() * previewWidth
                                 particle.y = -10 // Start from top
                                 
                                 // Reset velocities to prevent chaotic movement
