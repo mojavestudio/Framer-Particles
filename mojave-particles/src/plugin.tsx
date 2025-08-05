@@ -135,6 +135,12 @@ interface ParticleConfig {
         minOpacity: number
         maxOpacity: number
     }
+    grow: {
+        enable: boolean
+        speed: number
+        minSize: number
+        maxSize: number
+    }
     modes: {
         connect: number
         connectRadius: number
@@ -170,6 +176,7 @@ interface ParticleConfig {
         attractDistance: number
         vibrate: boolean
         vibrateFrequency: number
+        infinite: boolean
     }
     click: {
         enable: boolean
@@ -216,6 +223,7 @@ export default function MojaveParticles(props) {
         click = ${JSON.stringify(config.click)},
         modes = ${JSON.stringify(config.modes)},
         twinkle = ${JSON.stringify(config.twinkle)},
+        grow = ${JSON.stringify(config.grow)},
         glow = ${JSON.stringify(config.glow)},
         border = ${JSON.stringify(config.border)},
         shape = ${JSON.stringify(config.shape)},
@@ -237,12 +245,15 @@ export default function MojaveParticles(props) {
         canvas.style.width = width + "px"
         canvas.style.height = height + "px"
 
-        // Create simple particles
+        // Create simple particles with staggered timing for continuous streams
         function createParticles() {
             const particles = []
             const cols = colors && colors.length > 0 ? colors : [color]
             
-            for (let i = 0; i < Math.min(amount, 50); i++) {
+            // For infinite directional movement, stagger particle creation
+            const isInfiniteDirectional = move.infinite && (move.direction === "top" || move.direction === "bottom" || move.direction === "left" || move.direction === "right")
+            
+            for (let i = 0; i < amount; i++) {
                 const particleColor = cols[Math.floor(Math.random() * cols.length)]
                 // Calculate particle size based on type
                 let particleSize
@@ -261,22 +272,80 @@ export default function MojaveParticles(props) {
                 }
                 
                 let vx = 0, vy = 0
-                const speed = move.speed * 0.05
+                const baseSpeed = move.speed * 0.2 // Higher speed for better slider response
+                
+                // Add minimal speed variation for consistent streams
+                const speedVariation = 0.9 + Math.random() * 0.2 // 0.9x to 1.1x speed for consistency
+                const speed = baseSpeed * speedVariation
                 
                 switch (move.direction) {
-                    case "top": vy = -speed; break
-                    case "bottom": vy = speed; break
-                    case "left": vx = -speed; break
-                    case "right": vx = speed; break
+                    case "top": 
+                        vy = -speed
+                        // Extremely minimal horizontal drift to prevent spinning
+                        vx = (Math.random() - 0.5) * 0.05
+                        break
+                    case "bottom": 
+                        vy = speed
+                        vx = (Math.random() - 0.5) * 0.05
+                        break
+                    case "left": 
+                        vx = -speed
+                        vy = (Math.random() - 0.5) * 0.05
+                        break
+                    case "right": 
+                        vx = speed
+                        vy = (Math.random() - 0.5) * 0.05
+                        break
                     default:
-                        vx = (Math.random() - 0.5) * speed
-                        vy = (Math.random() - 0.5) * speed
+                        vx = (Math.random() - 0.5) * speed * 0.3
+                        vy = (Math.random() - 0.5) * speed * 0.3
                         break
                 }
 
+                // Position particles with better distribution
+                let startX = Math.random() * width
+                let startY = Math.random() * height
+                
+                // For directional movement, distribute particles more naturally for continuous streams
+                if (move.direction === "top") {
+                    // For upward movement, create staggered stream from bottom
+                    startX = Math.random() * width
+                    if (isInfiniteDirectional) {
+                        // Stagger particles along the movement path for continuous flow
+                        startY = height + (i * (height / amount)) + Math.random() * 50
+                    } else {
+                        startY = height - Math.random() * (height * 0.5) // Distribute across bottom 50%
+                    }
+                } else if (move.direction === "bottom") {
+                    // For downward movement, create staggered stream from top
+                    startX = Math.random() * width
+                    if (isInfiniteDirectional) {
+                        // Stagger particles along the movement path for continuous flow
+                        startY = -(i * (height / amount)) - Math.random() * 50
+                    } else {
+                        startY = Math.random() * (height * 0.5) // Distribute across top 50%
+                    }
+                } else if (move.direction === "left") {
+                    // For leftward movement, create staggered stream from right
+                    if (isInfiniteDirectional) {
+                        startX = width + (i * (width / amount)) + Math.random() * 50
+                    } else {
+                        startX = width - Math.random() * (width * 0.5) // Distribute across right 50%
+                    }
+                    startY = Math.random() * height
+                } else if (move.direction === "right") {
+                    // For rightward movement, create staggered stream from left
+                    if (isInfiniteDirectional) {
+                        startX = -(i * (width / amount)) - Math.random() * 50
+                    } else {
+                        startX = Math.random() * (width * 0.5) // Distribute across left 50%
+                    }
+                    startY = Math.random() * height
+                }
+
                 particles.push({
-                    x: Math.random() * width,
-                    y: Math.random() * height,
+                    x: startX,
+                    y: startY,
                     vx, vy,
                     color: particleColor,
                     size: particleSize,
@@ -293,7 +362,10 @@ export default function MojaveParticles(props) {
                             return opacity.value
                         }
                     })(),
-                    twinklePhase: Math.random() * Math.PI * 2
+                    twinklePhase: Math.random() * Math.PI * 2,
+                    gravityVel: 0,
+                    spinAngle: 0,
+                    originalSize: particleSize
                 })
             }
             particlesRef.current = particles
@@ -333,13 +405,82 @@ export default function MojaveParticles(props) {
                     if (move.out === "out") {
                         // Remove particles that exit the frame
                         if (particle.x < 0 || particle.x > width || particle.y < 0 || particle.y > height) {
-                            particle.x = Math.random() * width
-                            particle.y = -10 // Start from top
+                            if (move.infinite) {
+                                // Infinite particles: spawn based on movement direction with better distribution
+                                if (move.direction === "top") {
+                                    // For upward movement (bubbles), spawn at bottom with consistent spacing
+                                    particle.x = Math.random() * width
+                                    particle.y = height + Math.random() * 50 // Tighter spawn area for consistency
+                                } else if (move.direction === "bottom") {
+                                    // For downward movement, spawn at top with consistent spacing
+                                    particle.x = Math.random() * width
+                                    particle.y = -Math.random() * 50 // Tighter spawn area for consistency
+                                } else if (move.direction === "left") {
+                                    // For leftward movement, spawn at right
+                                    particle.x = width + Math.random() * 50
+                                    particle.y = Math.random() * height
+                                } else if (move.direction === "right") {
+                                    // For rightward movement, spawn at left
+                                    particle.x = -Math.random() * 50
+                                    particle.y = Math.random() * height
+                                } else {
+                                    // For random or other directions, spawn on opposite side
+                                    if (particle.x < 0) {
+                                        particle.x = width + Math.random() * 100
+                                        particle.y = Math.random() * height
+                                    } else if (particle.x > width) {
+                                        particle.x = -Math.random() * 100
+                                        particle.y = Math.random() * height
+                                    } else if (particle.y < 0) {
+                                        particle.y = height + Math.random() * 100
+                                        particle.x = Math.random() * width
+                                    } else if (particle.y > height) {
+                                        particle.y = -Math.random() * 100
+                                        particle.x = Math.random() * width
+                                    }
+                                }
+                                
+                                // Reset velocities to ensure consistent directional movement
+                                const baseSpeed = move.speed * 0.2
+                                const speedVariation = 0.9 + Math.random() * 0.2 // 0.9x to 1.1x speed for consistency
+                                const speed = baseSpeed * speedVariation
+                                
+                                // Set proper velocities based on direction to prevent spinning
+                                if (move.direction === "top") {
+                                    particle.vx = (Math.random() - 0.5) * 0.05 // Extremely minimal horizontal drift
+                                    particle.vy = -speed // Consistent upward movement
+                                } else if (move.direction === "bottom") {
+                                    particle.vx = (Math.random() - 0.5) * 0.05 // Extremely minimal horizontal drift
+                                    particle.vy = speed // Consistent downward movement
+                                } else if (move.direction === "left") {
+                                    particle.vx = -speed // Consistent leftward movement
+                                    particle.vy = (Math.random() - 0.5) * 0.05 // Extremely minimal vertical drift
+                                } else if (move.direction === "right") {
+                                    particle.vx = speed // Consistent rightward movement
+                                    particle.vy = (Math.random() - 0.5) * 0.05 // Extremely minimal vertical drift
+                                } else {
+                                    // For random movement, use controlled random velocities
+                                    particle.vx = (Math.random() - 0.5) * speed * 0.3
+                                    particle.vy = (Math.random() - 0.5) * speed * 0.3
+                                }
+                                
+                                // Reset particle properties to maintain consistency
+                                particle.size = particle.originalSize
+                                particle.twinklePhase = Math.random() * Math.PI * 2
+                            } else {
+                                // Normal behavior: reset to top
+                                particle.x = Math.random() * width
+                                particle.y = -10 // Start from top
+                            }
                         }
                     } else {
-                        // Bounce off edges (default behavior)
-                        if (particle.x <= 0 || particle.x >= width) particle.vx *= -1
-                        if (particle.y <= 0 || particle.y >= height) particle.vy *= -1
+                        // Bounce off edges (default behavior) - with controlled velocity
+                        if (particle.x <= 0 || particle.x >= width) {
+                            particle.vx *= -0.8 // Reduce velocity on bounce to prevent chaos
+                        }
+                        if (particle.y <= 0 || particle.y >= height) {
+                            particle.vy *= -0.8 // Reduce velocity on bounce to prevent chaos
+                        }
                         particle.x = Math.max(0, Math.min(width, particle.x))
                         particle.y = Math.max(0, Math.min(height, particle.y))
                     }
@@ -419,16 +560,8 @@ export default function MojaveParticles(props) {
                 ctx.shadowBlur = 0
                 ctx.globalAlpha = currentOpacity
                 
-                // Simple color parsing
-                let r, g, b
-                if (particle.color.includes('#')) {
-                    r = parseInt(particle.color.slice(1, 3), 16)
-                    g = parseInt(particle.color.slice(3, 5), 16)
-                    b = parseInt(particle.color.slice(5, 7), 16)
-                    ctx.fillStyle = "rgba(" + r + ", " + g + ", " + b + ", " + currentOpacity + ")"
-                } else {
-                    ctx.fillStyle = particle.color
-                }
+                // Use particle color directly since opacity is handled by globalAlpha
+                ctx.fillStyle = particle.color
                 
                 // Draw different shapes based on config
                 ctx.beginPath()
@@ -509,7 +642,7 @@ export default function MojaveParticles(props) {
                     
                     // Draw border only if enabled - no automatic backgrounds
                     if (border.enable && border.width > 0) {
-                        ctx.strokeStyle = border.color || (r !== undefined ? "rgba(" + r + ", " + g + ", " + b + ", " + currentOpacity + ")" : particle.color)
+                        ctx.strokeStyle = border.color || particle.color
                         ctx.lineWidth = border.width
                         ctx.strokeRect(
                             particle.x - textWidth/2 - padding,
@@ -520,7 +653,7 @@ export default function MojaveParticles(props) {
                     }
                     
                     // Draw the text/emoji
-                    ctx.fillStyle = r !== undefined ? "rgba(" + r + ", " + g + ", " + b + ", " + currentOpacity + ")" : particle.color
+                    ctx.fillStyle = particle.color
                     ctx.fillText(displayText, particle.x, particle.y)
                     ctx.restore()
                 }
@@ -913,6 +1046,12 @@ addPropertyControls(MojaveParticles, {
                 min: 1, max: 100, step: 1,
                 title: "Vibrate Frequency",
                 hidden: (move) => !move.vibrate || !move.enable
+            },
+            infinite: {
+                type: ControlType.Boolean,
+                defaultValue: ${config.move.infinite},
+                title: "Infinite Particles",
+                hidden: (move) => !move.enable
             }
         }
     },
@@ -1092,7 +1231,7 @@ export function App() {
         backgroundOpacity: 1,
         color: "#ffffff",
         colors: [],
-        amount: 50,
+        amount: 100,
         size: { type: "Range", value: 12, min: 8, max: 16 },
         opacity: { type: "Range", value: 0.9, min: 0.7, max: 1 },
         radius: 0,
@@ -1130,6 +1269,12 @@ export function App() {
             minOpacity: 0.1,
             maxOpacity: 1
         },
+        grow: {
+            enable: false,
+            speed: 1,
+            minSize: 0.5,
+            maxSize: 2
+        },
         modes: {
             connect: 80,
             connectRadius: 0,
@@ -1157,12 +1302,14 @@ export function App() {
             trailLength: 10,
             gravity: false,
             gravityAcceleration: 9.81,
+            reverseGravity: false,
             spin: false,
             spinSpeed: 2,
             attract: false,
             attractDistance: 200,
             vibrate: false,
-            vibrateFrequency: 50
+            vibrateFrequency: 50,
+            infinite: true
         },
         click: {
             enable: false,
@@ -1185,7 +1332,7 @@ export function App() {
             opacity: { type: "Range" as const, value: 0.7, min: 0.5, max: 1 },
             radius: 0, width: 800, height: 600, shape: { type: "circle" as const, text: "✨", iconName: "", sides: 6, mixedTypes: ["circle" as const, "square" as const, "triangle" as const] }, textBackground: false, textPadding: 4, fill: { enable: false, color: "#000000", opacity: 0.7 }, border: { enable: false, color: "#ffffff", width: 2.5, radius: 0, opacity: 1 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: false, speed: 1, minOpacity: 0.1, maxOpacity: 1 },
             modes: { connect: 0, connectRadius: 0, connectLinks: 1, grab: 140, grabLinks: 1, bubble: 400, bubbleSize: 40, bubbleDuration: 2, repulse: 200, repulseDistance: 0.4, push: 4, remove: 2, trail: 1, trailDelay: 0.005 },
-            move: { enable: true, direction: "none", speed: 1.5, random: false, straight: false, out: "out", trail: false, trailLength: 10, gravity: false, gravityAcceleration: 9.81, reverseGravity: false, spin: false, spinSpeed: 2, attract: false, attractDistance: 200, vibrate: false, vibrateFrequency: 50 },
+            move: { enable: true, direction: "none", speed: 1.5, random: false, straight: false, out: "out", trail: false, trailLength: 10, gravity: false, gravityAcceleration: 9.81, reverseGravity: false, spin: false, spinSpeed: 2, attract: false, attractDistance: 200, vibrate: false, vibrateFrequency: 50, infinite: true },
             click: { enable: false, mode: "push" },
             hover: { enable: true, mode: "grab", parallax: false, force: 50, smooth: 10 }
         },
@@ -1195,42 +1342,42 @@ export function App() {
             opacity: { type: "Range" as const, value: 0.8, min: 0.6, max: 1 },
             radius: 0, width: 800, height: 600, shape: { type: "circle" as const, text: "●", iconName: "", sides: 6, mixedTypes: ["circle" as const, "square" as const, "triangle" as const] }, textBackground: false, textPadding: 4, fill: { enable: false, color: "#000000", opacity: 0.7 }, border: { enable: false, color: "#ffffff", width: 2.5, radius: 0, opacity: 1 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: true, speed: 0.2, minOpacity: 0.3, maxOpacity: 0.8 },
             modes: { connect: 0, connectRadius: 0, connectLinks: 1, grab: 0, grabLinks: 1, bubble: 0, bubbleSize: 40, bubbleDuration: 2, repulse: 0, repulseDistance: 0.4, push: 4, remove: 2, trail: 1, trailDelay: 0.005 },
-            move: { enable: true, direction: "bottom", speed: 1.0, random: true, straight: false, out: "out", trail: false, trailLength: 10, gravity: false, gravityAcceleration: 9.81, reverseGravity: false, spin: false, spinSpeed: 2, attract: false, attractDistance: 200, vibrate: false, vibrateFrequency: 8 },
+            move: { enable: true, direction: "bottom", speed: 1.0, random: true, straight: false, out: "out", trail: false, trailLength: 10, gravity: false, gravityAcceleration: 9.81, reverseGravity: false, spin: false, spinSpeed: 2, attract: false, attractDistance: 200, vibrate: false, vibrateFrequency: 8, infinite: true },
             click: { enable: false, mode: "push" },
             hover: { enable: false, mode: "grab", parallax: false, force: 15, smooth: 20 }
         },
         rainbow: {
-            backdrop: "#000000", backgroundOpacity: 1, color: "#ffffff", colors: ["#ff6b6b", "#4ecdc4", "#45b7d1", "#96ceb4", "#feca57", "#fd79a8", "#a29bfe", "#ff7675"], amount: 60,
+            backdrop: "#000000", backgroundOpacity: 1, color: "#ffffff", colors: ["#ff6b6b", "#4ecdc4", "#45b7d1", "#96ceb4", "#feca57", "#fd79a8", "#a29bfe", "#ff7675"], amount: 100,
             size: { type: "Range" as const, value: 3, min: 2, max: 6 },
             opacity: { type: "Range" as const, value: 0.7, min: 0.5, max: 0.9 },
             radius: 0, width: 800, height: 600, shape: { type: "star" as const, text: "★", iconName: "", sides: 5, mixedTypes: ["circle" as const, "square" as const, "triangle" as const] }, textBackground: false, textPadding: 4, fill: { enable: false, color: "#000000", opacity: 0.7 }, border: { enable: false, color: "#ffffff", width: 2.5, radius: 0, opacity: 1 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: true, speed: 2, minOpacity: 0.3, maxOpacity: 1 },
             modes: { connect: 0, connectRadius: 0, connectLinks: 1, grab: 140, grabLinks: 1, bubble: 400, bubbleSize: 40, bubbleDuration: 2, repulse: 200, repulseDistance: 0.4, push: 6, remove: 2, trail: 1, trailDelay: 0.005 },
-            move: { enable: true, direction: "none", speed: 2, random: true, straight: false, out: "out", trail: true, trailLength: 8, gravity: false, gravityAcceleration: 9.81, reverseGravity: false, spin: true, spinSpeed: 1, attract: false, attractDistance: 200, vibrate: false, vibrateFrequency: 50 },
+            move: { enable: true, direction: "none", speed: 2, random: true, straight: false, out: "out", trail: true, trailLength: 8, gravity: false, gravityAcceleration: 9.81, reverseGravity: false, spin: true, spinSpeed: 1, attract: false, attractDistance: 200, vibrate: false, vibrateFrequency: 50, infinite: true },
             click: { enable: false, mode: "push" },
             hover: { enable: true, mode: "bubble", parallax: false, force: 60, smooth: 10 }
         },
         network: {
-            backdrop: "#0a0a0a", backgroundOpacity: 1, color: "#4fc3f7", colors: ["#4fc3f7", "#29b6f6", "#03a9f4", "#039be5", "#0288d1"], amount: 35,
+            backdrop: "#0a0a0a", backgroundOpacity: 1, color: "#4fc3f7", colors: ["#4fc3f7", "#29b6f6", "#03a9f4", "#039be5", "#0288d1"], amount: 100,
             size: { type: "Range" as const, value: 4, min: 2, max: 8 },
             opacity: { type: "Range" as const, value: 0.9, min: 0.7, max: 1 },
             radius: 0, width: 800, height: 600, shape: { type: "circle" as const, text: "●", iconName: "", sides: 6, mixedTypes: ["circle" as const, "square" as const, "triangle" as const] }, textBackground: false, textPadding: 4, fill: { enable: true, color: "#4fc3f7", opacity: 0.4 }, border: { enable: true, color: "#4fc3f7", width: 1, radius: 0, opacity: 0.6 }, glow: { enable: true, intensity: 0.4, size: 2 }, twinkle: { enable: false, speed: 1, minOpacity: 0.1, maxOpacity: 1 },
             modes: { connect: 250, connectRadius: 180, connectLinks: 0.9, grab: 120, grabLinks: 1, bubble: 0, bubbleSize: 40, bubbleDuration: 2, repulse: 0, repulseDistance: 0.4, push: 4, remove: 2, trail: 1, trailDelay: 0.005 },
-            move: { enable: true, direction: "none", speed: 0.3, random: true, straight: false, out: "bounce", trail: false, trailLength: 10, gravity: false, gravityAcceleration: 9.81, reverseGravity: false, spin: false, spinSpeed: 2, attract: false, attractDistance: 300, vibrate: false, vibrateFrequency: 50 },
+            move: { enable: true, direction: "none", speed: 0.3, random: true, straight: false, out: "bounce", trail: false, trailLength: 10, gravity: false, gravityAcceleration: 9.81, reverseGravity: false, spin: false, spinSpeed: 2, attract: false, attractDistance: 300, vibrate: false, vibrateFrequency: 50, infinite: false },
             click: { enable: false, mode: "push" },
             hover: { enable: true, mode: "grab", parallax: false, force: 30, smooth: 20 }
         },
         bubbles: {
-            backdrop: "#001a33", backgroundOpacity: 1, color: "#66ccff", colors: ["#66ccff", "#99ddff", "#ccf0ff", "#ffffff"], amount: 15,
+            backdrop: "#001a33", backgroundOpacity: 1, color: "#66ccff", colors: ["#66ccff", "#99ddff", "#ccf0ff", "#ffffff"], amount: 100,
             size: { type: "Range" as const, value: 12, min: 8, max: 35 },
             opacity: { type: "Range" as const, value: 0.3, min: 0.1, max: 0.5 },
             radius: 0, width: 800, height: 600, shape: { type: "text" as const, text: "○", iconName: "", sides: 6, mixedTypes: ["circle" as const, "square" as const, "triangle" as const] }, textBackground: false, textPadding: 4, fill: { enable: false, color: "#000000", opacity: 0.7 }, border: { enable: false, color: "#ffffff", width: 2.5, radius: 0, opacity: 1 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: true, speed: 0.8, minOpacity: 0.1, maxOpacity: 0.6 },
             modes: { connect: 0, connectRadius: 0, connectLinks: 1, grab: 200, grabLinks: 1, bubble: 500, bubbleSize: 80, bubbleDuration: 2, repulse: 300, repulseDistance: 0.6, push: 3, remove: 2, trail: 1, trailDelay: 0.005 },
-            move: { enable: true, direction: "top", speed: 0.8, random: true, straight: false, out: "out", trail: false, trailLength: 10, gravity: false, gravityAcceleration: 9.81, reverseGravity: false, spin: false, spinSpeed: 2, attract: false, attractDistance: 200, vibrate: true, vibrateFrequency: 30 },
+            move: { enable: true, direction: "top", speed: 0.8, random: true, straight: false, out: "out", trail: false, trailLength: 10, gravity: false, gravityAcceleration: 9.81, reverseGravity: false, spin: false, spinSpeed: 2, attract: false, attractDistance: 200, vibrate: true, vibrateFrequency: 30, infinite: true },
             click: { enable: false, mode: "bubble" },
             hover: { enable: true, mode: "bubble", parallax: false, force: 80, smooth: 20 }
         },
         lazer: {
-            backdrop: "#0a0a0a", backgroundOpacity: 1, color: "#ff0000", colors: ["#ff0000", "#ff4444", "#ff6666", "#ff8888", "#ffaaaa", "#ffcccc"], amount: 45,
+            backdrop: "#0a0a0a", backgroundOpacity: 1, color: "#ff0000", colors: ["#ff0000", "#ff4444", "#ff6666", "#ff8888", "#ffaaaa", "#ffcccc"], amount: 100,
             size: { type: "Range" as const, value: 25, min: 15, max: 60 },
             opacity: { type: "Range" as const, value: 0.7, min: 0.2, max: 0.9 },
             radius: 0, width: 800, height: 600, shape: { type: "circle" as const, text: "●", iconName: "", sides: 6, mixedTypes: ["circle" as const, "square" as const, "triangle" as const] }, textBackground: false, textPadding: 4, fill: { enable: true, color: "#ff0000", opacity: 0.3 }, border: { enable: false, color: "#ff6666", width: 2, radius: 0, opacity: 0.6 }, glow: { enable: true, intensity: 0.4, size: 2.5 }, twinkle: { enable: true, speed: 2, minOpacity: 0.3, maxOpacity: 1 },
@@ -1245,12 +1392,12 @@ export function App() {
             opacity: { type: "Range" as const, value: 0.8, min: 0.4, max: 1 },
             radius: 0, width: 800, height: 600, shape: { type: "diamond" as const, text: "◆", iconName: "", sides: 4, mixedTypes: ["circle" as const, "square" as const, "triangle" as const] }, textBackground: false, textPadding: 4, fill: { enable: false, color: "#000000", opacity: 0.7 }, border: { enable: false, color: "#ffffff", width: 2.5, radius: 0, opacity: 1 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: true, speed: 0.8, minOpacity: 0.3, maxOpacity: 1 },
             modes: { connect: 0, connectRadius: 0, connectLinks: 1, grab: 140, grabLinks: 1, bubble: 400, bubbleSize: 40, bubbleDuration: 2, repulse: 200, repulseDistance: 0.4, push: 4, remove: 2, trail: 1, trailDelay: 0.005 },
-            move: { enable: true, direction: "none", speed: 0.3, random: false, straight: false, out: "out", trail: false, trailLength: 10, gravity: false, gravityAcceleration: 9.81, reverseGravity: false, spin: true, spinSpeed: 0.2, attract: false, attractDistance: 300, vibrate: false, vibrateFrequency: 50 },
+            move: { enable: true, direction: "none", speed: 0.3, random: false, straight: false, out: "out", trail: false, trailLength: 10, gravity: false, gravityAcceleration: 9.81, reverseGravity: false, spin: true, spinSpeed: 0.2, attract: false, attractDistance: 300, vibrate: false, vibrateFrequency: 50, infinite: true },
             click: { enable: false, mode: "push" },
             hover: { enable: true, mode: "repulse", parallax: false, force: 80, smooth: 10 }
         },
         neon: {
-            backdrop: "#0a0a0a", backgroundOpacity: 1, color: "#ff00ff", colors: ["#ff00ff", "#00ffff", "#ffff00", "#ff0080"], amount: 35,
+            backdrop: "#0a0a0a", backgroundOpacity: 1, color: "#ff00ff", colors: ["#ff00ff", "#00ffff", "#ffff00", "#ff0080"], amount: 100,
             size: { type: "Range" as const, value: 5, min: 3, max: 12 },
             opacity: { type: "Value" as const, value: 0.9, min: 0.1, max: 1 },
             radius: 0, width: 800, height: 600, shape: { type: "square" as const, text: "■", iconName: "", sides: 4, mixedTypes: ["circle" as const, "square" as const, "triangle" as const] }, textBackground: false, textPadding: 4, fill: { enable: false, color: "#000000", opacity: 0.7 }, border: { enable: false, color: "#ffffff", width: 2.5, radius: 0, opacity: 1 }, glow: { enable: true, intensity: 0.4, size: 2.5 }, twinkle: { enable: true, speed: 2.5, minOpacity: 0.4, maxOpacity: 1 },
@@ -1260,24 +1407,24 @@ export function App() {
             hover: { enable: true, mode: "bubble", parallax: false, force: 80, smooth: 8 }
         },
         bordered: {
-            backdrop: "#1a1a1a", backgroundOpacity: 1, color: "#ffffff", colors: ["#ffffff", "#e0e0e0", "#c0c0c0"], amount: 40,
+            backdrop: "#1a1a1a", backgroundOpacity: 1, color: "#ffffff", colors: ["#ffffff", "#e0e0e0", "#c0c0c0"], amount: 100,
             size: { type: "Range" as const, value: 4, min: 3, max: 6 },
             opacity: { type: "Range" as const, value: 0.8, min: 0.6, max: 1 },
             radius: 0, width: 800, height: 600, shape: { type: "text" as const, text: "○", iconName: "", sides: 6, mixedTypes: ["circle" as const, "square" as const, "triangle" as const] }, textBackground: false, textPadding: 4, fill: { enable: false, color: "#000000", opacity: 0.7 }, border: { enable: true, color: "#ffffff", width: 4.0 }, glow: { enable: false, intensity: 0.15, size: 1.8 }, twinkle: { enable: false, speed: 1, minOpacity: 0.1, maxOpacity: 1 },
             modes: { connect: 0, connectRadius: 0, connectLinks: 1, grab: 140, grabLinks: 1, bubble: 400, bubbleSize: 40, bubbleDuration: 2, repulse: 200, repulseDistance: 0.4, push: 4, remove: 2, trail: 1, trailDelay: 0.005 },
-            move: { enable: true, direction: "random", speed: 1.5, random: false, straight: false, out: "out", trail: false, trailLength: 10, gravity: false, gravityAcceleration: 9.81, reverseGravity: false, spin: false, spinSpeed: 2, attract: false, attractDistance: 200, vibrate: false, vibrateFrequency: 50 },
+            move: { enable: true, direction: "random", speed: 1.5, random: false, straight: false, out: "out", trail: false, trailLength: 10, gravity: false, gravityAcceleration: 9.81, reverseGravity: false, spin: false, spinSpeed: 2, attract: false, attractDistance: 200, vibrate: false, vibrateFrequency: 50, infinite: true },
             click: { enable: false, mode: "push" },
             hover: { enable: true, mode: "grab", parallax: false, force: 60, smooth: 10 }
         },
         lavaLamp: {
-            backdrop: "#1a0f0f", backgroundOpacity: 1, color: "#ff6b35", colors: ["#ff6b35", "#ff8c42", "#ffa726", "#ff7043", "#ff5722", "#e64a19"], amount: 25,
-            size: { type: "Range" as const, value: 20, min: 8, max: 50 },
-            opacity: { type: "Range" as const, value: 0.6, min: 0.3, max: 0.8 },
-            radius: 0, width: 800, height: 600, shape: { type: "circle" as const, text: "●", iconName: "", sides: 6, mixedTypes: ["circle" as const, "square" as const, "triangle" as const] }, textBackground: false, textPadding: 4, fill: { enable: true, color: "#ff6b35", opacity: 0.4 }, border: { enable: false, color: "#ffffff", width: 2.5, radius: 0, opacity: 1 }, glow: { enable: true, intensity: 0.3, size: 2 }, twinkle: { enable: true, speed: 0.5, minOpacity: 0.2, maxOpacity: 0.8 },
-            modes: { connect: 0, connectRadius: 0, connectLinks: 1, grab: 200, grabLinks: 1, bubble: 800, bubbleSize: 120, bubbleDuration: 4, repulse: 300, repulseDistance: 0.8, push: 3, remove: 2, trail: 1, trailDelay: 0.005 },
-            move: { enable: true, direction: "top", speed: 0.6, random: true, straight: false, out: "bounce", trail: false, trailLength: 10, gravity: true, gravityAcceleration: 9.81, reverseGravity: true, spin: true, spinSpeed: 0.8, attract: false, attractDistance: 250, vibrate: true, vibrateFrequency: 15 },
+            backdrop: "#1a0f0f", backgroundOpacity: 1, color: "#ff6b35", colors: ["#ff6b35", "#ff8c42", "#ffa726", "#ff7043", "#ff5722", "#e64a19"], amount: 100,
+            size: { type: "Range" as const, value: 25, min: 12, max: 45 },
+            opacity: { type: "Range" as const, value: 0.8, min: 0.6, max: 1 },
+            radius: 0, width: 800, height: 600, shape: { type: "circle" as const, text: "●", iconName: "", sides: 6, mixedTypes: ["circle" as const, "square" as const, "triangle" as const] }, textBackground: false, textPadding: 4, fill: { enable: true, color: "#ff6b35", opacity: 0.5 }, border: { enable: false, color: "#ffffff", width: 2.5, radius: 0, opacity: 1 }, glow: { enable: true, intensity: 0.6, size: 3 }, twinkle: { enable: true, speed: 0.8, minOpacity: 0.3, maxOpacity: 1 },
+            modes: { connect: 0, connectRadius: 0, connectLinks: 1, grab: 0, grabLinks: 1, bubble: 0, bubbleSize: 120, bubbleDuration: 4, repulse: 0, repulseDistance: 0.8, push: 3, remove: 2, trail: 0, trailDelay: 0.005 },
+            move: { enable: true, direction: "top", speed: 1.0, random: false, straight: true, out: "bounce", trail: false, trailLength: 10, gravity: false, gravityAcceleration: 0.05, reverseGravity: false, spin: false, spinSpeed: 0.8, attract: false, attractDistance: 250, vibrate: false, vibrateFrequency: 15, infinite: true },
             click: { enable: false, mode: "bubble" },
-            hover: { enable: true, mode: "bubble", parallax: false, force: 100, smooth: 25 }
+            hover: { enable: false, mode: "bubble", parallax: false, force: 100, smooth: 25 }
         }
     }
 
@@ -2640,6 +2787,17 @@ export function App() {
                                     />
                                 </div>
                             )}
+
+                            <div style={{ marginBottom: '12px' }}>
+                                <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={particleConfig.move.infinite}
+                                        onChange={(e) => updateConfig('move.infinite', e.target.checked)}
+                                    />
+                                    Infinite Particles
+                                </label>
+                            </div>
                         </>
                     )}
                 </div>
@@ -2920,9 +3078,9 @@ export function App() {
                     )}
                 </div>
 
-                {/* Glow & Twinkle Effect Settings */}
+                {/* Particle Transformations */}
                 <div style={{ marginBottom: '20px', background: 'var(--card-bg)', padding: '15px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                    <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--text)' }}>Glow & Twinkle Effects</h3>
+                    <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--text)' }}>Particle Transformations</h3>
                     
                     <div style={{ marginBottom: '12px' }}>
                         <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -3021,6 +3179,64 @@ export function App() {
                                     step="0.1"
                                     value={particleConfig.twinkle.maxOpacity}
                                     onChange={(e) => updateConfig('twinkle.maxOpacity', parseFloat(e.target.value))}
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    <div style={{ marginTop: '16px', marginBottom: '12px' }}>
+                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <input
+                                type="checkbox"
+                                checked={particleConfig.grow?.enable || false}
+                                onChange={(e) => updateConfig('grow.enable', e.target.checked)}
+                            />
+                            Enable Grow/Shrink Effect
+                        </label>
+                    </div>
+
+                    {(particleConfig.grow?.enable || false) && (
+                        <>
+                            <div style={{ marginBottom: '12px' }}>
+                                <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                                    Grow Speed: {particleConfig.grow?.speed || 1}
+                                </label>
+                                <input
+                                    type="range"
+                                    min="0.1"
+                                    max="3"
+                                    step="0.1"
+                                    value={particleConfig.grow?.speed || 1}
+                                    onChange={(e) => updateConfig('grow.speed', parseFloat(e.target.value))}
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
+                            <div style={{ marginBottom: '12px' }}>
+                                <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                                    Min Size Multiplier: {particleConfig.grow?.minSize || 0.5}
+                                </label>
+                                <input
+                                    type="range"
+                                    min="0.1"
+                                    max="1"
+                                    step="0.1"
+                                    value={particleConfig.grow?.minSize || 0.5}
+                                    onChange={(e) => updateConfig('grow.minSize', parseFloat(e.target.value))}
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
+                            <div style={{ marginBottom: '12px' }}>
+                                <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                                    Max Size Multiplier: {particleConfig.grow?.maxSize || 2}
+                                </label>
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="4"
+                                    step="0.1"
+                                    value={particleConfig.grow?.maxSize || 2}
+                                    onChange={(e) => updateConfig('grow.maxSize', parseFloat(e.target.value))}
                                     style={{ width: '100%' }}
                                 />
                             </div>

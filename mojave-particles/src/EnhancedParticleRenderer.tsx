@@ -75,6 +75,7 @@ interface ParticleConfig {
         attractDistance: number
         vibrate: boolean
         vibrateFrequency: number
+        infinite: boolean
     }
     click: {
         enable: boolean
@@ -195,19 +196,35 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                 const particleColor = cols[Math.floor(Math.random() * cols.length)]
                 
                 let vx = 0, vy = 0
-                const speed = config.move.speed * 0.05 // Slower for preview
+                // Use standard speed calculation that respects the slider
+                const speed = config.move.speed * 0.2 // Higher preview speed for better slider response
                 
                 switch (config.move.direction) {
-                    case "top": vy = -speed; break
-                    case "bottom": vy = speed; break
-                    case "left": vx = -speed; break
-                    case "right": vx = speed; break
+                    case "top": 
+                        vy = -speed
+                        // Extremely minimal horizontal drift to prevent spinning
+                        vx = (Math.random() - 0.5) * 0.05
+                        break
+                    case "bottom": 
+                        vy = speed
+                        vx = (Math.random() - 0.5) * 0.05
+                        break
+                    case "left": 
+                        vx = -speed
+                        vy = (Math.random() - 0.5) * 0.05
+                        break
+                    case "right": 
+                        vx = speed
+                        vy = (Math.random() - 0.5) * 0.05
+                        break
                     case "random":
                     default:
-                        vx = (Math.random() - 0.5) * speed
-                        vy = (Math.random() - 0.5) * speed
+                        vx = (Math.random() - 0.5) * speed * 0.3
+                        vy = (Math.random() - 0.5) * speed * 0.3
                         break
                 }
+
+
 
                 // Calculate particle size based on type
                 let particleSize: number
@@ -239,9 +256,34 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                     particleOpacity = config.opacity.value
                 }
 
+                // Position particles based on movement direction
+                let startX = Math.random() * width
+                let startY = Math.random() * height
+                
+                // For directional movement, position particles more intelligently
+                if (config.move.direction === "top") {
+                    // For upward movement, start from bottom area
+                    startX = Math.random() * width
+                    startY = height - Math.random() * 100 // Start from bottom 100px
+                } else if (config.move.direction === "bottom") {
+                    // For downward movement, start from top area
+                    startX = Math.random() * width
+                    startY = Math.random() * 100 // Start from top 100px
+                } else if (config.move.direction === "left") {
+                    // For leftward movement, start from right area
+                    startX = width - Math.random() * 100 // Start from right 100px
+                    startY = Math.random() * height
+                } else if (config.move.direction === "right") {
+                    // For rightward movement, start from left area
+                    startX = Math.random() * 100 // Start from left 100px
+                    startY = Math.random() * height
+                }
+                
+
+
                 particles.push({
-                    x: Math.random() * width,
-                    y: Math.random() * height,
+                    x: startX,
+                    y: startY,
                     vx, vy,
                     color: particleColor,
                     size: particleSize,
@@ -329,16 +371,115 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                     if (config.move.out === "out") {
                         // Remove particles that exit the frame
                         if (particle.x < 0 || particle.x > width || particle.y < 0 || particle.y > height) {
-                            particle.x = Math.random() * width
-                            particle.y = -10 // Start from top
+                            if (config.move.infinite) {
+                                // Infinite particles: spawn based on movement direction with better distribution
+                                if (config.move.direction === "top") {
+                                    // For upward movement (bubbles), spawn at bottom with consistent spacing
+                                    particle.x = Math.random() * width
+                                    particle.y = height + Math.random() * 50 // Tighter spawn area for consistency
+                                } else if (config.move.direction === "bottom") {
+                                    // For downward movement, spawn at top with consistent spacing
+                                    particle.x = Math.random() * width
+                                    particle.y = -Math.random() * 50 // Tighter spawn area for consistency
+                                } else if (config.move.direction === "left") {
+                                    // For leftward movement, spawn at right
+                                    particle.x = width + Math.random() * 50
+                                    particle.y = Math.random() * height
+                                } else if (config.move.direction === "right") {
+                                    // For rightward movement, spawn at left
+                                    particle.x = -Math.random() * 50
+                                    particle.y = Math.random() * height
+                                } else {
+                                    // For random or other directions, spawn on opposite side
+                                    if (particle.x < 0) {
+                                        particle.x = width + Math.random() * 50
+                                        particle.y = Math.random() * height
+                                    } else if (particle.x > width) {
+                                        particle.x = -Math.random() * 50
+                                        particle.y = Math.random() * height
+                                    } else if (particle.y < 0) {
+                                        particle.y = height + Math.random() * 50
+                                        particle.x = Math.random() * width
+                                    } else if (particle.y > height) {
+                                        particle.y = -Math.random() * 50
+                                        particle.x = Math.random() * width
+                                    }
+                                }
+                                
+                                // Reset velocities to ensure consistent directional movement
+                                const baseSpeed = config.move.speed * 0.2
+                                const speedVariation = 0.9 + Math.random() * 0.2 // 0.9x to 1.1x speed for consistency
+                                const speed = baseSpeed * speedVariation
+                                
+                                // Set proper velocities based on direction to prevent spinning
+                                if (config.move.direction === "top") {
+                                    particle.vx = (Math.random() - 0.5) * 0.05 // Extremely minimal horizontal drift
+                                    particle.vy = -speed // Consistent upward movement
+                                } else if (config.move.direction === "bottom") {
+                                    particle.vx = (Math.random() - 0.5) * 0.05 // Extremely minimal horizontal drift
+                                    particle.vy = speed // Consistent downward movement
+                                } else if (config.move.direction === "left") {
+                                    particle.vx = -speed // Consistent leftward movement
+                                    particle.vy = (Math.random() - 0.5) * 0.05 // Extremely minimal vertical drift
+                                } else if (config.move.direction === "right") {
+                                    particle.vx = speed // Consistent rightward movement
+                                    particle.vy = (Math.random() - 0.5) * 0.05 // Extremely minimal vertical drift
+                                } else {
+                                    // For random movement, use controlled random velocities
+                                    particle.vx = (Math.random() - 0.5) * speed * 0.3
+                                    particle.vy = (Math.random() - 0.5) * speed * 0.3
+                                }
+                            } else {
+                                // Normal behavior: reset to top with controlled velocities
+                                particle.x = Math.random() * width
+                                particle.y = -10 // Start from top
+                                
+                                // Reset velocities to prevent chaotic movement
+                                const baseSpeed = config.move.speed * 0.2
+                                const speedVariation = 0.9 + Math.random() * 0.2
+                                const speed = baseSpeed * speedVariation
+                                
+                                if (config.move.direction === "top") {
+                                    particle.vx = (Math.random() - 0.5) * 0.05
+                                    particle.vy = -speed
+                                } else if (config.move.direction === "bottom") {
+                                    particle.vx = (Math.random() - 0.5) * 0.05
+                                    particle.vy = speed
+                                } else if (config.move.direction === "left") {
+                                    particle.vx = -speed
+                                    particle.vy = (Math.random() - 0.5) * 0.05
+                                } else if (config.move.direction === "right") {
+                                    particle.vx = speed
+                                    particle.vy = (Math.random() - 0.5) * 0.05
+                                } else {
+                                    particle.vx = (Math.random() - 0.5) * speed * 0.3
+                                    particle.vy = (Math.random() - 0.5) * speed * 0.3
+                                }
+                            }
                         }
                     } else {
-                        // Bounce off edges (default behavior)
-                        if (particle.x <= 0 || particle.x >= width) particle.vx *= -1
-                        if (particle.y <= 0 || particle.y >= height) particle.vy *= -1
+                        // Bounce off edges (default behavior) - with controlled velocity
+                        if (particle.x <= 0 || particle.x >= width) {
+                            particle.vx *= -0.8 // Reduce velocity on bounce to prevent chaos
+                        }
+                        if (particle.y <= 0 || particle.y >= height) {
+                            particle.vy *= -0.8 // Reduce velocity on bounce to prevent chaos
+                        }
                         particle.x = Math.max(0, Math.min(width, particle.x))
                         particle.y = Math.max(0, Math.min(height, particle.y))
                     }
+                    
+                    // Special behavior for lava lamp effect (direction "top")
+                    if (config.move.direction === "top" && config.backdrop === "#1a0f0f") {
+                        // Bubbles grow as they rise
+                        const heightRatio = 1 - (particle.y / height) // 0 at bottom, 1 at top
+                        particle.size = particle.originalSize * (0.6 + heightRatio * 0.8) // More dramatic growth
+                        particle.opacity = 0.3 + heightRatio * 0.6 // More dramatic fade in
+                        
+
+                    }
+
+
                 }
 
                 // Hover interactions
