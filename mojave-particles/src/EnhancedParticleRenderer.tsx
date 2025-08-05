@@ -111,6 +111,20 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
         x: -1, y: -1, isHovering: false
     })
 
+    // Calculate preview dimensions
+    const maxPreviewSize = 400
+    let previewWidth, previewHeight
+    
+    if (config.width > config.height) {
+        // Landscape: cap width, scale height proportionally
+        previewWidth = Math.min(config.width, maxPreviewSize)
+        previewHeight = (config.height / config.width) * previewWidth
+    } else {
+        // Portrait or square: cap height, scale width proportionally
+        previewHeight = Math.min(config.height, maxPreviewSize)
+        previewWidth = (config.width / config.height) * previewHeight
+    }
+
     useEffect(() => {
         const canvas = canvasRef.current
         if (!canvas) return
@@ -122,20 +136,6 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
             willReadFrequently: false
         })
         if (!ctx) return
-
-        // Use preview-appropriate size while maintaining aspect ratio
-        const maxPreviewSize = 400
-        let previewWidth, previewHeight
-        
-        if (config.width > config.height) {
-            // Landscape: cap width, scale height proportionally
-            previewWidth = Math.min(config.width, maxPreviewSize)
-            previewHeight = (config.height / config.width) * previewWidth
-        } else {
-            // Portrait or square: cap height, scale width proportionally
-            previewHeight = Math.min(config.height, maxPreviewSize)
-            previewWidth = (config.width / config.height) * previewHeight
-        }
         
         canvas.width = previewWidth
         canvas.height = previewHeight
@@ -879,8 +879,8 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
         <canvas
             ref={canvasRef}
             style={{
-                width: '100%',
-                height: '200px',
+                width: `${previewWidth}px`,
+                height: `${previewHeight}px`,
                 border: 'none',
                 borderRadius: '6px',
                 background: 'transparent'
