@@ -111,19 +111,32 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
         x: -1, y: -1, isHovering: false
     })
 
-    // Calculate preview dimensions
-    const maxPreviewSize = 400
+    // Calculate preview dimensions - more compact for plugin interface
+    const maxPreviewWidth = 300 // Reduced from 400
+    const maxPreviewHeight = 200 // Reduced from 400
     let previewWidth, previewHeight
     
     if (config.width > config.height) {
         // Landscape: cap width, scale height proportionally
-        previewWidth = Math.min(config.width, maxPreviewSize)
+        previewWidth = Math.min(config.width, maxPreviewWidth)
         previewHeight = (config.height / config.width) * previewWidth
+        // Ensure height doesn't exceed max
+        if (previewHeight > maxPreviewHeight) {
+            previewHeight = maxPreviewHeight
+            previewWidth = (config.width / config.height) * previewHeight
+        }
     } else {
         // Portrait or square: cap height, scale width proportionally
-        previewHeight = Math.min(config.height, maxPreviewSize)
+        previewHeight = Math.min(config.height, maxPreviewHeight)
         previewWidth = (config.width / config.height) * previewHeight
+        // Ensure width doesn't exceed max
+        if (previewWidth > maxPreviewWidth) {
+            previewWidth = maxPreviewWidth
+            previewHeight = (config.height / config.width) * previewWidth
+        }
     }
+    
+
 
     useEffect(() => {
         const canvas = canvasRef.current
@@ -876,15 +889,25 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
     }, [config])
 
     return (
-        <canvas
-            ref={canvasRef}
-            style={{
-                width: `${previewWidth}px`,
-                height: `${previewHeight}px`,
-                border: 'none',
-                borderRadius: '6px',
-                background: 'transparent'
-            }}
-        />
+        <div style={{ 
+            width: `${previewWidth}px`, 
+            height: `${previewHeight}px`,
+            maxWidth: '100%',
+            overflow: 'hidden',
+            borderRadius: '6px',
+            position: 'relative'
+        }}>
+            <canvas
+                ref={canvasRef}
+                style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    display: 'block'
+                }}
+            />
+        </div>
     )
 } 
