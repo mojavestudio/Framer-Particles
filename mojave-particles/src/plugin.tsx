@@ -245,6 +245,25 @@ export default function MojaveParticles(props) {
         canvas.style.width = width + "px"
         canvas.style.height = height + "px"
 
+        // Mouse tracking for hover interactions
+        const mouseRef = { x: -1, y: -1, isHovering: false }
+
+        // Mouse event handlers
+        const handleMouseMove = (e: MouseEvent) => {
+            const rect = canvas.getBoundingClientRect()
+            mouseRef.x = e.clientX - rect.left
+            mouseRef.y = e.clientY - rect.top
+            mouseRef.isHovering = true
+        }
+
+        const handleMouseLeave = () => {
+            mouseRef.isHovering = false
+        }
+
+        // Add mouse listeners for hover interactions
+        canvas.addEventListener("mousemove", handleMouseMove)
+        canvas.addEventListener("mouseleave", handleMouseLeave)
+
         // Create simple particles with staggered timing for continuous streams
         function createParticles() {
             const particles = []
@@ -274,8 +293,8 @@ export default function MojaveParticles(props) {
                 let vx = 0, vy = 0
                 const baseSpeed = move.speed * 0.2 // Higher speed for better slider response
                 
-                // Add minimal speed variation for consistent streams
-                const speedVariation = 0.9 + Math.random() * 0.2 // 0.9x to 1.1x speed for consistency
+                // Add natural speed variation for varied movement
+                const speedVariation = 0.6 + Math.random() * 0.8 // 0.6x to 1.4x speed for natural variation
                 const speed = baseSpeed * speedVariation
                 
                 switch (move.direction) {
@@ -302,44 +321,26 @@ export default function MojaveParticles(props) {
                         break
                 }
 
-                // Position particles with better distribution
+                // Position particles for natural infinite streams
                 let startX = Math.random() * width
                 let startY = Math.random() * height
                 
-                // For directional movement, distribute particles more naturally for continuous streams
+                // For directional movement, create natural infinite streams
                 if (move.direction === "top") {
-                    // For upward movement, create staggered stream from bottom
+                    // For upward movement (bubbles), distribute naturally
                     startX = Math.random() * width
-                    if (isInfiniteDirectional) {
-                        // Stagger particles along the movement path for continuous flow
-                        startY = height + (i * (height / amount)) + Math.random() * 50
-                    } else {
-                        startY = height - Math.random() * (height * 0.5) // Distribute across bottom 50%
-                    }
+                    startY = height - Math.random() * (height * 0.3) // Bottom 30% for natural flow
                 } else if (move.direction === "bottom") {
-                    // For downward movement, create staggered stream from top
+                    // For downward movement (snow), distribute naturally
                     startX = Math.random() * width
-                    if (isInfiniteDirectional) {
-                        // Stagger particles along the movement path for continuous flow
-                        startY = -(i * (height / amount)) - Math.random() * 50
-                    } else {
-                        startY = Math.random() * (height * 0.5) // Distribute across top 50%
-                    }
+                    startY = Math.random() * (height * 0.3) // Top 30% for natural flow
                 } else if (move.direction === "left") {
-                    // For leftward movement, create staggered stream from right
-                    if (isInfiniteDirectional) {
-                        startX = width + (i * (width / amount)) + Math.random() * 50
-                    } else {
-                        startX = width - Math.random() * (width * 0.5) // Distribute across right 50%
-                    }
+                    // For leftward movement, distribute naturally
+                    startX = width - Math.random() * (width * 0.3) // Right 30% for natural flow
                     startY = Math.random() * height
                 } else if (move.direction === "right") {
-                    // For rightward movement, create staggered stream from left
-                    if (isInfiniteDirectional) {
-                        startX = -(i * (width / amount)) - Math.random() * 50
-                    } else {
-                        startX = Math.random() * (width * 0.5) // Distribute across left 50%
-                    }
+                    // For rightward movement, distribute naturally
+                    startX = Math.random() * (width * 0.3) // Left 30% for natural flow
                     startY = Math.random() * height
                 }
 
@@ -387,6 +388,9 @@ export default function MojaveParticles(props) {
             // Draw particles
             const particles = particlesRef.current
             particles.forEach((particle) => {
+                // Reset size for bubble effect
+                particle.size = particle.originalSize
+                
                 // Update position
                 if (move.enable) {
                     // Apply gravity if enabled
@@ -408,41 +412,41 @@ export default function MojaveParticles(props) {
                             if (move.infinite) {
                                 // Infinite particles: spawn based on movement direction with better distribution
                                 if (move.direction === "top") {
-                                    // For upward movement (bubbles), spawn at bottom with consistent spacing
+                                    // For upward movement (bubbles), spawn at bottom for infinite stream
                                     particle.x = Math.random() * width
-                                    particle.y = height + Math.random() * 50 // Tighter spawn area for consistency
+                                    particle.y = height - Math.random() * 50 // Spawn within bottom area
                                 } else if (move.direction === "bottom") {
-                                    // For downward movement, spawn at top with consistent spacing
+                                    // For downward movement (snow), spawn at top for infinite stream
                                     particle.x = Math.random() * width
-                                    particle.y = -Math.random() * 50 // Tighter spawn area for consistency
+                                    particle.y = Math.random() * 50 // Spawn within top area
                                 } else if (move.direction === "left") {
-                                    // For leftward movement, spawn at right
-                                    particle.x = width + Math.random() * 50
+                                    // For leftward movement, spawn at right for infinite stream
+                                    particle.x = width - Math.random() * 50 // Spawn within right area
                                     particle.y = Math.random() * height
                                 } else if (move.direction === "right") {
-                                    // For rightward movement, spawn at left
-                                    particle.x = -Math.random() * 50
+                                    // For rightward movement, spawn at left for infinite stream
+                                    particle.x = Math.random() * 50 // Spawn within left area
                                     particle.y = Math.random() * height
                                 } else {
                                     // For random or other directions, spawn on opposite side
                                     if (particle.x < 0) {
-                                        particle.x = width + Math.random() * 100
+                                        particle.x = width - Math.random() * 50
                                         particle.y = Math.random() * height
                                     } else if (particle.x > width) {
-                                        particle.x = -Math.random() * 100
+                                        particle.x = Math.random() * 50
                                         particle.y = Math.random() * height
                                     } else if (particle.y < 0) {
-                                        particle.y = height + Math.random() * 100
+                                        particle.y = height - Math.random() * 50
                                         particle.x = Math.random() * width
                                     } else if (particle.y > height) {
-                                        particle.y = -Math.random() * 100
+                                        particle.y = Math.random() * 50
                                         particle.x = Math.random() * width
                                     }
                                 }
                                 
-                                // Reset velocities to ensure consistent directional movement
+                                // Reset velocities with natural variation for infinite streams
                                 const baseSpeed = move.speed * 0.2
-                                const speedVariation = 0.9 + Math.random() * 0.2 // 0.9x to 1.1x speed for consistency
+                                const speedVariation = 0.6 + Math.random() * 0.8 // 0.6x to 1.4x speed for natural variation
                                 const speed = baseSpeed * speedVariation
                                 
                                 // Set proper velocities based on direction to prevent spinning
@@ -483,6 +487,39 @@ export default function MojaveParticles(props) {
                         }
                         particle.x = Math.max(0, Math.min(width, particle.x))
                         particle.y = Math.max(0, Math.min(height, particle.y))
+                    }
+                }
+
+                // Hover interactions
+                if (hover.enable && mouseRef.isHovering) {
+                    const dx = mouseRef.x - particle.x
+                    const dy = mouseRef.y - particle.y
+                    const distance = Math.sqrt(dx * dx + dy * dy)
+
+                    switch (hover.mode) {
+                        case "grab": {
+                            if (distance < modes.grab * 0.5) {
+                                const force = (modes.grab * 0.5 - distance) / (modes.grab * 0.5) * hover.force * 0.02
+                                particle.x += (dx / distance) * force
+                                particle.y += (dy / distance) * force
+                            }
+                            break
+                        }
+                        case "bubble": {
+                            if (distance < modes.bubble * 0.3) {
+                                const scale = 1 + (modes.bubble * 0.3 - distance) / (modes.bubble * 0.3)
+                                particle.size = particle.originalSize * scale
+                            }
+                            break
+                        }
+                        case "attract": {
+                            if (distance < move.attractDistance * 0.5) {
+                                const force = hover.force * 0.01
+                                particle.x += (dx / distance) * force
+                                particle.y += (dy / distance) * force
+                            }
+                            break
+                        }
                     }
                 }
 
@@ -709,7 +746,10 @@ export default function MojaveParticles(props) {
             if (animationRef.current) {
                 cancelAnimationFrame(animationRef.current)
             }
-            }
+            // Clean up mouse event listeners
+            canvas.removeEventListener("mousemove", handleMouseMove)
+            canvas.removeEventListener("mouseleave", handleMouseLeave)
+        }
     }, [amount, color, colors, move, hover, click, modes, twinkle, glow, border, backdrop, backgroundOpacity, size, opacity, radius, width, height])
 
     return (

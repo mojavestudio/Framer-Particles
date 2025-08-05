@@ -196,8 +196,11 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                 const particleColor = cols[Math.floor(Math.random() * cols.length)]
                 
                 let vx = 0, vy = 0
-                // Use standard speed calculation that respects the slider
-                const speed = config.move.speed * 0.2 // Higher preview speed for better slider response
+                const baseSpeed = config.move.speed * 0.2 // Higher speed for better slider response
+                
+                // Add natural speed variation for varied movement
+                const speedVariation = 0.6 + Math.random() * 0.8 // 0.6x to 1.4x speed for natural variation
+                const speed = baseSpeed * speedVariation
                 
                 switch (config.move.direction) {
                     case "top": 
@@ -217,7 +220,6 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                         vx = speed
                         vy = (Math.random() - 0.5) * 0.05
                         break
-                    case "random":
                     default:
                         vx = (Math.random() - 0.5) * speed * 0.3
                         vy = (Math.random() - 0.5) * speed * 0.3
@@ -256,26 +258,26 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                     particleOpacity = config.opacity.value
                 }
 
-                // Position particles based on movement direction
+                // Position particles for natural infinite streams
                 let startX = Math.random() * width
                 let startY = Math.random() * height
                 
-                // For directional movement, position particles more intelligently
+                // For directional movement, create natural infinite streams
                 if (config.move.direction === "top") {
-                    // For upward movement, start from bottom area
+                    // For upward movement (bubbles), distribute naturally
                     startX = Math.random() * width
-                    startY = height - Math.random() * 100 // Start from bottom 100px
+                    startY = height - Math.random() * (height * 0.3) // Bottom 30% for natural flow
                 } else if (config.move.direction === "bottom") {
-                    // For downward movement, start from top area
+                    // For downward movement (snow), distribute naturally
                     startX = Math.random() * width
-                    startY = Math.random() * 100 // Start from top 100px
+                    startY = Math.random() * (height * 0.3) // Top 30% for natural flow
                 } else if (config.move.direction === "left") {
-                    // For leftward movement, start from right area
-                    startX = width - Math.random() * 100 // Start from right 100px
+                    // For leftward movement, distribute naturally
+                    startX = width - Math.random() * (width * 0.3) // Right 30% for natural flow
                     startY = Math.random() * height
                 } else if (config.move.direction === "right") {
-                    // For rightward movement, start from left area
-                    startX = Math.random() * 100 // Start from left 100px
+                    // For rightward movement, distribute naturally
+                    startX = Math.random() * (width * 0.3) // Left 30% for natural flow
                     startY = Math.random() * height
                 }
                 
@@ -374,41 +376,41 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                             if (config.move.infinite) {
                                 // Infinite particles: spawn based on movement direction with better distribution
                                 if (config.move.direction === "top") {
-                                    // For upward movement (bubbles), spawn at bottom with consistent spacing
+                                    // For upward movement (bubbles), spawn at bottom for infinite stream
                                     particle.x = Math.random() * width
-                                    particle.y = height + Math.random() * 50 // Tighter spawn area for consistency
+                                    particle.y = height - Math.random() * 50 // Spawn within bottom area
                                 } else if (config.move.direction === "bottom") {
-                                    // For downward movement, spawn at top with consistent spacing
+                                    // For downward movement (snow), spawn at top for infinite stream
                                     particle.x = Math.random() * width
-                                    particle.y = -Math.random() * 50 // Tighter spawn area for consistency
+                                    particle.y = Math.random() * 50 // Spawn within top area
                                 } else if (config.move.direction === "left") {
-                                    // For leftward movement, spawn at right
-                                    particle.x = width + Math.random() * 50
+                                    // For leftward movement, spawn at right for infinite stream
+                                    particle.x = width - Math.random() * 50 // Spawn within right area
                                     particle.y = Math.random() * height
                                 } else if (config.move.direction === "right") {
-                                    // For rightward movement, spawn at left
-                                    particle.x = -Math.random() * 50
+                                    // For rightward movement, spawn at left for infinite stream
+                                    particle.x = Math.random() * 50 // Spawn within left area
                                     particle.y = Math.random() * height
                                 } else {
                                     // For random or other directions, spawn on opposite side
                                     if (particle.x < 0) {
-                                        particle.x = width + Math.random() * 50
+                                        particle.x = width - Math.random() * 50
                                         particle.y = Math.random() * height
                                     } else if (particle.x > width) {
-                                        particle.x = -Math.random() * 50
+                                        particle.x = Math.random() * 50
                                         particle.y = Math.random() * height
                                     } else if (particle.y < 0) {
-                                        particle.y = height + Math.random() * 50
+                                        particle.y = height - Math.random() * 50
                                         particle.x = Math.random() * width
                                     } else if (particle.y > height) {
-                                        particle.y = -Math.random() * 50
+                                        particle.y = Math.random() * 50
                                         particle.x = Math.random() * width
                                     }
                                 }
                                 
-                                // Reset velocities to ensure consistent directional movement
+                                // Reset velocities with natural variation for infinite streams
                                 const baseSpeed = config.move.speed * 0.2
-                                const speedVariation = 0.9 + Math.random() * 0.2 // 0.9x to 1.1x speed for consistency
+                                const speedVariation = 0.6 + Math.random() * 0.8 // 0.6x to 1.4x speed for natural variation
                                 const speed = baseSpeed * speedVariation
                                 
                                 // Set proper velocities based on direction to prevent spinning
@@ -429,6 +431,10 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                                     particle.vx = (Math.random() - 0.5) * speed * 0.3
                                     particle.vy = (Math.random() - 0.5) * speed * 0.3
                                 }
+                                
+                                // Reset particle properties to maintain consistency
+                                particle.size = particle.originalSize
+                                particle.twinklePhase = Math.random() * Math.PI * 2
                             } else {
                                 // Normal behavior: reset to top with controlled velocities
                                 particle.x = Math.random() * width

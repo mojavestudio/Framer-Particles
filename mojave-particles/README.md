@@ -42,9 +42,10 @@ npm run dev
 - **Particle Appearance**: Amount, primary color, multi-color palette management
 - **Particle Properties**: Advanced size (1-2000px) and opacity controls with type selection
 - **Particle Connections**: Network line drawing with distance and opacity controls
-- **Mouse Interactions**: Hover effects (grab, bubble, repulse) with strength tuning
+- **Mouse Interactions**: Advanced hover effects (bubble, grab, attract, repulse) with proper mouse tracking
 - **Physics Controls**: Gravity, reverse gravity, spin, vibration, and boundary behavior
 - **Visual Effects**: Shape-aware glow effects and twinkle animations
+- **Infinite Streams**: Natural continuous particle flows with varied speeds and no banding
 
 ### **9 Professional Presets**
 - **Black Hole** - Clean, minimal cosmic particles
@@ -112,6 +113,15 @@ npm run pack     # Create plugin package
 ```
 
 ## 🎯 Recent Updates
+
+### **v1.4.0 - Infinite Streams & Hover Interactions**
+- **✅ Fixed Infinite Stream Logic** - Natural continuous particle flows without bands
+- **✅ Enhanced Hover Interactions** - Bubble, grab, and attract effects with proper mouse tracking
+- **✅ Natural Speed Variation** - Particles move at varied speeds (0.6x to 1.4x) for organic movement
+- **✅ Eliminated Violent Motion** - Particles stay within canvas bounds, no more artifacts
+- **✅ Unified Positioning System** - Consistent particle distribution for initial creation and boundary reset
+- **✅ Improved Bubble Effects** - Particles grow naturally when hovering with bubble mode
+- **✅ Better Boundary Handling** - Particles reset at edges with natural distribution
 
 ### **v1.3.0 - Enhanced Physics & Effects**
 - **✅ Reverse Gravity Toggle** - Authentic lava lamp physics
