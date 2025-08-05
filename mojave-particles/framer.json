@@ -1,1 +1,1 @@
-{"id":"a1b2c3","name":"Mojave Particles Pro","description":"Professional particle system with infinite streams and hover interactions","version":"1.4.0","author":"Mojave Studio LLC","modes":["canvas"],"icon":"/icon.png","main":"src/plugin.tsx"}
+{"id":"a1b2c3","name":"Mojave Particles Pro","description":"Professional particle system with unified preview and generated code","version":"1.4.1","author":"Mojave Studio LLC","modes":["canvas"],"icon":"/icon.png","main":"src/plugin.tsx"}
