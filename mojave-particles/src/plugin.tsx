@@ -1745,9 +1745,9 @@ export function App() {
         }}>
             {showLoadingScreen && <LoadingScreen />}
             <div style={{ 
-                padding: '40px 20px 20px 20px', 
+                padding: '20px', 
                 width: '100%', 
-                maxWidth: '400px',
+                maxWidth: '100%',
                 margin: '0 auto',
                 opacity: showLoadingScreen ? 0 : 1,
                 transform: showLoadingScreen ? 'translateY(20px)' : 'translateY(0)',

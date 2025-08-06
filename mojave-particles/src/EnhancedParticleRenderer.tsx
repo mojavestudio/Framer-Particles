@@ -879,12 +879,13 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
 
     return (
         <div style={{ 
-            width: `${previewWidth}px`, 
+            width: '100%', 
             height: `${previewHeight}px`,
-            maxWidth: '100%',
+            maxWidth: '400px',
             overflow: 'hidden',
             borderRadius: '6px',
-            position: 'relative'
+            position: 'relative',
+            margin: '0 auto'
         }}>
             <canvas
                 ref={canvasRef}
