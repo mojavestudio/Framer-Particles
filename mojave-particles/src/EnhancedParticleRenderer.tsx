@@ -154,7 +154,7 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                 spinAngle: number
                 originalSize: number
             }> = []
-            const amount = Math.min(config.amount, 50) // Limit for preview to avoid overcrowding
+            const amount = config.amount // Use full amount for consistency with generated code
             const cols = config.colors.length > 0 ? config.colors : [config.color]
             
             // Using color array for particle creation
@@ -169,11 +169,11 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                 const speedVariation = 0.6 + Math.random() * 0.8 // 0.6x to 1.4x speed for natural variation
                 const speed = baseSpeed * speedVariation
                 
-                // Handle random movement setting
-                if (config.move.random) {
-                    // Random movement overrides direction
-                    vx = (Math.random() - 0.5) * speed * 2
-                    vy = (Math.random() - 0.5) * speed * 2
+                // Handle snow preset specifically (has random: true)
+                if (config.move.direction === "bottom" && config.move.random) {
+                    // Snow preset with random movement
+                    vx = (Math.random() - 0.5) * speed * 0.5
+                    vy = speed + (Math.random() - 0.5) * speed * 0.3
                 } else {
                     switch (config.move.direction) {
                         case "top": 
@@ -202,24 +202,20 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
 
 
 
-                // Calculate particle size based on type (scaled for preview)
+                // Calculate particle size based on type
                 let particleSize: number
                 if (config.size.type === "Range") {
-                    const baseSize = Math.random() * (config.size.max - config.size.min) + config.size.min
-                    // Use less aggressive scaling for small particles to keep them visible
-                    particleSize = baseSize < 10 ? baseSize * 0.8 : baseSize * 0.4
+                    particleSize = Math.random() * (config.size.max - config.size.min) + config.size.min
                 } else if (config.size.type === "Small") {
-                    particleSize = (Math.random() * (50 - 1) + 1) * 0.4
+                    particleSize = Math.random() * (50 - 1) + 1
                 } else if (config.size.type === "Medium") {
-                    particleSize = (Math.random() * (200 - 50) + 50) * 0.4
+                    particleSize = Math.random() * (200 - 50) + 50
                 } else if (config.size.type === "Large") {
-                    particleSize = (Math.random() * (500 - 200) + 200) * 0.4
+                    particleSize = Math.random() * (500 - 200) + 200
                 } else if (config.size.type === "ExtraLarge") {
-                    particleSize = (Math.random() * (1000 - 500) + 500) * 0.4
+                    particleSize = Math.random() * (1000 - 500) + 500
                 } else {
-                    const baseSize = config.size.value
-                    // Use less aggressive scaling for small particles to keep them visible
-                    particleSize = baseSize < 10 ? baseSize * 0.8 : baseSize * 0.4
+                    particleSize = config.size.value
                 }
 
                 // Calculate particle opacity based on type (matching generated code)
@@ -393,7 +389,11 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                                 const speed = baseSpeed * speedVariation
                                 
                                 // Set proper velocities based on direction to prevent spinning
-                                if (config.move.direction === "top") {
+                                if (config.move.direction === "bottom" && config.move.random) {
+                                    // Snow preset with random movement
+                                    particle.vx = (Math.random() - 0.5) * speed * 0.5
+                                    particle.vy = speed + (Math.random() - 0.5) * speed * 0.3
+                                } else if (config.move.direction === "top") {
                                     particle.vx = (Math.random() - 0.5) * 0.05 // Extremely minimal horizontal drift
                                     particle.vy = -speed // Consistent upward movement
                                 } else if (config.move.direction === "bottom") {
@@ -444,20 +444,20 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                         }
                     } else {
                         // Bounce off edges (default behavior) - with controlled velocity
-                        if (particle.x <= 0 || particle.x >= previewWidth) {
+                        if (particle.x <= 0 || particle.x >= width) {
                             particle.vx *= -0.8 // Reduce velocity on bounce to prevent chaos
                         }
-                        if (particle.y <= 0 || particle.y >= previewHeight) {
+                        if (particle.y <= 0 || particle.y >= height) {
                             particle.vy *= -0.8 // Reduce velocity on bounce to prevent chaos
                         }
-                        particle.x = Math.max(0, Math.min(previewWidth, particle.x))
-                        particle.y = Math.max(0, Math.min(previewHeight, particle.y))
+                        particle.x = Math.max(0, Math.min(width, particle.x))
+                        particle.y = Math.max(0, Math.min(height, particle.y))
                     }
                     
                     // Special behavior for lava lamp effect (direction "top")
                     if (config.move.direction === "top" && config.backdrop === "#1a0f0f") {
                         // Bubbles grow as they rise
-                        const heightRatio = 1 - (particle.y / previewHeight) // 0 at bottom, 1 at top
+                        const heightRatio = 1 - (particle.y / height) // 0 at bottom, 1 at top
                         particle.size = particle.originalSize * (0.6 + heightRatio * 0.8) // More dramatic growth
                         particle.opacity = 0.3 + heightRatio * 0.6 // More dramatic fade in
                         

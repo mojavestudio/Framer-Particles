@@ -297,11 +297,11 @@ export default function MojaveParticles(props) {
                 const speedVariation = 0.6 + Math.random() * 0.8 // 0.6x to 1.4x speed for natural variation
                 const speed = baseSpeed * speedVariation
                 
-                // Handle random movement setting
-                if (move.random) {
-                    // Random movement overrides direction
-                    vx = (Math.random() - 0.5) * speed * 2
-                    vy = (Math.random() - 0.5) * speed * 2
+                // Handle snow preset specifically (has random: true)
+                if (move.direction === "bottom" && move.random) {
+                    // Snow preset with random movement
+                    vx = (Math.random() - 0.5) * speed * 0.5
+                    vy = speed + (Math.random() - 0.5) * speed * 0.3
                 } else {
                     switch (move.direction) {
                         case "top": 
@@ -457,10 +457,10 @@ export default function MojaveParticles(props) {
                                 const speed = baseSpeed * speedVariation
                                 
                                 // Set proper velocities based on direction to prevent spinning
-                                if (move.random) {
-                                    // Random movement overrides direction
-                                    particle.vx = (Math.random() - 0.5) * speed * 2
-                                    particle.vy = (Math.random() - 0.5) * speed * 2
+                                if (move.direction === "bottom" && move.random) {
+                                    // Snow preset with random movement
+                                    particle.vx = (Math.random() - 0.5) * speed * 0.5
+                                    particle.vy = speed + (Math.random() - 0.5) * speed * 0.3
                                 } else if (move.direction === "top") {
                                     particle.vx = (Math.random() - 0.5) * 0.05 // Extremely minimal horizontal drift
                                     particle.vy = -speed // Consistent upward movement
