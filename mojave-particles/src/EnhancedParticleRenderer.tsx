@@ -433,20 +433,20 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                         }
                     } else {
                         // Bounce off edges (default behavior) - with controlled velocity
-                        if (particle.x <= 0 || particle.x >= width) {
+                        if (particle.x <= 0 || particle.x >= previewWidth) {
                             particle.vx *= -0.8 // Reduce velocity on bounce to prevent chaos
                         }
-                        if (particle.y <= 0 || particle.y >= height) {
+                        if (particle.y <= 0 || particle.y >= previewHeight) {
                             particle.vy *= -0.8 // Reduce velocity on bounce to prevent chaos
                         }
-                        particle.x = Math.max(0, Math.min(width, particle.x))
-                        particle.y = Math.max(0, Math.min(height, particle.y))
+                        particle.x = Math.max(0, Math.min(previewWidth, particle.x))
+                        particle.y = Math.max(0, Math.min(previewHeight, particle.y))
                     }
                     
                     // Special behavior for lava lamp effect (direction "top")
                     if (config.move.direction === "top" && config.backdrop === "#1a0f0f") {
                         // Bubbles grow as they rise
-                        const heightRatio = 1 - (particle.y / height) // 0 at bottom, 1 at top
+                        const heightRatio = 1 - (particle.y / previewHeight) // 0 at bottom, 1 at top
                         particle.size = particle.originalSize * (0.6 + heightRatio * 0.8) // More dramatic growth
                         particle.opacity = 0.3 + heightRatio * 0.6 // More dramatic fade in
                         
