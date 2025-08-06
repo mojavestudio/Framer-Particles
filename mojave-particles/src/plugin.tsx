@@ -86,7 +86,7 @@ const ClearableNumberInput: React.FC<ClearableNumberInputProps> = ({ min, max, v
 if (framer.mode === "canvas") {
     framer.showUI({
         position: "top right",
-        width: 640,
+        width: 400,
         height: 900,
     })
 }
@@ -1747,7 +1747,7 @@ export function App() {
             <div style={{ 
                 padding: '20px', 
                 width: '100%', 
-                maxWidth: '260px',
+                maxWidth: '360px',
                 margin: '0 auto',
                 opacity: showLoadingScreen ? 0 : 1,
                 transform: showLoadingScreen ? 'translateY(20px)' : 'translateY(0)',
