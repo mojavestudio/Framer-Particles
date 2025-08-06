@@ -154,7 +154,7 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                 spinAngle: number
                 originalSize: number
             }> = []
-            const amount = config.amount // Use full amount for consistency with generated code
+            const amount = Math.min(config.amount, 50) // Limit for preview to avoid overcrowding
             const cols = config.colors.length > 0 ? config.colors : [config.color]
             
             // Using color array for particle creation
@@ -195,20 +195,20 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
 
 
 
-                // Calculate particle size based on type
+                // Calculate particle size based on type (scaled for preview)
                 let particleSize: number
                 if (config.size.type === "Range") {
-                    particleSize = Math.random() * (config.size.max - config.size.min) + config.size.min
+                    particleSize = (Math.random() * (config.size.max - config.size.min) + config.size.min) * 0.4
                 } else if (config.size.type === "Small") {
-                    particleSize = Math.random() * (50 - 1) + 1
+                    particleSize = (Math.random() * (50 - 1) + 1) * 0.4
                 } else if (config.size.type === "Medium") {
-                    particleSize = Math.random() * (200 - 50) + 50
+                    particleSize = (Math.random() * (200 - 50) + 50) * 0.4
                 } else if (config.size.type === "Large") {
-                    particleSize = Math.random() * (500 - 200) + 200
+                    particleSize = (Math.random() * (500 - 200) + 200) * 0.4
                 } else if (config.size.type === "ExtraLarge") {
-                    particleSize = Math.random() * (1000 - 500) + 500
+                    particleSize = (Math.random() * (1000 - 500) + 500) * 0.4
                 } else {
-                    particleSize = config.size.value
+                    particleSize = config.size.value * 0.4
                 }
 
                 // Calculate particle opacity based on type (matching generated code)
