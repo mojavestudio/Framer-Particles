@@ -114,6 +114,13 @@ npm run pack     # Create plugin package
 
 ## 🎯 Recent Updates
 
+### **v1.4.1 - Critical Bug Fixes & Performance Optimization**
+- **✅ Fixed Preset Selection Crash** - Resolved interface mismatch between main plugin and renderer
+- **✅ Added Missing Properties** - Added `grow`, `textBackground`, `textPadding`, and `reverseGravity` to all presets
+- **✅ Optimized Particle Counts** - Reduced lazer, neon, and lavaLamp presets from 100 to 20 particles for better performance
+- **✅ Fixed TypeScript Errors** - Resolved all compilation errors and interface inconsistencies
+- **✅ Enhanced Error Handling** - Added proper error handling and debugging for better stability
+
 ### **v1.4.0 - Infinite Streams & Hover Interactions**
 - **✅ Fixed Infinite Stream Logic** - Natural continuous particle flows without bands
 - **✅ Enhanced Hover Interactions** - Bubble, grab, and attract effects with proper mouse tracking

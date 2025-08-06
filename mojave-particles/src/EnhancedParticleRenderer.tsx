@@ -18,6 +18,8 @@ interface ParticleConfig {
         sides: number
         mixedTypes: ("circle" | "square" | "triangle" | "star" | "hexagon" | "diamond")[]
     }
+    textBackground: boolean
+    textPadding: number
     fill: {
         enable: boolean
         color: string
@@ -40,6 +42,12 @@ interface ParticleConfig {
         speed: number
         minOpacity: number
         maxOpacity: number
+    }
+    grow: {
+        enable: boolean
+        speed: number
+        minSize: number
+        maxSize: number
     }
     modes: {
         connect: number
@@ -69,6 +77,7 @@ interface ParticleConfig {
         trailLength: number
         gravity: boolean
         gravityAcceleration: number
+        reverseGravity: boolean
         spin: boolean
         spinSpeed: number
         attract: boolean
@@ -115,12 +124,20 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
     const previewSize = 280 // Fixed square size
     const previewWidth = previewSize
     const previewHeight = previewSize
+
+    // Add error handling and debugging
+    console.log('EnhancedLivePreview render with config:', config)
     
 
 
     useEffect(() => {
+        console.log('EnhancedLivePreview useEffect triggered with config:', config)
+        
         const canvas = canvasRef.current
-        if (!canvas) return
+        if (!canvas) {
+            console.error('Canvas ref is null')
+            return
+        }
 
         const ctx = canvas.getContext('2d', {
             alpha: true,
@@ -128,7 +145,10 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
             colorSpace: "srgb",
             willReadFrequently: false
         })
-        if (!ctx) return
+        if (!ctx) {
+            console.error('Could not get 2D context')
+            return
+        }
         
         canvas.width = previewWidth
         canvas.height = previewHeight
@@ -139,6 +159,8 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
 
         // Create particles based on config
         function createParticles() {
+            console.log('Creating particles with config:', config)
+            
             // Creating particles with the current configuration
             
             const particles: Array<{
@@ -433,20 +455,20 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                         }
                     } else {
                         // Bounce off edges (default behavior) - with controlled velocity
-                        if (particle.x <= 0 || particle.x >= width) {
+                        if (particle.x <= 0 || particle.x >= previewWidth) {
                             particle.vx *= -0.8 // Reduce velocity on bounce to prevent chaos
                         }
-                        if (particle.y <= 0 || particle.y >= height) {
+                        if (particle.y <= 0 || particle.y >= previewHeight) {
                             particle.vy *= -0.8 // Reduce velocity on bounce to prevent chaos
                         }
-                        particle.x = Math.max(0, Math.min(width, particle.x))
-                        particle.y = Math.max(0, Math.min(height, particle.y))
+                        particle.x = Math.max(0, Math.min(previewWidth, particle.x))
+                        particle.y = Math.max(0, Math.min(previewHeight, particle.y))
                     }
                     
                     // Special behavior for lava lamp effect (direction "top")
                     if (config.move.direction === "top" && config.backdrop === "#1a0f0f") {
                         // Bubbles grow as they rise
-                        const heightRatio = 1 - (particle.y / height) // 0 at bottom, 1 at top
+                        const heightRatio = 1 - (particle.y / previewHeight) // 0 at bottom, 1 at top
                         particle.size = particle.originalSize * (0.6 + heightRatio * 0.8) // More dramatic growth
                         particle.opacity = 0.3 + heightRatio * 0.6 // More dramatic fade in
                         
@@ -862,7 +884,7 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
             if (animationRef.current) {
                 cancelAnimationFrame(animationRef.current)
             }
-            window.removeEventListener('resize', handleResize)
+            // Remove event listeners
             canvas.removeEventListener("mousemove", handleMouseMove)
             canvas.removeEventListener("mouseleave", handleMouseLeave)
         }
