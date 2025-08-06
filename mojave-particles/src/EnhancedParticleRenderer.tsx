@@ -169,35 +169,28 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                 const speedVariation = 0.6 + Math.random() * 0.8 // 0.6x to 1.4x speed for natural variation
                 const speed = baseSpeed * speedVariation
                 
-                // Handle snow preset specifically (has random: true)
-                if (config.move.direction === "bottom" && config.move.random) {
-                    // Snow preset with random movement
-                    vx = (Math.random() - 0.5) * speed * 0.5
-                    vy = speed + (Math.random() - 0.5) * speed * 0.3
-                } else {
-                    switch (config.move.direction) {
-                        case "top": 
-                            vy = -speed
-                            // Extremely minimal horizontal drift to prevent spinning
-                            vx = (Math.random() - 0.5) * 0.05
-                            break
-                        case "bottom": 
-                            vy = speed
-                            vx = (Math.random() - 0.5) * 0.05
-                            break
-                        case "left": 
-                            vx = -speed
-                            vy = (Math.random() - 0.5) * 0.05
-                            break
-                        case "right": 
-                            vx = speed
-                            vy = (Math.random() - 0.5) * 0.05
-                            break
-                        default:
-                            vx = (Math.random() - 0.5) * speed * 0.3
-                            vy = (Math.random() - 0.5) * speed * 0.3
-                            break
-                    }
+                switch (config.move.direction) {
+                    case "top": 
+                        vy = -speed
+                        // Extremely minimal horizontal drift to prevent spinning
+                        vx = (Math.random() - 0.5) * 0.05
+                        break
+                    case "bottom": 
+                        vy = speed
+                        vx = (Math.random() - 0.5) * 0.05
+                        break
+                    case "left": 
+                        vx = -speed
+                        vy = (Math.random() - 0.5) * 0.05
+                        break
+                    case "right": 
+                        vx = speed
+                        vy = (Math.random() - 0.5) * 0.05
+                        break
+                    default:
+                        vx = (Math.random() - 0.5) * speed * 0.3
+                        vy = (Math.random() - 0.5) * speed * 0.3
+                        break
                 }
 
 
@@ -389,11 +382,7 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                                 const speed = baseSpeed * speedVariation
                                 
                                 // Set proper velocities based on direction to prevent spinning
-                                if (config.move.direction === "bottom" && config.move.random) {
-                                    // Snow preset with random movement
-                                    particle.vx = (Math.random() - 0.5) * speed * 0.5
-                                    particle.vy = speed + (Math.random() - 0.5) * speed * 0.3
-                                } else if (config.move.direction === "top") {
+                                if (config.move.direction === "top") {
                                     particle.vx = (Math.random() - 0.5) * 0.05 // Extremely minimal horizontal drift
                                     particle.vy = -speed // Consistent upward movement
                                 } else if (config.move.direction === "bottom") {
