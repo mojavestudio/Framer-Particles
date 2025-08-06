@@ -881,7 +881,7 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
         <div style={{ 
             width: '100%', 
             height: `${previewHeight}px`,
-            maxWidth: '350px',
+            maxWidth: '280px',
             overflow: 'hidden',
             borderRadius: '6px',
             position: 'relative',
