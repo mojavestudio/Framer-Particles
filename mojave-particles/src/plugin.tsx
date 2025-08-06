@@ -1747,7 +1747,7 @@ export function App() {
             <div style={{ 
                 padding: '20px', 
                 width: '100%', 
-                maxWidth: '320px',
+                maxWidth: '260px',
                 margin: '0 auto',
                 opacity: showLoadingScreen ? 0 : 1,
                 transform: showLoadingScreen ? 'translateY(20px)' : 'translateY(0)',
