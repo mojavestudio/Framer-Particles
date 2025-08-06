@@ -297,28 +297,35 @@ export default function MojaveParticles(props) {
                 const speedVariation = 0.6 + Math.random() * 0.8 // 0.6x to 1.4x speed for natural variation
                 const speed = baseSpeed * speedVariation
                 
-                switch (move.direction) {
-                    case "top": 
-                        vy = -speed
-                        // Extremely minimal horizontal drift to prevent spinning
-                        vx = (Math.random() - 0.5) * 0.05
-                        break
-                    case "bottom": 
-                        vy = speed
-                        vx = (Math.random() - 0.5) * 0.05
-                        break
-                    case "left": 
-                        vx = -speed
-                        vy = (Math.random() - 0.5) * 0.05
-                        break
-                    case "right": 
-                        vx = speed
-                        vy = (Math.random() - 0.5) * 0.05
-                        break
-                    default:
-                        vx = (Math.random() - 0.5) * speed * 0.3
-                        vy = (Math.random() - 0.5) * speed * 0.3
-                        break
+                // Handle random movement setting
+                if (move.random) {
+                    // Random movement overrides direction
+                    vx = (Math.random() - 0.5) * speed * 2
+                    vy = (Math.random() - 0.5) * speed * 2
+                } else {
+                    switch (move.direction) {
+                        case "top": 
+                            vy = -speed
+                            // Extremely minimal horizontal drift to prevent spinning
+                            vx = (Math.random() - 0.5) * 0.05
+                            break
+                        case "bottom": 
+                            vy = speed
+                            vx = (Math.random() - 0.5) * 0.05
+                            break
+                        case "left": 
+                            vx = -speed
+                            vy = (Math.random() - 0.5) * 0.05
+                            break
+                        case "right": 
+                            vx = speed
+                            vy = (Math.random() - 0.5) * 0.05
+                            break
+                        default:
+                            vx = (Math.random() - 0.5) * speed * 0.3
+                            vy = (Math.random() - 0.5) * speed * 0.3
+                            break
+                    }
                 }
 
                 // Position particles for natural infinite streams
@@ -450,7 +457,11 @@ export default function MojaveParticles(props) {
                                 const speed = baseSpeed * speedVariation
                                 
                                 // Set proper velocities based on direction to prevent spinning
-                                if (move.direction === "top") {
+                                if (move.random) {
+                                    // Random movement overrides direction
+                                    particle.vx = (Math.random() - 0.5) * speed * 2
+                                    particle.vy = (Math.random() - 0.5) * speed * 2
+                                } else if (move.direction === "top") {
                                     particle.vx = (Math.random() - 0.5) * 0.05 // Extremely minimal horizontal drift
                                     particle.vy = -speed // Consistent upward movement
                                 } else if (move.direction === "bottom") {

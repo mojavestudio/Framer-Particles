@@ -169,28 +169,35 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                 const speedVariation = 0.6 + Math.random() * 0.8 // 0.6x to 1.4x speed for natural variation
                 const speed = baseSpeed * speedVariation
                 
-                switch (config.move.direction) {
-                    case "top": 
-                        vy = -speed
-                        // Extremely minimal horizontal drift to prevent spinning
-                        vx = (Math.random() - 0.5) * 0.05
-                        break
-                    case "bottom": 
-                        vy = speed
-                        vx = (Math.random() - 0.5) * 0.05
-                        break
-                    case "left": 
-                        vx = -speed
-                        vy = (Math.random() - 0.5) * 0.05
-                        break
-                    case "right": 
-                        vx = speed
-                        vy = (Math.random() - 0.5) * 0.05
-                        break
-                    default:
-                        vx = (Math.random() - 0.5) * speed * 0.3
-                        vy = (Math.random() - 0.5) * speed * 0.3
-                        break
+                // Handle random movement setting
+                if (config.move.random) {
+                    // Random movement overrides direction
+                    vx = (Math.random() - 0.5) * speed * 2
+                    vy = (Math.random() - 0.5) * speed * 2
+                } else {
+                    switch (config.move.direction) {
+                        case "top": 
+                            vy = -speed
+                            // Extremely minimal horizontal drift to prevent spinning
+                            vx = (Math.random() - 0.5) * 0.05
+                            break
+                        case "bottom": 
+                            vy = speed
+                            vx = (Math.random() - 0.5) * 0.05
+                            break
+                        case "left": 
+                            vx = -speed
+                            vy = (Math.random() - 0.5) * 0.05
+                            break
+                        case "right": 
+                            vx = speed
+                            vy = (Math.random() - 0.5) * 0.05
+                            break
+                        default:
+                            vx = (Math.random() - 0.5) * speed * 0.3
+                            vy = (Math.random() - 0.5) * speed * 0.3
+                            break
+                    }
                 }
 
 
