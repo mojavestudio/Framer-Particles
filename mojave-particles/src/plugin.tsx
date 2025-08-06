@@ -1741,7 +1741,10 @@ export function App() {
             background: 'var(--background)', 
             height: '100vh', 
             overflow: 'auto',
-            color: 'var(--text)'
+            color: 'var(--text)',
+            width: '100%',
+            maxWidth: '430px',
+            margin: '0 auto'
         }}>
             {showLoadingScreen && <LoadingScreen />}
             <div style={{ 
