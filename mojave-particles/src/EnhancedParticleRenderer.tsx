@@ -111,29 +111,18 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
         x: -1, y: -1, isHovering: false
     })
 
-    // Calculate preview dimensions - more compact for plugin interface
-    const maxPreviewWidth = 300 // Reduced from 400
-    const maxPreviewHeight = 200 // Reduced from 400
+    // Calculate preview dimensions
+    const maxPreviewSize = 400
     let previewWidth, previewHeight
     
     if (config.width > config.height) {
         // Landscape: cap width, scale height proportionally
-        previewWidth = Math.min(config.width, maxPreviewWidth)
+        previewWidth = Math.min(config.width, maxPreviewSize)
         previewHeight = (config.height / config.width) * previewWidth
-        // Ensure height doesn't exceed max
-        if (previewHeight > maxPreviewHeight) {
-            previewHeight = maxPreviewHeight
-            previewWidth = (config.width / config.height) * previewHeight
-        }
     } else {
         // Portrait or square: cap height, scale width proportionally
-        previewHeight = Math.min(config.height, maxPreviewHeight)
+        previewHeight = Math.min(config.height, maxPreviewSize)
         previewWidth = (config.width / config.height) * previewHeight
-        // Ensure width doesn't exceed max
-        if (previewWidth > maxPreviewWidth) {
-            previewWidth = maxPreviewWidth
-            previewHeight = (config.height / config.width) * previewWidth
-        }
     }
     
 
