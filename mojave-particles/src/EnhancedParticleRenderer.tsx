@@ -198,7 +198,9 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                 // Calculate particle size based on type (scaled for preview)
                 let particleSize: number
                 if (config.size.type === "Range") {
-                    particleSize = (Math.random() * (config.size.max - config.size.min) + config.size.min) * 0.4
+                    const baseSize = Math.random() * (config.size.max - config.size.min) + config.size.min
+                    // Use less aggressive scaling for small particles to keep them visible
+                    particleSize = baseSize < 10 ? baseSize * 0.8 : baseSize * 0.4
                 } else if (config.size.type === "Small") {
                     particleSize = (Math.random() * (50 - 1) + 1) * 0.4
                 } else if (config.size.type === "Medium") {
@@ -208,7 +210,9 @@ export function EnhancedLivePreview({ config }: { config: ParticleConfig }) {
                 } else if (config.size.type === "ExtraLarge") {
                     particleSize = (Math.random() * (1000 - 500) + 500) * 0.4
                 } else {
-                    particleSize = config.size.value * 0.4
+                    const baseSize = config.size.value
+                    // Use less aggressive scaling for small particles to keep them visible
+                    particleSize = baseSize < 10 ? baseSize * 0.8 : baseSize * 0.4
                 }
 
                 // Calculate particle opacity based on type (matching generated code)
